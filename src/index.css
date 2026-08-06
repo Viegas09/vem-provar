@@ -1,1 +1,26 @@
 @import "tailwindcss";
+
+* { box-sizing: border-box; }
+body { margin: 0; }
+
+@keyframes vp-pulse{0%,100%{opacity:.35}50%{opacity:1}}
+.vp-wrap{ max-width:1140px; margin:0 auto; padding:0 24px; }
+.vp-navlinks{ display:flex; align-items:center; gap:28px; }
+.vp-mobilebtn{ display:none; }
+.vp-mobilebtn-row{ display:none; align-items:center; gap:8px; }
+.vp-hero{ display:grid; grid-template-columns:1.08fr .92fr; gap:48px; align-items:center; }
+.vp-hero-art{ display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr; gap:14px; height:380px; }
+.vp-roles{ display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+.vp-tap{ transition:transform .12s, box-shadow .15s; }
+.vp-tap:hover{ transform:translateY(-3px); }
+button:focus-visible,a:focus-visible{ outline:2px solid #EE6C1A; outline-offset:2px; }
+.vp-scroll{ overflow-x:auto; scrollbar-width:none; } .vp-scroll::-webkit-scrollbar{display:none;}
+@media (max-width:860px){
+  .vp-navlinks{ display:none; }
+  .vp-mobilebtn{ display:grid; }
+  .vp-mobilebtn-row{ display:flex; }
+  .vp-hero{ grid-template-columns:1fr; gap:28px; }
+  .vp-hero-art{ height:260px; }
+  .vp-roles{ grid-template-columns:1fr; }
+}
+@media (prefers-reduced-motion:reduce){ *{animation:none!important} }

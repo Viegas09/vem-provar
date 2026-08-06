@@ -1,34 +1,14 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import {
-  MapPin, Star, Clock, Bike, Store, ArrowRight, Menu, X,
-  Pizza, Sandwich, Fish, Coffee, CakeSlice, Soup, Salad, CupSoda,
+  MapPin, Star, Clock, Bike, Store, ArrowRight,
   Flame, Heart, ChevronRight, AtSign, Smartphone,
 } from "lucide-react";
+import { C, FONT, WARM } from "../theme";
+import { CATS, HOOD, RESTAURANTS } from "../data/restaurants";
+import Header from "../components/Header";
 import WORDMARK_LIGHT from "../assets/wordmark-light.png";
-import WORDMARK_DARK from "../assets/wordmark-dark.png";
 
-/* ── Marca (Manual v1.0) ───────────────────────────── */
-const C = {
-  orange: "#EE6C1A",
-  orangeDark: "#D65E12",
-  black: "#141414",
-  white: "#FAFAF7",
-  gray: "#B8B2A6",
-  grayText: "#7C776D",
-  line: "rgba(20,20,20,0.09)",
-  surface: "#F1EEE8",
-  ok: "#2E9E5B",
-};
-
-const FONT = "'Poppins', ui-sans-serif, system-ui, sans-serif";
-
-const WARM = [
-  "linear-gradient(140deg,#F2A24E,#D65E12)",
-  "linear-gradient(140deg,#E8B04B,#C77A1E)",
-  "linear-gradient(140deg,#DE8A5A,#A85431)",
-  "linear-gradient(140deg,#EFC38A,#D98E3D)",
-  "linear-gradient(140deg,#E27A52,#B84A28)",
-];
 function FoodPhoto({ v = 0, icon: Icon, radius = 16, style }) {
   return (
     <div style={{ position: "relative", background: WARM[v % WARM.length], borderRadius: radius, overflow: "hidden", ...style }}>
@@ -38,88 +18,13 @@ function FoodPhoto({ v = 0, icon: Icon, radius = 16, style }) {
   );
 }
 
-const CATS = [
-  { label: "Pizza", icon: Pizza }, { label: "Lanches", icon: Sandwich },
-  { label: "Japonês", icon: Fish }, { label: "Café", icon: Coffee },
-  { label: "Doces", icon: CakeSlice }, { label: "Marmita", icon: Soup },
-  { label: "Saudável", icon: Salad }, { label: "Bebidas", icon: CupSoda },
-];
-const HOOD = [
-  { dish: "Pizza Margherita", rest: "Pizzaria do Bairro", tag: "18 pediram hoje", v: 0 },
-  { dish: "Smash Duplo", rest: "Burguer da Serra", tag: "Bruno +3 recomendam", v: 4 },
-  { dish: "Combo Temaki", rest: "Sushi Ita", tag: "12 pediram hoje", v: 2 },
-  { dish: "Açaí 500ml", rest: "Açaí do Ponto", tag: "novo perto de você", v: 3 },
-];
-const RESTS = [
-  { name: "Pizzaria do Bairro", cat: "Pizza · Italiana", rating: 4.8, time: "30–40", fee: "Grátis", free: true, v: 0 },
-  { name: "Burguer da Serra", cat: "Lanches · Hambúrguer", rating: 4.7, time: "25–35", fee: "R$ 4,99", free: false, v: 4 },
-  { name: "Café Colina", cat: "Café · Padaria", rating: 4.9, time: "15–25", fee: "Grátis", free: true, v: 3 },
-  { name: "Sushi Ita", cat: "Japonês · Sushi", rating: 4.8, time: "40–50", fee: "R$ 6,90", free: false, v: 2 },
-];
-
 export default function Home() {
   const [addr, setAddr] = useState("");
-  const [menuOpen, setMenuOpen] = useState(false);
   const [likes, setLikes] = useState({});
 
   return (
     <div style={{ fontFamily: FONT, background: C.white, color: C.black, minHeight: 800 }}>
-      <style>{`
-        * { box-sizing: border-box; }
-        @keyframes vp-pulse{0%,100%{opacity:.35}50%{opacity:1}}
-        .vp-wrap{ max-width:1140px; margin:0 auto; padding:0 24px; }
-        .vp-navlinks{ display:flex; align-items:center; gap:28px; }
-        .vp-mobilebtn{ display:none; }
-        .vp-hero{ display:grid; grid-template-columns:1.08fr .92fr; gap:48px; align-items:center; }
-        .vp-hero-art{ display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr; gap:14px; height:380px; }
-        .vp-roles{ display:grid; grid-template-columns:1fr 1fr; gap:20px; }
-        .vp-tap{ transition:transform .12s, box-shadow .15s; }
-        .vp-tap:hover{ transform:translateY(-3px); }
-        button:focus-visible,a:focus-visible{ outline:2px solid ${C.orange}; outline-offset:2px; }
-        .vp-scroll{ overflow-x:auto; scrollbar-width:none; } .vp-scroll::-webkit-scrollbar{display:none;}
-        @media (max-width:860px){
-          .vp-navlinks{ display:none; }
-          .vp-mobilebtn{ display:grid; }
-          .vp-hero{ grid-template-columns:1fr; gap:28px; }
-          .vp-hero-art{ height:260px; }
-          .vp-roles{ grid-template-columns:1fr; }
-        }
-        @media (prefers-reduced-motion:reduce){ *{animation:none!important} }
-      `}</style>
-
-      {/* ── Header portal ── */}
-      <header style={{ position: "sticky", top: 0, zIndex: 30, background: "rgba(250,250,247,.92)",
-                       backdropFilter: "blur(8px)", borderBottom: `1px solid ${C.line}` }}>
-        <div className="vp-wrap" style={{ height: 72, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <a href="#" className="flex items-center gap-2" style={{ textDecoration: "none" }}>
-            <img src={WORDMARK_DARK} alt="Vem Provar" style={{ height: 44, width: "auto", display: "block" }} draggable={false} />
-          </a>
-
-          <nav className="vp-navlinks">
-            <a href="#entregador" style={{ color: C.black, textDecoration: "none", fontSize: 14.5, fontWeight: 500 }}>Seja entregador</a>
-            <a href="#restaurante" style={{ color: C.black, textDecoration: "none", fontSize: 14.5, fontWeight: 500 }}>Cadastre seu restaurante</a>
-            <span style={{ width: 1, height: 22, background: C.line }} />
-            <a href="#entrar" style={{ color: C.orange, textDecoration: "none", fontSize: 14.5, fontWeight: 600 }}>Criar conta</a>
-            <a href="#entrar" style={{ background: C.orange, color: "#fff", textDecoration: "none",
-                 fontSize: 14.5, fontWeight: 600, padding: "10px 22px", borderRadius: 10 }}>Entrar</a>
-          </nav>
-
-          <button className="vp-mobilebtn" onClick={() => setMenuOpen(!menuOpen)}
-            style={{ width: 42, height: 42, borderRadius: 10, border: `1px solid ${C.line}`, background: "#fff",
-                     placeItems: "center", cursor: "pointer" }}>
-            {menuOpen ? <X size={20} /> : <Menu size={20} />}
-          </button>
-        </div>
-        {menuOpen && (
-          <div className="vp-wrap" style={{ paddingBottom: 16, display: "flex", flexDirection: "column", gap: 4 }}>
-            {["Seja entregador", "Cadastre seu restaurante", "Criar conta"].map((t) => (
-              <a key={t} href="#" style={{ padding: "11px 4px", color: C.black, textDecoration: "none", fontSize: 15, fontWeight: 500, borderBottom: `1px solid ${C.line}` }}>{t}</a>
-            ))}
-            <a href="#entrar" style={{ marginTop: 8, background: C.orange, color: "#fff", textAlign: "center",
-                 textDecoration: "none", fontSize: 15, fontWeight: 600, padding: "12px 0", borderRadius: 10 }}>Entrar</a>
-          </div>
-        )}
-      </header>
+      <Header />
 
       {/* ── Hero: pedir comida ── */}
       <section className="vp-wrap" style={{ padding: "56px 24px 40px" }}>
@@ -145,11 +50,11 @@ export default function Home() {
                   placeholder="Digite seu endereço"
                   style={{ border: "none", outline: "none", flex: 1, fontFamily: FONT, fontSize: 15, background: "transparent", color: C.black }} />
               </div>
-              <button className="flex items-center justify-center gap-2"
+              <a href="#restaurantes" className="flex items-center justify-center gap-2"
                 style={{ background: C.orange, color: "#fff", border: "none", cursor: "pointer", borderRadius: 12,
-                         padding: "0 26px", minHeight: 54, fontFamily: FONT, fontSize: 15.5, fontWeight: 600 }}>
+                         padding: "0 26px", minHeight: 54, fontFamily: FONT, fontSize: 15.5, fontWeight: 600, textDecoration: "none" }}>
                 Ver restaurantes <ArrowRight size={18} />
-              </button>
+              </a>
             </div>
             <div className="flex items-center gap-2" style={{ marginTop: 14, color: C.grayText, fontSize: 13 }}>
               <Bike size={15} color={C.ok} /> Entrega rápida na sua região · pague com Pix
@@ -158,9 +63,9 @@ export default function Home() {
 
           {/* colagem de fotos (produto: fotos reais dos pratos) */}
           <div className="vp-hero-art">
-            <FoodPhoto v={0} icon={Pizza} style={{ gridRow: "span 2" }} />
-            <FoodPhoto v={4} icon={Sandwich} />
-            <FoodPhoto v={2} icon={Fish} />
+            <FoodPhoto v={0} icon={CATS[0].icon} style={{ gridRow: "span 2" }} />
+            <FoodPhoto v={4} icon={CATS[1].icon} />
+            <FoodPhoto v={2} icon={CATS[2].icon} />
           </div>
         </div>
       </section>
@@ -192,7 +97,7 @@ export default function Home() {
             <h2 style={{ fontSize: 22, fontWeight: 700, margin: 0, letterSpacing: -.4 }}>Tá bombando na vizinhança</h2>
             <span style={{ width: 8, height: 8, borderRadius: 999, background: C.orange, animation: "vp-pulse 1.4s ease-in-out infinite" }} />
           </div>
-          <a href="#" className="flex items-center" style={{ color: C.orange, textDecoration: "none", fontSize: 14, fontWeight: 600 }}>
+          <a href="#restaurantes" className="flex items-center" style={{ color: C.orange, textDecoration: "none", fontSize: 14, fontWeight: 600 }}>
             Ver tudo <ChevronRight size={17} />
           </a>
         </div>
@@ -220,13 +125,13 @@ export default function Home() {
       </section>
 
       {/* ── Restaurantes ── */}
-      <section className="vp-wrap" style={{ padding: "34px 24px 20px" }}>
+      <section id="restaurantes" className="vp-wrap" style={{ padding: "34px 24px 20px" }}>
         <h2 style={{ fontSize: 22, fontWeight: 700, margin: "0 0 18px", letterSpacing: -.4 }}>Restaurantes perto de você</h2>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 16 }}>
-          {RESTS.map((r, i) => (
-            <div key={i} className="vp-tap flex" style={{ gap: 14, padding: 14, background: "#fff",
-                 border: `1px solid ${C.line}`, borderRadius: 16, cursor: "pointer" }}>
-              <FoodPhoto v={r.v} icon={CATS[i].icon} style={{ width: 88, height: 88, flexShrink: 0 }} />
+          {RESTAURANTS.map((r) => (
+            <Link key={r.slug} to={`/restaurante/${r.slug}`} className="vp-tap flex" style={{ gap: 14, padding: 14, background: "#fff",
+                 border: `1px solid ${C.line}`, borderRadius: 16, cursor: "pointer", textDecoration: "none", color: "inherit" }}>
+              <FoodPhoto v={r.v} icon={r.icon} style={{ width: 88, height: 88, flexShrink: 0 }} />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 16, fontWeight: 600 }}>{r.name}</div>
                 <div style={{ fontSize: 13, color: C.grayText, marginTop: 2 }}>{r.cat}</div>
@@ -242,7 +147,7 @@ export default function Home() {
                   </span>
                 </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </section>

@@ -1,0 +1,36 @@
+import { Link, useLocation, Navigate } from "react-router-dom";
+import { CheckCircle2 } from "lucide-react";
+import { C, FONT, formatBRL } from "../theme";
+import Header from "../components/Header";
+
+export default function OrderConfirmation() {
+  const { state } = useLocation();
+
+  if (!state) return <Navigate to="/" replace />;
+
+  const { orderNumber, total, payment } = state;
+  const paymentLabel = { pix: "Pix", card: "Cartão na entrega", cash: "Dinheiro" }[payment] || payment;
+
+  return (
+    <div style={{ fontFamily: FONT, background: C.white, color: C.black, minHeight: "100vh" }}>
+      <Header />
+
+      <section className="vp-wrap" style={{ padding: "60px 24px", maxWidth: 480, textAlign: "center" }}>
+        <CheckCircle2 size={56} color={C.ok} style={{ margin: "0 auto 18px" }} />
+        <h1 style={{ fontSize: 24, fontWeight: 700, margin: "0 0 8px" }}>Pedido confirmado!</h1>
+        <p style={{ fontSize: 15, color: C.grayText, margin: "0 0 28px" }}>
+          Pedido #{orderNumber} · {formatBRL(total)} · {paymentLabel}
+        </p>
+        <div style={{ background: C.surface, borderRadius: 16, padding: "20px 24px", marginBottom: 28 }}>
+          <p style={{ fontSize: 14.5, margin: 0, lineHeight: 1.6 }}>
+            O restaurante já recebeu seu pedido e vai começar o preparo. Tempo estimado de entrega: 30–40 min.
+          </p>
+        </div>
+        <Link to="/" style={{ display: "inline-block", background: C.orange, color: "#fff", textDecoration: "none",
+             fontSize: 15, fontWeight: 600, padding: "13px 28px", borderRadius: 12 }}>
+          Voltar para o início
+        </Link>
+      </section>
+    </div>
+  );
+}
