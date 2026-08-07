@@ -1,13 +1,21 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
-import { Menu, X, ShoppingCart } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Menu, X, ShoppingCart, User } from "lucide-react";
 import { C } from "../theme";
 import { useCart } from "../context/CartContext";
+import { useAuth } from "../context/AuthContext";
 import WORDMARK_DARK from "../assets/wordmark-dark.png";
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const { totalItems } = useCart();
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+
+  async function handleSignOut() {
+    await signOut();
+    navigate("/");
+  }
 
   return (
     <header style={{ position: "sticky", top: 0, zIndex: 30, background: "rgba(250,250,247,.92)",
@@ -31,12 +39,25 @@ export default function Header() {
               </span>
             )}
           </Link>
-          <a href="#entrar" style={{ color: C.orange, textDecoration: "none", fontSize: 14.5, fontWeight: 600 }}>Criar conta</a>
-          <a href="#entrar" style={{ background: C.orange, color: "#fff", textDecoration: "none",
-               fontSize: 14.5, fontWeight: 600, padding: "10px 22px", borderRadius: 10 }}>Entrar</a>
+          {user ? (
+            <>
+              <span className="flex items-center gap-1" style={{ color: C.black, fontSize: 14.5, fontWeight: 500 }}>
+                <User size={16} /> {user.user_metadata?.full_name?.split(" ")[0] || "Você"}
+              </span>
+              <button onClick={handleSignOut}
+                style={{ background: "none", border: `1px solid ${C.line}`, color: C.black, textDecoration: "none",
+                         fontSize: 13.5, fontWeight: 600, padding: "9px 16px", borderRadius: 10, cursor: "pointer" }}>
+                Sair
+              </button>
+            </>
+          ) : (
+            <>
+              <Link to="/criar-conta" style={{ color: C.orange, textDecoration: "none", fontSize: 14.5, fontWeight: 600 }}>Criar conta</Link>
+              <Link to="/entrar" style={{ background: C.orange, color: "#fff", textDecoration: "none",
+                   fontSize: 14.5, fontWeight: 600, padding: "10px 22px", borderRadius: 10 }}>Entrar</Link>
+            </>
+          )}
         </nav>
-
-        <div className="flex items-center gap-3" style={{ display: "none" }} />
 
         <div className="vp-mobilebtn-row">
           <Link to="/carrinho" style={{ position: "relative", color: C.black, display: "grid", placeItems: "center",
@@ -59,11 +80,26 @@ export default function Header() {
       </div>
       {menuOpen && (
         <div className="vp-wrap" style={{ paddingBottom: 16, display: "flex", flexDirection: "column", gap: 4 }}>
-          {["Seja entregador", "Cadastre seu restaurante", "Criar conta"].map((t) => (
-            <a key={t} href="#" style={{ padding: "11px 4px", color: C.black, textDecoration: "none", fontSize: 15, fontWeight: 500, borderBottom: `1px solid ${C.line}` }}>{t}</a>
-          ))}
-          <a href="#entrar" style={{ marginTop: 8, background: C.orange, color: "#fff", textAlign: "center",
-               textDecoration: "none", fontSize: 15, fontWeight: 600, padding: "12px 0", borderRadius: 10 }}>Entrar</a>
+          <a href="#entregador" onClick={() => setMenuOpen(false)} style={{ padding: "11px 4px", color: C.black, textDecoration: "none", fontSize: 15, fontWeight: 500, borderBottom: `1px solid ${C.line}` }}>Seja entregador</a>
+          <a href="#restaurante" onClick={() => setMenuOpen(false)} style={{ padding: "11px 4px", color: C.black, textDecoration: "none", fontSize: 15, fontWeight: 500, borderBottom: `1px solid ${C.line}` }}>Cadastre seu restaurante</a>
+          {user ? (
+            <>
+              <div style={{ padding: "11px 4px", color: C.black, fontSize: 15, fontWeight: 500, borderBottom: `1px solid ${C.line}` }}>
+                Olá, {user.user_metadata?.full_name?.split(" ")[0] || "você"}
+              </div>
+              <button onClick={() => { setMenuOpen(false); handleSignOut(); }}
+                style={{ marginTop: 8, background: "none", border: `1px solid ${C.line}`, color: C.black, textAlign: "center",
+                         fontSize: 15, fontWeight: 600, padding: "12px 0", borderRadius: 10, cursor: "pointer" }}>
+                Sair
+              </button>
+            </>
+          ) : (
+            <>
+              <Link to="/criar-conta" onClick={() => setMenuOpen(false)} style={{ padding: "11px 4px", color: C.black, textDecoration: "none", fontSize: 15, fontWeight: 500, borderBottom: `1px solid ${C.line}` }}>Criar conta</Link>
+              <Link to="/entrar" onClick={() => setMenuOpen(false)} style={{ marginTop: 8, background: C.orange, color: "#fff", textAlign: "center",
+                   textDecoration: "none", fontSize: 15, fontWeight: 600, padding: "12px 0", borderRadius: 10 }}>Entrar</Link>
+            </>
+          )}
         </div>
       )}
     </header>

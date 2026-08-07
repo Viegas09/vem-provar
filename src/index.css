@@ -4,6 +4,8 @@
 body { margin: 0; }
 
 @keyframes vp-pulse{0%,100%{opacity:.35}50%{opacity:1}}
+@keyframes vp-spin{to{transform:rotate(360deg)}}
+.vp-spin{ animation:vp-spin 0.8s linear infinite; }
 .vp-wrap{ max-width:1140px; margin:0 auto; padding:0 24px; }
 .vp-navlinks{ display:flex; align-items:center; gap:28px; }
 .vp-mobilebtn{ display:none; }
