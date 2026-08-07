@@ -1,15 +1,15 @@
 import { Link, useNavigate } from "react-router-dom";
 import { Plus, Minus, ShoppingBag, ArrowRight } from "lucide-react";
 import { C, FONT, formatBRL } from "../theme";
-import { getRestaurantBySlug } from "../data/restaurants";
+import { useRestaurant } from "../hooks/useRestaurant";
 import { useCart } from "../context/CartContext";
 import Header from "../components/Header";
 
 export default function Cart() {
   const navigate = useNavigate();
   const { cart, updateQty, subtotal } = useCart();
-  const restaurant = cart.restaurantSlug ? getRestaurantBySlug(cart.restaurantSlug) : null;
-  const deliveryFee = restaurant?.feeValue ?? 0;
+  const { restaurant } = useRestaurant(cart.restaurantSlug);
+  const deliveryFee = restaurant ? Number(restaurant.delivery_fee) : 0;
   const total = subtotal + deliveryFee;
 
   return (

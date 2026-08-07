@@ -5,9 +5,12 @@ import {
   Flame, Heart, ChevronRight, AtSign, Smartphone,
 } from "lucide-react";
 import { C, FONT, WARM } from "../theme";
-import { CATS, HOOD, RESTAURANTS } from "../data/restaurants";
+import { CATS, ICONS } from "../data/icons";
+import { useRestaurants } from "../hooks/useRestaurants";
 import Header from "../components/Header";
 import WORDMARK_LIGHT from "../assets/wordmark-light.png";
+
+const HOOD_TAGS = ["pediram hoje", "recomendam", "novo perto de você", "em alta"];
 
 function FoodPhoto({ v = 0, icon: Icon, radius = 16, style }) {
   return (
@@ -21,6 +24,18 @@ function FoodPhoto({ v = 0, icon: Icon, radius = 16, style }) {
 export default function Home() {
   const [addr, setAddr] = useState("");
   const [likes, setLikes] = useState({});
+  const { restaurants, loading, error } = useRestaurants();
+
+  const highlights = restaurants
+    .filter((r) => r.menu_items?.length > 0)
+    .slice(0, 4)
+    .map((r, i) => ({
+      dish: r.menu_items[0].name,
+      rest: r.name,
+      v: r.menu_items[0].color_variant,
+      icon: ICONS[r.icon_key] || Store,
+      tag: HOOD_TAGS[i % HOOD_TAGS.length],
+    }));
 
   return (
     <div style={{ fontFamily: FONT, background: C.white, color: C.black, minHeight: 800 }}>
@@ -89,67 +104,82 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── Tá bombando na vizinhança (diferencial) ── */}
-      <section className="vp-wrap" style={{ padding: "34px 24px 8px" }}>
-        <div className="flex items-center justify-between" style={{ marginBottom: 18 }}>
-          <div className="flex items-center gap-2">
-            <Flame size={20} color={C.orange} fill={C.orange} />
-            <h2 style={{ fontSize: 22, fontWeight: 700, margin: 0, letterSpacing: -.4 }}>Tá bombando na vizinhança</h2>
-            <span style={{ width: 8, height: 8, borderRadius: 999, background: C.orange, animation: "vp-pulse 1.4s ease-in-out infinite" }} />
+      {error && (
+        <section className="vp-wrap" style={{ padding: "24px" }}>
+          <div style={{ background: "#FDECEC", color: "#B42318", borderRadius: 12, padding: 16, fontSize: 14 }}>
+            Não foi possível carregar os restaurantes agora. Tente atualizar a página.
           </div>
-          <a href="#restaurantes" className="flex items-center" style={{ color: C.orange, textDecoration: "none", fontSize: 14, fontWeight: 600 }}>
-            Ver tudo <ChevronRight size={17} />
-          </a>
-        </div>
-        <div className="vp-scroll" style={{ display: "flex", gap: 18 }}>
-          {HOOD.map((h, i) => (
-            <div key={i} className="vp-tap" style={{ width: 220, flexShrink: 0, cursor: "pointer",
-                 background: "#fff", border: `1px solid ${C.line}`, borderRadius: 18, overflow: "hidden" }}>
-              <div style={{ position: "relative" }}>
-                <FoodPhoto v={h.v} icon={CATS[i].icon} radius={0} style={{ height: 130 }} />
-                <button onClick={() => setLikes((l) => ({ ...l, [i]: !l[i] }))}
-                  style={{ position: "absolute", top: 10, right: 10, width: 34, height: 34, borderRadius: 999,
-                           background: "rgba(255,255,255,.94)", border: "none", cursor: "pointer", display: "grid", placeItems: "center" }}>
-                  <Heart size={17} color={likes[i] ? C.orange : C.grayText} fill={likes[i] ? C.orange : "none"} />
-                </button>
-              </div>
-              <div style={{ padding: "12px 14px 14px" }}>
-                <div style={{ fontSize: 15, fontWeight: 600 }}>{h.dish}</div>
-                <div style={{ fontSize: 12.5, color: C.grayText, marginTop: 1 }}>{h.rest}</div>
-                <span style={{ display: "inline-block", marginTop: 10, fontSize: 11.5, fontWeight: 600, color: C.orange,
-                               background: "rgba(238,108,26,.1)", padding: "4px 9px", borderRadius: 8 }}>{h.tag}</span>
-              </div>
+        </section>
+      )}
+
+      {!error && highlights.length > 0 && (
+        <section className="vp-wrap" style={{ padding: "34px 24px 8px" }}>
+          <div className="flex items-center justify-between" style={{ marginBottom: 18 }}>
+            <div className="flex items-center gap-2">
+              <Flame size={20} color={C.orange} fill={C.orange} />
+              <h2 style={{ fontSize: 22, fontWeight: 700, margin: 0, letterSpacing: -.4 }}>Tá bombando na vizinhança</h2>
+              <span style={{ width: 8, height: 8, borderRadius: 999, background: C.orange, animation: "vp-pulse 1.4s ease-in-out infinite" }} />
             </div>
-          ))}
-        </div>
-      </section>
+            <a href="#restaurantes" className="flex items-center" style={{ color: C.orange, textDecoration: "none", fontSize: 14, fontWeight: 600 }}>
+              Ver tudo <ChevronRight size={17} />
+            </a>
+          </div>
+          <div className="vp-scroll" style={{ display: "flex", gap: 18 }}>
+            {highlights.map((h, i) => (
+              <div key={i} className="vp-tap" style={{ width: 220, flexShrink: 0, cursor: "pointer",
+                   background: "#fff", border: `1px solid ${C.line}`, borderRadius: 18, overflow: "hidden" }}>
+                <div style={{ position: "relative" }}>
+                  <FoodPhoto v={h.v} icon={h.icon} radius={0} style={{ height: 130 }} />
+                  <button onClick={() => setLikes((l) => ({ ...l, [i]: !l[i] }))}
+                    style={{ position: "absolute", top: 10, right: 10, width: 34, height: 34, borderRadius: 999,
+                             background: "rgba(255,255,255,.94)", border: "none", cursor: "pointer", display: "grid", placeItems: "center" }}>
+                    <Heart size={17} color={likes[i] ? C.orange : C.grayText} fill={likes[i] ? C.orange : "none"} />
+                  </button>
+                </div>
+                <div style={{ padding: "12px 14px 14px" }}>
+                  <div style={{ fontSize: 15, fontWeight: 600 }}>{h.dish}</div>
+                  <div style={{ fontSize: 12.5, color: C.grayText, marginTop: 1 }}>{h.rest}</div>
+                  <span style={{ display: "inline-block", marginTop: 10, fontSize: 11.5, fontWeight: 600, color: C.orange,
+                                 background: "rgba(238,108,26,.1)", padding: "4px 9px", borderRadius: 8 }}>{h.tag}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* ── Restaurantes ── */}
       <section id="restaurantes" className="vp-wrap" style={{ padding: "34px 24px 20px" }}>
         <h2 style={{ fontSize: 22, fontWeight: 700, margin: "0 0 18px", letterSpacing: -.4 }}>Restaurantes perto de você</h2>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 16 }}>
-          {RESTAURANTS.map((r) => (
-            <Link key={r.slug} to={`/restaurante/${r.slug}`} className="vp-tap flex" style={{ gap: 14, padding: 14, background: "#fff",
-                 border: `1px solid ${C.line}`, borderRadius: 16, cursor: "pointer", textDecoration: "none", color: "inherit" }}>
-              <FoodPhoto v={r.v} icon={r.icon} style={{ width: 88, height: 88, flexShrink: 0 }} />
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 16, fontWeight: 600 }}>{r.name}</div>
-                <div style={{ fontSize: 13, color: C.grayText, marginTop: 2 }}>{r.cat}</div>
-                <div className="flex items-center gap-3" style={{ marginTop: 12 }}>
-                  <span className="flex items-center gap-1" style={{ fontSize: 13, fontWeight: 600 }}>
-                    <Star size={14} fill={C.orange} color={C.orange} /> {r.rating.toLocaleString("pt-BR")}
-                  </span>
-                  <span className="flex items-center gap-1" style={{ fontSize: 13, color: C.grayText }}>
-                    <Clock size={14} /> {r.time} min
-                  </span>
-                  <span className="flex items-center gap-1" style={{ fontSize: 13, fontWeight: r.free ? 600 : 500, color: r.free ? C.ok : C.grayText }}>
-                    <Bike size={14} /> {r.fee}
-                  </span>
+        {loading ? (
+          <p style={{ color: C.grayText, fontSize: 14.5 }}>Carregando restaurantes…</p>
+        ) : !error && restaurants.length === 0 ? (
+          <p style={{ color: C.grayText, fontSize: 14.5 }}>Nenhum restaurante cadastrado ainda.</p>
+        ) : (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 16 }}>
+            {restaurants.map((r) => (
+              <Link key={r.slug} to={`/restaurante/${r.slug}`} className="vp-tap flex" style={{ gap: 14, padding: 14, background: "#fff",
+                   border: `1px solid ${C.line}`, borderRadius: 16, cursor: "pointer", textDecoration: "none", color: "inherit" }}>
+                <FoodPhoto v={r.color_variant} icon={ICONS[r.icon_key] || Store} style={{ width: 88, height: 88, flexShrink: 0 }} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 16, fontWeight: 600 }}>{r.name}</div>
+                  <div style={{ fontSize: 13, color: C.grayText, marginTop: 2 }}>{r.category}</div>
+                  <div className="flex items-center gap-3" style={{ marginTop: 12 }}>
+                    <span className="flex items-center gap-1" style={{ fontSize: 13, fontWeight: 600 }}>
+                      <Star size={14} fill={C.orange} color={C.orange} /> {Number(r.rating).toLocaleString("pt-BR")}
+                    </span>
+                    <span className="flex items-center gap-1" style={{ fontSize: 13, color: C.grayText }}>
+                      <Clock size={14} /> {r.delivery_time} min
+                    </span>
+                    <span className="flex items-center gap-1" style={{ fontSize: 13, fontWeight: r.delivery_fee === 0 ? 600 : 500, color: r.delivery_fee === 0 ? C.ok : C.grayText }}>
+                      <Bike size={14} /> {r.delivery_fee === 0 ? "Grátis" : `R$ ${Number(r.delivery_fee).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            </Link>
-          ))}
-        </div>
+              </Link>
+            ))}
+          </div>
+        )}
       </section>
 
       {/* ── Faixa de papéis (peça de marca, fundo preto) ── */}

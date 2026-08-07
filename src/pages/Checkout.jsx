@@ -2,8 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { MapPin, CreditCard, QrCode, Banknote } from "lucide-react";
 import { C, FONT, formatBRL } from "../theme";
-import { getRestaurantBySlug } from "../data/restaurants";
+import { useRestaurant } from "../hooks/useRestaurant";
 import { useCart } from "../context/CartContext";
+import { createOrder } from "../data/queries";
 import Header from "../components/Header";
 
 const PAYMENT_METHODS = [
@@ -15,12 +16,14 @@ const PAYMENT_METHODS = [
 export default function Checkout() {
   const navigate = useNavigate();
   const { cart, subtotal, clearCart } = useCart();
-  const restaurant = cart.restaurantSlug ? getRestaurantBySlug(cart.restaurantSlug) : null;
-  const deliveryFee = restaurant?.feeValue ?? 0;
+  const { restaurant } = useRestaurant(cart.restaurantSlug);
+  const deliveryFee = restaurant ? Number(restaurant.delivery_fee) : 0;
   const total = subtotal + deliveryFee;
 
   const [address, setAddress] = useState("");
   const [payment, setPayment] = useState("pix");
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState(null);
   const submittedRef = useRef(false);
 
   useEffect(() => {
@@ -29,13 +32,28 @@ export default function Checkout() {
 
   if (cart.items.length === 0 && !submittedRef.current) return null;
 
-  function handleConfirm(e) {
+  async function handleConfirm(e) {
     e.preventDefault();
-    if (!address.trim()) return;
-    const orderNumber = Math.floor(1000 + Math.random() * 9000);
-    submittedRef.current = true;
-    clearCart();
-    navigate("/pedido-confirmado", { state: { orderNumber, total, payment } });
+    if (!address.trim() || !restaurant) return;
+    setSubmitting(true);
+    setSubmitError(null);
+    try {
+      const order = await createOrder({
+        restaurantId: restaurant.id,
+        address,
+        paymentMethod: payment,
+        subtotal,
+        deliveryFee,
+        total,
+        items: cart.items,
+      });
+      submittedRef.current = true;
+      clearCart();
+      navigate("/pedido-confirmado", { state: { orderNumber: order.id.slice(0, 8), total, payment } });
+    } catch (err) {
+      setSubmitError("Não foi possível confirmar o pedido. Tente novamente.");
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -86,10 +104,17 @@ export default function Checkout() {
           </div>
         </div>
 
-        <button type="submit"
-          style={{ width: "100%", background: C.orange, color: "#fff", border: "none", cursor: "pointer",
-                   borderRadius: 12, padding: "15px 0", fontFamily: FONT, fontSize: 15.5, fontWeight: 600 }}>
-          Confirmar pedido
+        {submitError && (
+          <div style={{ background: "#FDECEC", color: "#B42318", borderRadius: 12, padding: 14, fontSize: 14, marginBottom: 16 }}>
+            {submitError}
+          </div>
+        )}
+
+        <button type="submit" disabled={submitting}
+          style={{ width: "100%", background: submitting ? C.gray : C.orange, color: "#fff", border: "none",
+                   cursor: submitting ? "default" : "pointer", borderRadius: 12, padding: "15px 0", fontFamily: FONT,
+                   fontSize: 15.5, fontWeight: 600 }}>
+          {submitting ? "Confirmando…" : "Confirmar pedido"}
         </button>
       </form>
     </div>
