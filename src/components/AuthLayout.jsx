@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
-import { Pizza, Sandwich, Coffee, Fish, Heart } from "lucide-react";
+import { Pizza, Sandwich, Coffee, Fish, Heart, X } from "lucide-react";
 import { C, FONT } from "../theme";
-import WORDMARK_LIGHT from "../assets/wordmark-light.png";
+import WORDMARK_ONORANGE from "../assets/wordmark-onorange.png";
 
 const FLOAT_ICONS = [
   { Icon: Pizza, top: "10%", right: "8%", size: 30 },
@@ -12,12 +12,18 @@ const FLOAT_ICONS = [
 
 export default function AuthLayout({ title, subtitle, children }) {
   return (
-    <div style={{ fontFamily: FONT, minHeight: "100vh", display: "grid", gridTemplateColumns: "1fr" }} className="vp-auth-grid">
+    <div style={{ fontFamily: FONT, minHeight: "100vh", display: "grid", gridTemplateColumns: "1fr", position: "relative" }} className="vp-auth-grid">
+      <Link to="/" aria-label="Fechar" title="Voltar para a home"
+        style={{ position: "fixed", top: 18, right: 18, zIndex: 40, width: 38, height: 38, borderRadius: 999,
+                 background: "#fff", border: `1px solid ${C.line}`, display: "grid", placeItems: "center",
+                 boxShadow: "0 2px 8px rgba(0,0,0,.12)" }}>
+        <X size={18} color={C.black} />
+      </Link>
       <div style={{ background: `linear-gradient(160deg, ${C.orange}, ${C.orangeDark})`, position: "relative",
                    overflow: "hidden", padding: "40px 40px", display: "flex", flexDirection: "column",
                    justifyContent: "space-between", minHeight: 260 }}>
         <Link to="/">
-          <img src={WORDMARK_LIGHT} alt="Vem Provar" style={{ height: 40, width: "auto" }} draggable={false} />
+          <img src={WORDMARK_ONORANGE} alt="Vem Provar" style={{ height: 48, width: "auto" }} draggable={false} />
         </Link>
 
         <div className="vp-auth-icons">
