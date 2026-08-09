@@ -27,7 +27,7 @@ export default function Header() {
 
         <nav className="vp-navlinks">
           <a href="#entregador" style={{ color: C.black, textDecoration: "none", fontSize: 14.5, fontWeight: 500 }}>Seja entregador</a>
-          <a href="#restaurante" style={{ color: C.black, textDecoration: "none", fontSize: 14.5, fontWeight: 500 }}>Cadastre seu restaurante</a>
+          <Link to="/cadastro-restaurante" style={{ color: C.black, textDecoration: "none", fontSize: 14.5, fontWeight: 500 }}>Cadastre seu restaurante</Link>
           <span style={{ width: 1, height: 22, background: C.line }} />
           <Link to="/carrinho" className="flex items-center gap-1" style={{ position: "relative", color: C.black, textDecoration: "none" }}>
             <ShoppingCart size={20} />
@@ -81,7 +81,7 @@ export default function Header() {
       {menuOpen && (
         <div className="vp-wrap" style={{ paddingBottom: 16, display: "flex", flexDirection: "column", gap: 4 }}>
           <a href="#entregador" onClick={() => setMenuOpen(false)} style={{ padding: "11px 4px", color: C.black, textDecoration: "none", fontSize: 15, fontWeight: 500, borderBottom: `1px solid ${C.line}` }}>Seja entregador</a>
-          <a href="#restaurante" onClick={() => setMenuOpen(false)} style={{ padding: "11px 4px", color: C.black, textDecoration: "none", fontSize: 15, fontWeight: 500, borderBottom: `1px solid ${C.line}` }}>Cadastre seu restaurante</a>
+          <Link to="/cadastro-restaurante" onClick={() => setMenuOpen(false)} style={{ padding: "11px 4px", color: C.black, textDecoration: "none", fontSize: 15, fontWeight: 500, borderBottom: `1px solid ${C.line}` }}>Cadastre seu restaurante</Link>
           {user ? (
             <>
               <div style={{ padding: "11px 4px", color: C.black, fontSize: 15, fontWeight: 500, borderBottom: `1px solid ${C.line}` }}>
