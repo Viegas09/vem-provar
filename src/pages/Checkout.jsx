@@ -4,8 +4,10 @@ import { MapPin, CreditCard, QrCode, Banknote } from "lucide-react";
 import { C, FONT, formatBRL } from "../theme";
 import { useRestaurant } from "../hooks/useRestaurant";
 import { useCart } from "../context/CartContext";
+import { useUserLocation } from "../hooks/useUserLocation";
 import { createOrder } from "../data/queries";
 import Header from "../components/Header";
+import LocateButton from "../components/LocateButton";
 
 const PAYMENT_METHODS = [
   { id: "pix", label: "Pix", icon: QrCode },
@@ -20,11 +22,18 @@ export default function Checkout() {
   const deliveryFee = restaurant ? Number(restaurant.delivery_fee) : 0;
   const total = subtotal + deliveryFee;
 
-  const [address, setAddress] = useState("");
+  const [location, setLocation] = useUserLocation();
+  const [address, setAddress] = useState(location.address || "");
   const [payment, setPayment] = useState("pix");
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(null);
   const submittedRef = useRef(false);
+
+  function handleLocated({ latitude, longitude, address: found }) {
+    const nextAddress = found || address;
+    setAddress(nextAddress);
+    setLocation({ address: nextAddress, latitude, longitude });
+  }
 
   useEffect(() => {
     if (cart.items.length === 0 && !submittedRef.current) navigate("/carrinho");
@@ -70,6 +79,9 @@ export default function Checkout() {
           <input value={address} onChange={(e) => setAddress(e.target.value)} required
             placeholder="Rua, número, bairro"
             style={{ border: "none", outline: "none", flex: 1, fontFamily: FONT, fontSize: 15, background: "transparent", color: C.black }} />
+        </div>
+        <div style={{ marginTop: -14, marginBottom: 24 }}>
+          <LocateButton onLocated={handleLocated} />
         </div>
 
         <h2 style={{ fontSize: 15, fontWeight: 700, margin: "0 0 10px" }}>Forma de pagamento</h2>

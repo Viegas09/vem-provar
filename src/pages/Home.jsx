@@ -7,7 +7,10 @@ import {
 import { C, FONT, WARM } from "../theme";
 import { CATS, ICONS } from "../data/icons";
 import { useRestaurants } from "../hooks/useRestaurants";
+import { useUserLocation } from "../hooks/useUserLocation";
+import { distanceKm } from "../lib/geolocation";
 import Header from "../components/Header";
+import LocateButton from "../components/LocateButton";
 import WORDMARK_LIGHT from "../assets/wordmark-light.png";
 
 const HOOD_TAGS = ["pediram hoje", "recomendam", "novo perto de você", "em alta"];
@@ -22,9 +25,25 @@ function FoodPhoto({ v = 0, icon: Icon, radius = 16, style }) {
 }
 
 export default function Home() {
-  const [addr, setAddr] = useState("");
   const [likes, setLikes] = useState({});
   const { restaurants, loading, error } = useRestaurants();
+  const [location, setLocation] = useUserLocation();
+
+  function handleLocated({ latitude, longitude, address }) {
+    setLocation({ address: address || location.address, latitude, longitude });
+  }
+
+  const hasLocation = location.latitude != null && location.longitude != null;
+  const restaurantsWithDistance = restaurants.map((r) => ({
+    ...r,
+    distanceKm:
+      hasLocation && r.latitude != null && r.longitude != null
+        ? distanceKm(location.latitude, location.longitude, r.latitude, r.longitude)
+        : null,
+  }));
+  const sortedRestaurants = hasLocation
+    ? [...restaurantsWithDistance].sort((a, b) => (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity))
+    : restaurantsWithDistance;
 
   const highlights = restaurants
     .filter((r) => r.menu_items?.length > 0)
@@ -61,7 +80,7 @@ export default function Home() {
               <div className="flex items-center gap-2" style={{ flex: "1 1 260px", background: "#fff", border: `1.5px solid ${C.line}`,
                        borderRadius: 12, padding: "0 14px", minHeight: 54 }}>
                 <MapPin size={20} color={C.orange} />
-                <input value={addr} onChange={(e) => setAddr(e.target.value)}
+                <input value={location.address} onChange={(e) => setLocation({ ...location, address: e.target.value })}
                   placeholder="Digite seu endereço"
                   style={{ border: "none", outline: "none", flex: 1, fontFamily: FONT, fontSize: 15, background: "transparent", color: C.black }} />
               </div>
@@ -70,6 +89,9 @@ export default function Home() {
                          padding: "0 26px", minHeight: 54, fontFamily: FONT, fontSize: 15.5, fontWeight: 600, textDecoration: "none" }}>
                 Ver restaurantes <ArrowRight size={18} />
               </a>
+            </div>
+            <div style={{ marginTop: 12 }}>
+              <LocateButton onLocated={handleLocated} />
             </div>
             <div className="flex items-center gap-2" style={{ marginTop: 14, color: C.grayText, fontSize: 13 }}>
               <Bike size={15} color={C.ok} /> Entrega rápida na sua região · pague com Pix
@@ -150,14 +172,16 @@ export default function Home() {
 
       {/* ── Restaurantes ── */}
       <section id="restaurantes" className="vp-wrap" style={{ padding: "34px 24px 20px" }}>
-        <h2 style={{ fontSize: 22, fontWeight: 700, margin: "0 0 18px", letterSpacing: -.4 }}>Restaurantes perto de você</h2>
+        <h2 style={{ fontSize: 22, fontWeight: 700, margin: "0 0 18px", letterSpacing: -.4 }}>
+          {hasLocation ? "Restaurantes mais perto de você" : "Restaurantes perto de você"}
+        </h2>
         {loading ? (
           <p style={{ color: C.grayText, fontSize: 14.5 }}>Carregando restaurantes…</p>
         ) : !error && restaurants.length === 0 ? (
           <p style={{ color: C.grayText, fontSize: 14.5 }}>Nenhum restaurante cadastrado ainda.</p>
         ) : (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 16 }}>
-            {restaurants.map((r) => (
+            {sortedRestaurants.map((r) => (
               <Link key={r.slug} to={`/restaurante/${r.slug}`} className="vp-tap flex" style={{ gap: 14, padding: 14, background: "#fff",
                    border: `1px solid ${C.line}`, borderRadius: 16, cursor: "pointer", textDecoration: "none", color: "inherit" }}>
                 <FoodPhoto v={r.color_variant} icon={ICONS[r.icon_key] || Store} style={{ width: 88, height: 88, flexShrink: 0 }} />
@@ -174,6 +198,11 @@ export default function Home() {
                     <span className="flex items-center gap-1" style={{ fontSize: 13, fontWeight: r.delivery_fee === 0 ? 600 : 500, color: r.delivery_fee === 0 ? C.ok : C.grayText }}>
                       <Bike size={14} /> {r.delivery_fee === 0 ? "Grátis" : `R$ ${Number(r.delivery_fee).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
                     </span>
+                    {r.distanceKm != null && (
+                      <span className="flex items-center gap-1" style={{ fontSize: 13, color: C.grayText }}>
+                        <MapPin size={14} /> {r.distanceKm.toFixed(1)} km
+                      </span>
+                    )}
                   </div>
                 </div>
               </Link>
