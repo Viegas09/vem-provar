@@ -67,7 +67,6 @@ export async function slugExists(slug) {
 export async function createRestaurant(restaurant) {
   const { data, error } = await supabase.from("restaurants").insert(restaurant).select().single();
   if (error) throw error;
-  await supabase.from("profiles").update({ role: "restaurant" }).eq("id", restaurant.owner_id);
   return data;
 }
 
@@ -93,6 +92,18 @@ export async function fetchOrdersForRestaurant(restaurantId) {
     .select("*, order_items(*)")
     .eq("restaurant_id", restaurantId)
     .order("created_at", { ascending: false });
+  if (error) throw error;
+  return data;
+}
+
+export async function fetchDriverByUser(userId) {
+  const { data, error } = await supabase.from("drivers").select("*").eq("user_id", userId).maybeSingle();
+  if (error) throw error;
+  return data;
+}
+
+export async function createDriver(driver) {
+  const { data, error } = await supabase.from("drivers").insert(driver).select().single();
   if (error) throw error;
   return data;
 }

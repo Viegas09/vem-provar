@@ -194,9 +194,9 @@ export default function Home() {
               <p style={{ color: C.gray, fontSize: 14.5, marginTop: 8, lineHeight: 1.5 }}>
                 Coloque sua cozinha no maior portal de Itapecerica e comece a receber pedidos hoje mesmo.
               </p>
-              <a href="#" className="flex items-center gap-2" style={{ marginTop: 18, color: C.orange, textDecoration: "none", fontSize: 14.5, fontWeight: 600 }}>
+              <Link to="/parceiro/entrar" className="flex items-center gap-2" style={{ marginTop: 18, color: C.orange, textDecoration: "none", fontSize: 14.5, fontWeight: 600 }}>
                 Cadastre seu restaurante <ArrowRight size={17} />
-              </a>
+              </Link>
             </div>
             <div id="entregador" style={{ background: "rgba(255,255,255,.04)", borderRadius: 20, padding: "30px 28px" }}>
               <div style={{ width: 52, height: 52, borderRadius: 14, background: C.orange, display: "grid", placeItems: "center", marginBottom: 16 }}>
@@ -206,9 +206,9 @@ export default function Home() {
               <p style={{ color: C.gray, fontSize: 14.5, marginTop: 8, lineHeight: 1.5 }}>
                 Faça suas entregas na cidade, no seu horário, e receba por Pix a cada corrida.
               </p>
-              <a href="#" className="flex items-center gap-2" style={{ marginTop: 18, color: C.orange, textDecoration: "none", fontSize: 14.5, fontWeight: 600 }}>
+              <Link to="/entregador/entrar" className="flex items-center gap-2" style={{ marginTop: 18, color: C.orange, textDecoration: "none", fontSize: 14.5, fontWeight: 600 }}>
                 Seja um entregador <ArrowRight size={17} />
-              </a>
+              </Link>
             </div>
           </div>
         </div>

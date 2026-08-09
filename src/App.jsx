@@ -7,8 +7,14 @@ import Checkout from "./pages/Checkout";
 import OrderConfirmation from "./pages/OrderConfirmation";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
-import RestaurantSignUp from "./pages/RestaurantSignUp";
-import RestaurantDashboard from "./pages/RestaurantDashboard";
+import PartnerLogin from "./pages/partner/Login";
+import PartnerSignUp from "./pages/partner/SignUp";
+import PartnerOnboarding from "./pages/partner/Onboarding";
+import PartnerDashboard from "./pages/partner/Dashboard";
+import DriverLogin from "./pages/driver/Login";
+import DriverSignUp from "./pages/driver/SignUp";
+import DriverOnboarding from "./pages/driver/Onboarding";
+import DriverDashboard from "./pages/driver/Dashboard";
 
 function App() {
   return (
@@ -22,8 +28,16 @@ function App() {
         <Route path="/pedido-confirmado" element={<OrderConfirmation />} />
         <Route path="/entrar" element={<Login />} />
         <Route path="/criar-conta" element={<SignUp />} />
-        <Route path="/cadastro-restaurante" element={<RestaurantSignUp />} />
-        <Route path="/painel-restaurante" element={<RestaurantDashboard />} />
+
+        <Route path="/parceiro/entrar" element={<PartnerLogin />} />
+        <Route path="/parceiro/criar-conta" element={<PartnerSignUp />} />
+        <Route path="/parceiro/cadastro" element={<PartnerOnboarding />} />
+        <Route path="/parceiro/painel" element={<PartnerDashboard />} />
+
+        <Route path="/entregador/entrar" element={<DriverLogin />} />
+        <Route path="/entregador/criar-conta" element={<DriverSignUp />} />
+        <Route path="/entregador/cadastro" element={<DriverOnboarding />} />
+        <Route path="/entregador/painel" element={<DriverDashboard />} />
       </Routes>
     </>
   );
