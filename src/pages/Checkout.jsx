@@ -58,7 +58,7 @@ export default function Checkout() {
       });
       submittedRef.current = true;
       clearCart();
-      navigate("/pedido-confirmado", { state: { orderNumber: order.id.slice(0, 8), total, payment } });
+      navigate("/pedido-confirmado", { state: { orderId: order.id, orderNumber: order.id.slice(0, 8), total, payment } });
     } catch (err) {
       setSubmitError("Não foi possível confirmar o pedido. Tente novamente.");
       setSubmitting(false);

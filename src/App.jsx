@@ -5,6 +5,7 @@ import Restaurant from "./pages/Restaurant";
 import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
 import OrderConfirmation from "./pages/OrderConfirmation";
+import OrderTracking from "./pages/OrderTracking";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
 import PartnerLogin from "./pages/partner/Login";
@@ -26,6 +27,7 @@ function App() {
         <Route path="/carrinho" element={<Cart />} />
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/pedido-confirmado" element={<OrderConfirmation />} />
+        <Route path="/pedido/:id" element={<OrderTracking />} />
         <Route path="/entrar" element={<Login />} />
         <Route path="/criar-conta" element={<SignUp />} />
 

@@ -47,7 +47,7 @@ const rowStyle = { display: "flex", alignItems: "center", gap: 8, background: "#
 const inputInRow = { border: "none", outline: "none", flex: 1, fontFamily: FONT, fontSize: 15, background: "transparent" };
 
 export default function PartnerOnboarding() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
   const [name, setName] = useState("");
@@ -87,7 +87,7 @@ export default function PartnerOnboarding() {
     if (found) setAddress(found);
   }
 
-  if (user && checkingExisting) {
+  if (authLoading || (user && checkingExisting)) {
     return (
       <div style={{ fontFamily: FONT, minHeight: "60vh", display: "grid", placeItems: "center" }}>
         <p style={{ color: C.grayText }}>Carregando…</p>

@@ -10,7 +10,7 @@ const VEHICLE_LABELS = { moto: "Moto", bike: "Bicicleta", carro: "Carro" };
 const VEHICLE_ICONS = { moto: Bike, bike: Bike, carro: Car };
 
 export default function DriverDashboard() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [driver, setDriver] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -21,6 +21,14 @@ export default function DriverDashboard() {
       setLoading(false);
     });
   }, [user]);
+
+  if (authLoading) {
+    return (
+      <div style={{ fontFamily: FONT, minHeight: "60vh", display: "grid", placeItems: "center" }}>
+        <p style={{ color: C.grayText }}>Carregando…</p>
+      </div>
+    );
+  }
 
   if (!user) return <Navigate to="/entregador/entrar" replace />;
 

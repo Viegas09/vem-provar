@@ -23,7 +23,7 @@ const fieldStyle = { border: `1.5px solid ${C.line}`, outline: "none", borderRad
   minHeight: 54, fontFamily: FONT, fontSize: 15, background: "#fff", width: "100%" };
 
 export default function DriverOnboarding() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
   const [vehicleType, setVehicleType] = useState("moto");
@@ -59,7 +59,7 @@ export default function DriverOnboarding() {
     if (found) setAddress(found);
   }
 
-  if (user && checkingExisting) {
+  if (authLoading || (user && checkingExisting)) {
     return (
       <div style={{ fontFamily: FONT, minHeight: "60vh", display: "grid", placeItems: "center" }}>
         <p style={{ color: C.grayText }}>Carregando…</p>

@@ -8,7 +8,7 @@ export default function OrderConfirmation() {
 
   if (!state) return <Navigate to="/" replace />;
 
-  const { orderNumber, total, payment } = state;
+  const { orderId, orderNumber, total, payment } = state;
   const paymentLabel = { pix: "Pix", card: "Cartão na entrega", cash: "Dinheiro" }[payment] || payment;
 
   return (
@@ -26,10 +26,18 @@ export default function OrderConfirmation() {
             O restaurante já recebeu seu pedido e vai começar o preparo. Tempo estimado de entrega: 30–40 min.
           </p>
         </div>
-        <Link to="/" style={{ display: "inline-block", background: C.orange, color: "#fff", textDecoration: "none",
-             fontSize: 15, fontWeight: 600, padding: "13px 28px", borderRadius: 12 }}>
-          Voltar para o início
-        </Link>
+        <div className="flex items-center justify-center gap-3" style={{ flexWrap: "wrap" }}>
+          {orderId && (
+            <Link to={`/pedido/${orderId}`} style={{ display: "inline-block", background: C.orange, color: "#fff", textDecoration: "none",
+                 fontSize: 15, fontWeight: 600, padding: "13px 28px", borderRadius: 12 }}>
+              Acompanhar pedido
+            </Link>
+          )}
+          <Link to="/" style={{ display: "inline-block", background: "none", border: `1px solid ${C.line}`, color: C.black, textDecoration: "none",
+               fontSize: 15, fontWeight: 600, padding: "13px 28px", borderRadius: 12 }}>
+            Voltar para o início
+          </Link>
+        </div>
       </section>
     </div>
   );

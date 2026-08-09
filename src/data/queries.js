@@ -96,6 +96,21 @@ export async function fetchOrdersForRestaurant(restaurantId) {
   return data;
 }
 
+export async function fetchOrderById(orderId) {
+  const { data, error } = await supabase
+    .from("orders")
+    .select("*, order_items(*), restaurants(name)")
+    .eq("id", orderId)
+    .maybeSingle();
+  if (error) throw error;
+  return data;
+}
+
+export async function updateOrderStatus(orderId, status) {
+  const { error } = await supabase.from("orders").update({ status }).eq("id", orderId);
+  if (error) throw error;
+}
+
 export async function fetchDriverByUser(userId) {
   const { data, error } = await supabase.from("drivers").select("*").eq("user_id", userId).maybeSingle();
   if (error) throw error;

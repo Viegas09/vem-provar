@@ -5,9 +5,17 @@ import { C, FONT, formatBRL } from "../../theme";
 import { ICONS } from "../../data/icons";
 import { useAuth } from "../../context/AuthContext";
 import {
-  fetchRestaurantByOwner, createMenuItem, updateMenuItem, deleteMenuItem, fetchOrdersForRestaurant,
+  fetchRestaurantByOwner, createMenuItem, updateMenuItem, deleteMenuItem, fetchOrdersForRestaurant, updateOrderStatus,
 } from "../../data/queries";
 import PortalHeader from "../../components/PortalHeader";
+
+const STATUS_OPTIONS = [
+  { value: "pending", label: "Recebido" },
+  { value: "preparing", label: "Em preparo" },
+  { value: "out_for_delivery", label: "Saiu para entrega" },
+  { value: "delivered", label: "Entregue" },
+  { value: "cancelled", label: "Cancelado" },
+];
 
 function MenuItemForm({ restaurantId, item, onSaved, onCancel }) {
   const [name, setName] = useState(item?.name || "");
@@ -66,7 +74,7 @@ function MenuItemForm({ restaurantId, item, onSaved, onCancel }) {
 }
 
 export default function PartnerDashboard() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [restaurant, setRestaurant] = useState(null);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -87,6 +95,14 @@ export default function PartnerDashboard() {
     if (user) reload();
   }, [user]);
 
+  if (authLoading) {
+    return (
+      <div style={{ fontFamily: FONT, minHeight: "60vh", display: "grid", placeItems: "center" }}>
+        <p style={{ color: C.grayText }}>Carregando…</p>
+      </div>
+    );
+  }
+
   if (!user) return <Navigate to="/parceiro/entrar" replace />;
 
   if (loading) {
@@ -104,6 +120,11 @@ export default function PartnerDashboard() {
   async function handleDelete(itemId) {
     if (!window.confirm("Remover esse item do cardápio?")) return;
     await deleteMenuItem(itemId);
+    reload();
+  }
+
+  async function handleStatusChange(orderId, status) {
+    await updateOrderStatus(orderId, status);
     reload();
   }
 
@@ -190,7 +211,16 @@ export default function PartnerDashboard() {
                 <div style={{ fontSize: 13.5, marginTop: 6 }}>
                   {(order.order_items || []).map((i) => `${i.qty}x ${i.name}`).join(", ")}
                 </div>
-                <div style={{ fontSize: 14, fontWeight: 700, marginTop: 6 }}>{formatBRL(order.total)}</div>
+                <div className="flex items-center justify-between" style={{ marginTop: 10 }}>
+                  <span style={{ fontSize: 14, fontWeight: 700 }}>{formatBRL(order.total)}</span>
+                  <select value={order.status} onChange={(e) => handleStatusChange(order.id, e.target.value)}
+                    style={{ border: `1.5px solid ${C.line}`, outline: "none", borderRadius: 8, padding: "6px 10px",
+                             fontFamily: FONT, fontSize: 13, fontWeight: 600, background: "#fff", cursor: "pointer" }}>
+                    {STATUS_OPTIONS.map((s) => (
+                      <option key={s.value} value={s.value}>{s.label}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
             ))}
           </div>
