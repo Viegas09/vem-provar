@@ -1,5 +1,6 @@
+import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Star, Clock, Bike, Plus, Minus, Store, Heart } from "lucide-react";
+import { ArrowLeft, Star, Clock, Bike, Store, Heart } from "lucide-react";
 import { C, FONT, WARM, formatBRL } from "../theme";
 import { ICONS } from "../data/icons";
 import { useRestaurant } from "../hooks/useRestaurant";
@@ -7,6 +8,7 @@ import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import { useFavorites } from "../hooks/useFavorites";
 import Header from "../components/Header";
+import ItemModal from "../components/ItemModal";
 
 function FoodPhoto({ v = 0, icon: Icon, radius = 16, style }) {
   return (
@@ -21,9 +23,10 @@ export default function Restaurant() {
   const { slug } = useParams();
   const navigate = useNavigate();
   const { restaurant, loading, error } = useRestaurant(slug);
-  const { cart, addItem, updateQty } = useCart();
+  const { cart, addItem } = useCart();
   const { user } = useAuth();
   const { isFavorite, toggle: toggleFavorite } = useFavorites(user?.id);
+  const [selectedItem, setSelectedItem] = useState(null);
 
   if (loading) {
     return (
@@ -44,7 +47,7 @@ export default function Restaurant() {
     );
   }
 
-  const qtyOf = (itemId) => cart.items.find((i) => i.id === itemId)?.qty || 0;
+  const qtyOf = (itemId) => cart.items.filter((i) => i.id === itemId).reduce((sum, i) => sum + i.qty, 0);
   const menu = restaurant.menu_items || [];
 
   return (
@@ -97,41 +100,39 @@ export default function Restaurant() {
             {menu.map((item) => {
               const qty = qtyOf(item.id);
               return (
-                <div key={item.id} className="flex items-center" style={{ gap: 14, padding: 14, background: "#fff",
-                     border: `1px solid ${C.line}`, borderRadius: 16 }}>
+                <button key={item.id} onClick={() => setSelectedItem(item)} className="flex items-center vp-tap"
+                  style={{ gap: 14, padding: 14, background: "#fff", border: `1px solid ${C.line}`, borderRadius: 16,
+                           textAlign: "left", cursor: "pointer", width: "100%" }}>
                   <FoodPhoto v={item.color_variant} radius={12} style={{ width: 72, height: 72, flexShrink: 0 }} />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 15.5, fontWeight: 600 }}>{item.name}</div>
                     <div style={{ fontSize: 13, color: C.grayText, marginTop: 2 }}>{item.description}</div>
-                    <div style={{ fontSize: 14.5, fontWeight: 700, marginTop: 6 }}>{formatBRL(item.price)}</div>
-                  </div>
-                  {qty === 0 ? (
-                    <button onClick={() => addItem(restaurant.slug, { id: item.id, name: item.name, price: item.price })}
-                      style={{ background: C.orange, color: "#fff", border: "none", cursor: "pointer", borderRadius: 10,
-                               padding: "9px 16px", fontFamily: FONT, fontSize: 13.5, fontWeight: 600, flexShrink: 0 }}>
-                      Adicionar
-                    </button>
-                  ) : (
-                    <div className="flex items-center gap-2" style={{ flexShrink: 0 }}>
-                      <button onClick={() => updateQty(item.id, qty - 1)}
-                        style={{ width: 30, height: 30, borderRadius: 8, border: `1px solid ${C.line}`, background: "#fff",
-                                 cursor: "pointer", display: "grid", placeItems: "center" }}>
-                        <Minus size={14} />
-                      </button>
-                      <span key={qty} className="vp-pop" style={{ fontSize: 14, fontWeight: 700, minWidth: 16, textAlign: "center", display: "inline-block" }}>{qty}</span>
-                      <button onClick={() => addItem(restaurant.slug, { id: item.id, name: item.name, price: item.price })}
-                        style={{ width: 30, height: 30, borderRadius: 8, border: "none", background: C.orange, color: "#fff",
-                                 cursor: "pointer", display: "grid", placeItems: "center" }}>
-                        <Plus size={14} />
-                      </button>
+                    <div className="flex items-center gap-2" style={{ marginTop: 6 }}>
+                      <span style={{ fontSize: 14.5, fontWeight: 700 }}>{formatBRL(item.price)}</span>
+                      {qty > 0 && (
+                        <span key={qty} className="vp-pop" style={{ fontSize: 12, fontWeight: 700, color: C.orange,
+                             background: "rgba(238,108,26,.1)", padding: "2px 8px", borderRadius: 999 }}>
+                          {qty} no carrinho
+                        </span>
+                      )}
                     </div>
-                  )}
-                </div>
+                  </div>
+                  <span style={{ background: C.orange, color: "#fff", border: "none", borderRadius: 10,
+                       padding: "9px 16px", fontFamily: FONT, fontSize: 13.5, fontWeight: 600, flexShrink: 0 }}>
+                    Adicionar
+                  </span>
+                </button>
               );
             })}
           </div>
         )}
       </section>
+
+      {selectedItem && (
+        <ItemModal item={selectedItem} icon={ICONS[restaurant.icon_key] || Store}
+          onClose={() => setSelectedItem(null)}
+          onAdd={(cartItem, qty) => addItem(restaurant.slug, cartItem, qty)} />
+      )}
     </div>
   );
 }

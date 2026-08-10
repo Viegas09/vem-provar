@@ -208,8 +208,13 @@ export default function PartnerDashboard() {
                   </span>
                 </div>
                 <div style={{ fontSize: 13.5, color: C.grayText, marginTop: 4 }}>{order.address}</div>
-                <div style={{ fontSize: 13.5, marginTop: 6 }}>
-                  {(order.order_items || []).map((i) => `${i.qty}x ${i.name}`).join(", ")}
+                <div style={{ marginTop: 8 }}>
+                  {(order.order_items || []).map((i) => (
+                    <div key={i.id} style={{ fontSize: 13.5, marginBottom: 2 }}>
+                      {i.qty}x {i.name}
+                      {i.notes && <span style={{ color: C.orange, fontStyle: "italic" }}> — Obs: {i.notes}</span>}
+                    </div>
+                  ))}
                 </div>
                 <div className="flex items-center justify-between" style={{ marginTop: 10 }}>
                   <span style={{ fontSize: 14, fontWeight: 700 }}>{formatBRL(order.total)}</span>

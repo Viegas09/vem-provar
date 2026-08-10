@@ -19,30 +19,32 @@ export function CartProvider({ children }) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(cart));
   }, [cart]);
 
-  function addItem(restaurantSlug, item) {
+  function addItem(restaurantSlug, item, qty = 1) {
+    const notes = item.notes || "";
+    const lineId = `${item.id}::${notes}`;
     setCart((prev) => {
       if (prev.restaurantSlug && prev.restaurantSlug !== restaurantSlug && prev.items.length > 0) {
         const confirmSwap = window.confirm(
           "Seu carrinho tem itens de outro restaurante. Deseja limpar o carrinho e adicionar este item?"
         );
         if (!confirmSwap) return prev;
-        return { restaurantSlug, items: [{ ...item, qty: 1 }] };
+        return { restaurantSlug, items: [{ ...item, notes, lineId, qty }] };
       }
-      const existing = prev.items.find((i) => i.id === item.id);
+      const existing = prev.items.find((i) => i.lineId === lineId);
       const items = existing
-        ? prev.items.map((i) => (i.id === item.id ? { ...i, qty: i.qty + 1 } : i))
-        : [...prev.items, { ...item, qty: 1 }];
+        ? prev.items.map((i) => (i.lineId === lineId ? { ...i, qty: i.qty + qty } : i))
+        : [...prev.items, { ...item, notes, lineId, qty }];
       return { restaurantSlug, items };
     });
   }
 
-  function updateQty(itemId, qty) {
+  function updateQty(lineId, qty) {
     setCart((prev) => {
       if (qty <= 0) {
-        const items = prev.items.filter((i) => i.id !== itemId);
+        const items = prev.items.filter((i) => i.lineId !== lineId);
         return { restaurantSlug: items.length ? prev.restaurantSlug : null, items };
       }
-      return { ...prev, items: prev.items.map((i) => (i.id === itemId ? { ...i, qty } : i)) };
+      return { ...prev, items: prev.items.map((i) => (i.lineId === lineId ? { ...i, qty } : i)) };
     });
   }
 

@@ -46,9 +46,7 @@ export default function MyOrders() {
     if (!slug) return;
     (order.order_items || []).forEach((item) => {
       if (!item.menu_item_id) return;
-      for (let i = 0; i < item.qty; i++) {
-        addItem(slug, { id: item.menu_item_id, name: item.name, price: item.price });
-      }
+      addItem(slug, { id: item.menu_item_id, name: item.name, price: item.price, notes: item.notes || "" }, item.qty);
     });
     setReordered(order.id);
   }

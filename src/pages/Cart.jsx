@@ -36,20 +36,23 @@ export default function Cart() {
             )}
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               {cart.items.map((item) => (
-                <div key={item.id} className="flex items-center" style={{ gap: 14, padding: 14, background: "#fff",
+                <div key={item.lineId} className="flex items-center" style={{ gap: 14, padding: 14, background: "#fff",
                      border: `1px solid ${C.line}`, borderRadius: 16 }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 15, fontWeight: 600 }}>{item.name}</div>
                     <div style={{ fontSize: 13.5, color: C.grayText, marginTop: 4 }}>{formatBRL(item.price)} cada</div>
+                    {item.notes && (
+                      <div style={{ fontSize: 12.5, color: C.grayText, marginTop: 4, fontStyle: "italic" }}>Obs: {item.notes}</div>
+                    )}
                   </div>
                   <div className="flex items-center gap-2" style={{ flexShrink: 0 }}>
-                    <button onClick={() => updateQty(item.id, item.qty - 1)}
+                    <button onClick={() => updateQty(item.lineId, item.qty - 1)}
                       style={{ width: 30, height: 30, borderRadius: 8, border: `1px solid ${C.line}`, background: "#fff",
                                cursor: "pointer", display: "grid", placeItems: "center" }}>
                       <Minus size={14} />
                     </button>
-                    <span style={{ fontSize: 14, fontWeight: 700, minWidth: 16, textAlign: "center" }}>{item.qty}</span>
-                    <button onClick={() => updateQty(item.id, item.qty + 1)}
+                    <span key={item.qty} className="vp-pop" style={{ fontSize: 14, fontWeight: 700, minWidth: 16, textAlign: "center", display: "inline-block" }}>{item.qty}</span>
+                    <button onClick={() => updateQty(item.lineId, item.qty + 1)}
                       style={{ width: 30, height: 30, borderRadius: 8, border: "none", background: C.orange, color: "#fff",
                                cursor: "pointer", display: "grid", placeItems: "center" }}>
                       <Plus size={14} />

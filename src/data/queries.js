@@ -42,6 +42,7 @@ export async function createOrder({ restaurantId, customerId, address, paymentMe
       name: item.name,
       price: item.price,
       qty: item.qty,
+      notes: item.notes || null,
     }))
   );
   if (itemsError) throw itemsError;

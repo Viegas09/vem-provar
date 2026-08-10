@@ -92,9 +92,14 @@ export default function OrderTracking() {
         <div style={{ border: `1px solid ${C.line}`, borderRadius: 16, padding: "18px 20px" }}>
           <h2 style={{ fontSize: 14.5, fontWeight: 700, margin: "0 0 10px" }}>Itens</h2>
           {(order.order_items || []).map((item) => (
-            <div key={item.id} className="flex items-center justify-between" style={{ fontSize: 14, marginBottom: 6 }}>
-              <span>{item.qty}x {item.name}</span>
-              <span style={{ color: C.grayText }}>{formatBRL(item.price * item.qty)}</span>
+            <div key={item.id} style={{ marginBottom: 8 }}>
+              <div className="flex items-center justify-between" style={{ fontSize: 14 }}>
+                <span>{item.qty}x {item.name}</span>
+                <span style={{ color: C.grayText }}>{formatBRL(item.price * item.qty)}</span>
+              </div>
+              {item.notes && (
+                <div style={{ fontSize: 12.5, color: C.grayText, fontStyle: "italic", marginTop: 2 }}>Obs: {item.notes}</div>
+              )}
             </div>
           ))}
           <div className="flex items-center justify-between" style={{ borderTop: `1px solid ${C.line}`, marginTop: 10, paddingTop: 10, fontSize: 15.5, fontWeight: 700 }}>
