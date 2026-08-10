@@ -1,5 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 import ScrollToTop from "./components/ScrollToTop";
+import InstallPrompt from "./components/InstallPrompt";
 import Home from "./pages/Home";
 import Restaurant from "./pages/Restaurant";
 import Cart from "./pages/Cart";
@@ -52,6 +53,7 @@ function App() {
         <Route path="/admin/entrar" element={<AdminLogin />} />
         <Route path="/admin/painel" element={<AdminDashboard />} />
       </Routes>
+      <InstallPrompt />
     </>
   );
 }

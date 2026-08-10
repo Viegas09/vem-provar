@@ -313,7 +313,7 @@ export default function Home() {
         <div className="vp-wrap" style={{ padding: "16px 24px", borderTop: `1px solid rgba(255,255,255,.08)`, display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 10 }}>
           <span style={{ color: "rgba(184,178,166,.7)", fontSize: 12.5 }}>© 2026 Vem Provar · Itapecerica da Serra</span>
           <span className="flex items-center gap-1" style={{ color: "rgba(184,178,166,.7)", fontSize: 12.5 }}>
-            <Smartphone size={13} /> App em breve
+            <Smartphone size={13} /> Instale o app pelo navegador
           </span>
         </div>
       </footer>
