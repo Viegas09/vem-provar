@@ -5,6 +5,7 @@ import { C, FONT, formatBRL } from "../theme";
 import { useRestaurant } from "../hooks/useRestaurant";
 import { useCart } from "../context/CartContext";
 import { useUserLocation } from "../hooks/useUserLocation";
+import { useAuth } from "../context/AuthContext";
 import { createOrder } from "../data/queries";
 import Header from "../components/Header";
 import LocateButton from "../components/LocateButton";
@@ -17,6 +18,7 @@ const PAYMENT_METHODS = [
 
 export default function Checkout() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { cart, subtotal, clearCart } = useCart();
   const { restaurant } = useRestaurant(cart.restaurantSlug);
   const deliveryFee = restaurant ? Number(restaurant.delivery_fee) : 0;
@@ -49,6 +51,7 @@ export default function Checkout() {
     try {
       const order = await createOrder({
         restaurantId: restaurant.id,
+        customerId: user?.id,
         address,
         paymentMethod: payment,
         subtotal,

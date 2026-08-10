@@ -21,6 +21,8 @@ button:focus-visible,a:focus-visible{ outline:2px solid #EE6C1A; outline-offset:
   .vp-navlinks{ display:none; }
   .vp-mobilebtn{ display:grid; }
   .vp-mobilebtn-row{ display:flex; }
+  .vp-addresschip{ display:none; }
+  .vp-searchform{ display:none; }
   .vp-hero{ grid-template-columns:1fr; gap:28px; }
   .vp-hero-art{ height:260px; }
   .vp-roles{ grid-template-columns:1fr; }

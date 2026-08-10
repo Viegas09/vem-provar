@@ -1,13 +1,15 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import {
   MapPin, Star, Clock, Bike, Store, ArrowRight,
-  Flame, Heart, ChevronRight, AtSign, Smartphone,
+  Flame, Heart, ChevronRight, AtSign, Smartphone, X,
 } from "lucide-react";
 import { C, FONT, WARM } from "../theme";
 import { CATS, ICONS } from "../data/icons";
 import { useRestaurants } from "../hooks/useRestaurants";
 import { useUserLocation } from "../hooks/useUserLocation";
+import { useFavorites } from "../hooks/useFavorites";
+import { useAuth } from "../context/AuthContext";
 import { distanceKm } from "../lib/geolocation";
 import Header from "../components/Header";
 import LocateButton from "../components/LocateButton";
@@ -28,13 +30,27 @@ export default function Home() {
   const [likes, setLikes] = useState({});
   const { restaurants, loading, error } = useRestaurants();
   const [location, setLocation] = useUserLocation();
+  const { user } = useAuth();
+  const { isFavorite, toggle: toggleFavorite } = useFavorites(user?.id);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const query = (searchParams.get("q") || "").trim().toLowerCase();
+  const hasQuery = query.length > 0;
 
   function handleLocated({ latitude, longitude, address }) {
     setLocation({ address: address || location.address, latitude, longitude });
   }
 
+  const matchingRestaurants = hasQuery
+    ? restaurants.filter(
+        (r) =>
+          r.name.toLowerCase().includes(query) ||
+          (r.category || "").toLowerCase().includes(query) ||
+          (r.menu_items || []).some((item) => item.name.toLowerCase().includes(query))
+      )
+    : restaurants;
+
   const hasLocation = location.latitude != null && location.longitude != null;
-  const restaurantsWithDistance = restaurants.map((r) => ({
+  const restaurantsWithDistance = matchingRestaurants.map((r) => ({
     ...r,
     distanceKm:
       hasLocation && r.latitude != null && r.longitude != null
@@ -134,7 +150,7 @@ export default function Home() {
         </section>
       )}
 
-      {!error && highlights.length > 0 && (
+      {!error && !hasQuery && highlights.length > 0 && (
         <section className="vp-wrap" style={{ padding: "34px 24px 8px" }}>
           <div className="flex items-center justify-between" style={{ marginBottom: 18 }}>
             <div className="flex items-center gap-2">
@@ -172,18 +188,40 @@ export default function Home() {
 
       {/* ── Restaurantes ── */}
       <section id="restaurantes" className="vp-wrap" style={{ padding: "34px 24px 20px" }}>
-        <h2 style={{ fontSize: 22, fontWeight: 700, margin: "0 0 18px", letterSpacing: -.4 }}>
-          {hasLocation ? "Restaurantes mais perto de você" : "Restaurantes perto de você"}
-        </h2>
+        <div className="flex items-center gap-3" style={{ marginBottom: 18, flexWrap: "wrap" }}>
+          <h2 style={{ fontSize: 22, fontWeight: 700, margin: 0, letterSpacing: -.4 }}>
+            {hasQuery
+              ? `Resultados para "${searchParams.get("q")}"`
+              : hasLocation
+              ? "Restaurantes mais perto de você"
+              : "Restaurantes perto de você"}
+          </h2>
+          {hasQuery && (
+            <button onClick={() => setSearchParams({})} className="flex items-center gap-1"
+              style={{ background: "none", border: "none", cursor: "pointer", color: C.grayText, fontSize: 13, fontWeight: 600, padding: 0 }}>
+              <X size={14} /> Limpar busca
+            </button>
+          )}
+        </div>
         {loading ? (
           <p style={{ color: C.grayText, fontSize: 14.5 }}>Carregando restaurantes…</p>
         ) : !error && restaurants.length === 0 ? (
           <p style={{ color: C.grayText, fontSize: 14.5 }}>Nenhum restaurante cadastrado ainda.</p>
+        ) : !error && sortedRestaurants.length === 0 ? (
+          <p style={{ color: C.grayText, fontSize: 14.5 }}>Nenhum resultado para essa busca.</p>
         ) : (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 16 }}>
             {sortedRestaurants.map((r) => (
               <Link key={r.slug} to={`/restaurante/${r.slug}`} className="vp-tap flex" style={{ gap: 14, padding: 14, background: "#fff",
-                   border: `1px solid ${C.line}`, borderRadius: 16, cursor: "pointer", textDecoration: "none", color: "inherit" }}>
+                   border: `1px solid ${C.line}`, borderRadius: 16, cursor: "pointer", textDecoration: "none", color: "inherit", position: "relative" }}>
+                {user && (
+                  <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleFavorite(r.id); }}
+                    style={{ position: "absolute", top: 10, right: 10, width: 32, height: 32, borderRadius: 999,
+                             background: "rgba(255,255,255,.94)", border: `1px solid ${C.line}`, cursor: "pointer",
+                             display: "grid", placeItems: "center", zIndex: 1 }}>
+                    <Heart size={15} color={isFavorite(r.id) ? C.orange : C.grayText} fill={isFavorite(r.id) ? C.orange : "none"} />
+                  </button>
+                )}
                 <FoodPhoto v={r.color_variant} icon={ICONS[r.icon_key] || Store} style={{ width: 88, height: 88, flexShrink: 0 }} />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 16, fontWeight: 600 }}>{r.name}</div>

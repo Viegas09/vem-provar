@@ -8,6 +8,9 @@ import OrderConfirmation from "./pages/OrderConfirmation";
 import OrderTracking from "./pages/OrderTracking";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
+import MyOrders from "./pages/MyOrders";
+import Favorites from "./pages/Favorites";
+import MyData from "./pages/MyData";
 import PartnerLogin from "./pages/partner/Login";
 import PartnerSignUp from "./pages/partner/SignUp";
 import PartnerOnboarding from "./pages/partner/Onboarding";
@@ -32,6 +35,9 @@ function App() {
         <Route path="/pedido/:id" element={<OrderTracking />} />
         <Route path="/entrar" element={<Login />} />
         <Route path="/criar-conta" element={<SignUp />} />
+        <Route path="/meus-pedidos" element={<MyOrders />} />
+        <Route path="/favoritos" element={<Favorites />} />
+        <Route path="/meus-dados" element={<MyData />} />
 
         <Route path="/parceiro/entrar" element={<PartnerLogin />} />
         <Route path="/parceiro/criar-conta" element={<PartnerSignUp />} />

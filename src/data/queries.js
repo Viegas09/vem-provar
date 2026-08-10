@@ -19,11 +19,12 @@ export async function fetchRestaurantBySlug(slug) {
   return data;
 }
 
-export async function createOrder({ restaurantId, address, paymentMethod, subtotal, deliveryFee, total, items }) {
+export async function createOrder({ restaurantId, customerId, address, paymentMethod, subtotal, deliveryFee, total, items }) {
   const { data: order, error: orderError } = await supabase
     .from("orders")
     .insert({
       restaurant_id: restaurantId,
+      customer_id: customerId || null,
       address,
       payment_method: paymentMethod,
       subtotal,
@@ -142,4 +143,39 @@ export async function fetchAllDriversAdmin() {
   const { data, error } = await supabase.from("drivers").select("*").order("created_at", { ascending: false });
   if (error) throw error;
   return data;
+}
+
+export async function updateProfile(userId, changes) {
+  const { error } = await supabase.from("profiles").update(changes).eq("id", userId);
+  if (error) throw error;
+}
+
+export async function fetchOrdersForCustomer(customerId) {
+  const { data, error } = await supabase
+    .from("orders")
+    .select("*, order_items(*), restaurants(name, slug, icon_key, color_variant)")
+    .eq("customer_id", customerId)
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return data;
+}
+
+export async function fetchFavorites(userId) {
+  const { data, error } = await supabase
+    .from("favorites")
+    .select("*, restaurants(*)")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return data;
+}
+
+export async function addFavorite(userId, restaurantId) {
+  const { error } = await supabase.from("favorites").insert({ user_id: userId, restaurant_id: restaurantId });
+  if (error) throw error;
+}
+
+export async function removeFavorite(userId, restaurantId) {
+  const { error } = await supabase.from("favorites").delete().eq("user_id", userId).eq("restaurant_id", restaurantId);
+  if (error) throw error;
 }

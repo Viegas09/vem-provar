@@ -1,9 +1,11 @@
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Star, Clock, Bike, Plus, Minus, Store } from "lucide-react";
+import { ArrowLeft, Star, Clock, Bike, Plus, Minus, Store, Heart } from "lucide-react";
 import { C, FONT, WARM, formatBRL } from "../theme";
 import { ICONS } from "../data/icons";
 import { useRestaurant } from "../hooks/useRestaurant";
 import { useCart } from "../context/CartContext";
+import { useAuth } from "../context/AuthContext";
+import { useFavorites } from "../hooks/useFavorites";
 import Header from "../components/Header";
 
 function FoodPhoto({ v = 0, icon: Icon, radius = 16, style }) {
@@ -20,6 +22,8 @@ export default function Restaurant() {
   const navigate = useNavigate();
   const { restaurant, loading, error } = useRestaurant(slug);
   const { cart, addItem, updateQty } = useCart();
+  const { user } = useAuth();
+  const { isFavorite, toggle: toggleFavorite } = useFavorites(user?.id);
 
   if (loading) {
     return (
@@ -57,8 +61,17 @@ export default function Restaurant() {
       <section className="vp-wrap" style={{ padding: "16px 24px 24px" }}>
         <div className="flex items-center gap-4" style={{ flexWrap: "wrap" }}>
           <FoodPhoto v={restaurant.color_variant} icon={ICONS[restaurant.icon_key] || Store} style={{ width: 96, height: 96, flexShrink: 0 }} />
-          <div>
-            <h1 style={{ fontSize: 26, fontWeight: 700, margin: 0, letterSpacing: -0.4 }}>{restaurant.name}</h1>
+          <div style={{ flex: 1 }}>
+            <div className="flex items-center gap-2" style={{ justifyContent: "space-between" }}>
+              <h1 style={{ fontSize: 26, fontWeight: 700, margin: 0, letterSpacing: -0.4 }}>{restaurant.name}</h1>
+              {user && (
+                <button onClick={() => toggleFavorite(restaurant.id)} className="flex items-center gap-1"
+                  style={{ background: "none", border: `1px solid ${C.line}`, borderRadius: 10, cursor: "pointer",
+                           padding: "8px 12px", flexShrink: 0 }}>
+                  <Heart size={16} color={isFavorite(restaurant.id) ? C.orange : C.grayText} fill={isFavorite(restaurant.id) ? C.orange : "none"} />
+                </button>
+              )}
+            </div>
             <div style={{ fontSize: 14, color: C.grayText, marginTop: 4 }}>{restaurant.category}</div>
             <div className="flex items-center gap-3" style={{ marginTop: 10 }}>
               <span className="flex items-center gap-1" style={{ fontSize: 13.5, fontWeight: 600 }}>
