@@ -122,3 +122,24 @@ export async function createDriver(driver) {
   if (error) throw error;
   return data;
 }
+
+export async function fetchProfile(userId) {
+  const { data, error } = await supabase.from("profiles").select("*").eq("id", userId).maybeSingle();
+  if (error) throw error;
+  return data;
+}
+
+export async function fetchAllOrdersAdmin() {
+  const { data, error } = await supabase
+    .from("orders")
+    .select("*, order_items(*), restaurants(name)")
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return data;
+}
+
+export async function fetchAllDriversAdmin() {
+  const { data, error } = await supabase.from("drivers").select("*").order("created_at", { ascending: false });
+  if (error) throw error;
+  return data;
+}

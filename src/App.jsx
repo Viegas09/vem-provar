@@ -16,6 +16,8 @@ import DriverLogin from "./pages/driver/Login";
 import DriverSignUp from "./pages/driver/SignUp";
 import DriverOnboarding from "./pages/driver/Onboarding";
 import DriverDashboard from "./pages/driver/Dashboard";
+import AdminLogin from "./pages/admin/Login";
+import AdminDashboard from "./pages/admin/Dashboard";
 
 function App() {
   return (
@@ -40,6 +42,9 @@ function App() {
         <Route path="/entregador/criar-conta" element={<DriverSignUp />} />
         <Route path="/entregador/cadastro" element={<DriverOnboarding />} />
         <Route path="/entregador/painel" element={<DriverDashboard />} />
+
+        <Route path="/admin/entrar" element={<AdminLogin />} />
+        <Route path="/admin/painel" element={<AdminDashboard />} />
       </Routes>
     </>
   );
