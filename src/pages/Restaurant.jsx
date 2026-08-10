@@ -118,7 +118,7 @@ export default function Restaurant() {
                                  cursor: "pointer", display: "grid", placeItems: "center" }}>
                         <Minus size={14} />
                       </button>
-                      <span style={{ fontSize: 14, fontWeight: 700, minWidth: 16, textAlign: "center" }}>{qty}</span>
+                      <span key={qty} className="vp-pop" style={{ fontSize: 14, fontWeight: 700, minWidth: 16, textAlign: "center", display: "inline-block" }}>{qty}</span>
                       <button onClick={() => addItem(restaurant.slug, { id: item.id, name: item.name, price: item.price })}
                         style={{ width: 30, height: 30, borderRadius: 8, border: "none", background: C.orange, color: "#fff",
                                  cursor: "pointer", display: "grid", placeItems: "center" }}>

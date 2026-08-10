@@ -60,7 +60,7 @@ export default function Header() {
           {addressOpen && (
             <>
               <div onClick={() => setAddressOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 39 }} />
-              <div style={{ position: "absolute", top: "calc(100% + 8px)", left: 0, zIndex: 40, width: 300,
+              <div className="vp-dropdown-in" style={{ position: "absolute", top: "calc(100% + 8px)", left: 0, zIndex: 40, width: 300,
                    background: "#fff", border: `1px solid ${C.line}`, borderRadius: 14, padding: 16,
                    boxShadow: "0 12px 32px rgba(0,0,0,.14)" }}>
                 <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 10 }}>Seu endereço de entrega</div>
@@ -98,7 +98,7 @@ export default function Header() {
           <Link to="/carrinho" className="flex items-center gap-1" style={{ position: "relative", color: C.black, textDecoration: "none" }}>
             <ShoppingCart size={20} />
             {totalItems > 0 && (
-              <span style={{ position: "absolute", top: -8, right: -10, background: C.orange, color: "#fff",
+              <span key={totalItems} className="vp-pop" style={{ position: "absolute", top: -8, right: -10, background: C.orange, color: "#fff",
                              fontSize: 11, fontWeight: 700, borderRadius: 999, minWidth: 18, height: 18,
                              display: "grid", placeItems: "center", padding: "0 4px" }}>
                 {totalItems}
@@ -115,7 +115,7 @@ export default function Header() {
               {profileOpen && (
                 <>
                   <div onClick={() => setProfileOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 39 }} />
-                  <div style={{ position: "absolute", top: "calc(100% + 8px)", right: 0, zIndex: 40, width: 200,
+                  <div className="vp-dropdown-in" style={{ position: "absolute", top: "calc(100% + 8px)", right: 0, zIndex: 40, width: 200,
                        background: "#fff", border: `1px solid ${C.line}`, borderRadius: 14, padding: 8,
                        boxShadow: "0 12px 32px rgba(0,0,0,.14)" }}>
                     <ProfileMenuItem to="/meus-pedidos" icon={Package} label="Pedidos" onClick={() => setProfileOpen(false)} />
@@ -146,7 +146,7 @@ export default function Header() {
                 width: 42, height: 42, borderRadius: 10, border: `1px solid ${C.line}`, background: "#fff" }}>
             <ShoppingCart size={19} />
             {totalItems > 0 && (
-              <span style={{ position: "absolute", top: -6, right: -6, background: C.orange, color: "#fff",
+              <span key={totalItems} className="vp-pop" style={{ position: "absolute", top: -6, right: -6, background: C.orange, color: "#fff",
                              fontSize: 10, fontWeight: 700, borderRadius: 999, minWidth: 16, height: 16,
                              display: "grid", placeItems: "center", padding: "0 3px" }}>
                 {totalItems}

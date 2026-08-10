@@ -79,7 +79,7 @@ export default function OrderTracking() {
             <span style={{ fontSize: 14.5, fontWeight: 600 }}>Esse pedido foi cancelado.</span>
           </div>
         ) : (
-          <div style={{ background: C.surface, borderRadius: 16, padding: "22px 20px", marginBottom: 28 }}>
+          <div key={order.status} className="vp-fade-in" style={{ background: C.surface, borderRadius: 16, padding: "22px 20px", marginBottom: 28 }}>
             <StepProgress steps={STEPS} current={current} />
           </div>
         )}

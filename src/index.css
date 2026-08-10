@@ -3,9 +3,17 @@
 * { box-sizing: border-box; }
 body { margin: 0; }
 
+html{ scroll-behavior:smooth; }
+
 @keyframes vp-pulse{0%,100%{opacity:.35}50%{opacity:1}}
 @keyframes vp-spin{to{transform:rotate(360deg)}}
+@keyframes vp-pop{0%{transform:scale(1)}35%{transform:scale(1.35)}100%{transform:scale(1)}}
+@keyframes vp-dropdown-in{from{opacity:0; transform:translateY(-6px) scale(.98)}to{opacity:1; transform:none}}
+@keyframes vp-fadein{from{opacity:0; transform:translateY(8px)}to{opacity:1; transform:none}}
 .vp-spin{ animation:vp-spin 0.8s linear infinite; }
+.vp-pop{ animation:vp-pop .3s ease; }
+.vp-dropdown-in{ animation:vp-dropdown-in .16s ease both; transform-origin:top; }
+.vp-fade-in{ animation:vp-fadein .4s ease both; }
 .vp-wrap{ max-width:1140px; margin:0 auto; padding:0 24px; }
 .vp-navlinks{ display:flex; align-items:center; gap:28px; }
 .vp-mobilebtn{ display:none; }
@@ -14,7 +22,10 @@ body { margin: 0; }
 .vp-hero-art{ display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr; gap:14px; height:380px; }
 .vp-roles{ display:grid; grid-template-columns:1fr 1fr; gap:20px; }
 .vp-tap{ transition:transform .12s, box-shadow .15s; }
-.vp-tap:hover{ transform:translateY(-3px); }
+.vp-tap:hover{ transform:translateY(-3px); box-shadow:0 10px 24px rgba(20,20,20,.08); }
+button{ transition:transform .1s ease, opacity .15s ease; }
+button:active{ transform:scale(.96); }
+button:disabled:active{ transform:none; }
 button:focus-visible,a:focus-visible{ outline:2px solid #EE6C1A; outline-offset:2px; }
 .vp-scroll{ overflow-x:auto; scrollbar-width:none; } .vp-scroll::-webkit-scrollbar{display:none;}
 @media (max-width:860px){

@@ -78,7 +78,7 @@ export default function Home() {
 
       {/* ── Hero: pedir comida ── */}
       <section className="vp-wrap" style={{ padding: "56px 24px 40px" }}>
-        <div className="vp-hero">
+        <div className="vp-hero vp-fade-in">
           <div>
             <div className="flex items-center gap-2" style={{ marginBottom: 18 }}>
               <span style={{ background: "rgba(238,108,26,.1)", color: C.orange, fontSize: 12.5, fontWeight: 600,
