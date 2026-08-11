@@ -6,6 +6,7 @@ import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
 import { fetchOrdersForCustomer } from "../data/queries";
 import Header from "../components/Header";
+import { SkeletonPage } from "../components/Skeleton";
 
 const STATUS_LABELS = {
   pending: "Recebido",
@@ -16,11 +17,7 @@ const STATUS_LABELS = {
 };
 
 function LoadingScreen() {
-  return (
-    <div style={{ fontFamily: FONT, minHeight: "60vh", display: "grid", placeItems: "center" }}>
-      <p style={{ color: C.grayText }}>Carregando…</p>
-    </div>
-  );
+  return <SkeletonPage />;
 }
 
 export default function MyOrders() {

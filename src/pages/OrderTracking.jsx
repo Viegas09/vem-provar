@@ -5,6 +5,7 @@ import { C, FONT, formatBRL } from "../theme";
 import { fetchOrderById } from "../data/queries";
 import Header from "../components/Header";
 import StepProgress from "../components/StepProgress";
+import { SkeletonPage } from "../components/Skeleton";
 
 const STEPS = ["Pedido recebido", "Em preparo", "Saiu para entrega", "Entregue"];
 const STATUS_INDEX = { pending: 0, preparing: 1, out_for_delivery: 2, delivered: 3 };
@@ -54,11 +55,7 @@ export default function OrderTracking() {
   }
 
   if (!order) {
-    return (
-      <div style={{ fontFamily: FONT, minHeight: "60vh", display: "grid", placeItems: "center" }}>
-        <p style={{ color: C.grayText }}>Carregando…</p>
-      </div>
-    );
+    return <SkeletonPage />;
   }
 
   const cancelled = order.status === "cancelled";

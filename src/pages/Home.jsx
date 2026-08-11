@@ -14,9 +14,22 @@ import { useAuth } from "../context/AuthContext";
 import { distanceKm } from "../lib/geolocation";
 import Header from "../components/Header";
 import LocateButton from "../components/LocateButton";
+import { SkeletonCard } from "../components/Skeleton";
 import WORDMARK_LIGHT from "../assets/wordmark-light.png";
 
 const HOOD_TAGS = ["pediram hoje", "recomendam", "novo perto de você", "em alta"];
+
+const SORT_OPTIONS = [
+  { value: "relevancia", label: "Relevância" },
+  { value: "nota", label: "Melhor nota" },
+  { value: "entrega", label: "Menor tempo" },
+  { value: "distancia", label: "Mais perto" },
+];
+
+function parseDeliveryMinutes(deliveryTime) {
+  const match = String(deliveryTime).match(/\d+/);
+  return match ? Number(match[0]) : Infinity;
+}
 
 function greeting() {
   const h = new Date().getHours();
@@ -36,6 +49,7 @@ function FoodPhoto({ v = 0, icon: Icon, radius = 16, style }) {
 
 export default function Home() {
   const [likes, setLikes] = useState({});
+  const [sortBy, setSortBy] = useState("relevancia");
   const { restaurants, loading, error } = useRestaurants();
   const [location, setLocation] = useUserLocation();
   const { user } = useAuth();
@@ -66,9 +80,14 @@ export default function Home() {
         ? distanceKm(location.latitude, location.longitude, r.latitude, r.longitude)
         : null,
   }));
-  const sortedRestaurants = hasLocation
-    ? [...restaurantsWithDistance].sort((a, b) => (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity))
-    : restaurantsWithDistance;
+  const sortedRestaurants = [...restaurantsWithDistance].sort((a, b) => {
+    if (sortBy === "nota") return Number(b.rating) - Number(a.rating);
+    if (sortBy === "entrega") return parseDeliveryMinutes(a.delivery_time) - parseDeliveryMinutes(b.delivery_time);
+    if (sortBy === "distancia" || (sortBy === "relevancia" && hasLocation)) {
+      return (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity);
+    }
+    return 0;
+  });
 
   const firstName = user?.user_metadata?.full_name?.split(" ")[0];
 
@@ -237,8 +256,27 @@ export default function Home() {
             </button>
           )}
         </div>
+
+        {!loading && !error && sortedRestaurants.length > 0 && (
+          <div className="vp-scroll" style={{ display: "flex", gap: 8, marginBottom: 18 }}>
+            {SORT_OPTIONS.map((opt) => {
+              const active = sortBy === opt.value;
+              return (
+                <button key={opt.value} onClick={() => setSortBy(opt.value)}
+                  style={{ flexShrink: 0, background: active ? C.black : "#fff", color: active ? "#fff" : C.grayText,
+                           border: `1.5px solid ${active ? C.black : C.line}`, borderRadius: 999, cursor: "pointer",
+                           padding: "7px 14px", fontFamily: FONT, fontSize: 13, fontWeight: 600 }}>
+                  {opt.label}
+                </button>
+              );
+            })}
+          </div>
+        )}
+
         {loading ? (
-          <p style={{ color: C.grayText, fontSize: 14.5 }}>Carregando restaurantes…</p>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 16 }}>
+            {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
+          </div>
         ) : !error && restaurants.length === 0 ? (
           <p style={{ color: C.grayText, fontSize: 14.5 }}>Nenhum restaurante cadastrado ainda.</p>
         ) : !error && sortedRestaurants.length === 0 ? (

@@ -9,6 +9,7 @@ import { useAuth } from "../context/AuthContext";
 import { useFavorites } from "../hooks/useFavorites";
 import Header from "../components/Header";
 import ItemModal from "../components/ItemModal";
+import { Skeleton, SkeletonMenuItem } from "../components/Skeleton";
 
 function FoodPhoto({ v = 0, icon: Icon, radius = 16, style }) {
   return (
@@ -30,8 +31,24 @@ export default function Restaurant() {
 
   if (loading) {
     return (
-      <div style={{ fontFamily: FONT, minHeight: "60vh", display: "grid", placeItems: "center", padding: 24 }}>
-        <p style={{ color: C.grayText }}>Carregando restaurante…</p>
+      <div style={{ fontFamily: FONT, background: C.white, minHeight: "100vh" }}>
+        <Header />
+        <section className="vp-wrap" style={{ padding: "16px 24px 24px" }}>
+          <div className="flex items-center gap-4" style={{ flexWrap: "wrap" }}>
+            <Skeleton width={96} height={96} radius={16} style={{ flexShrink: 0 }} />
+            <div style={{ flex: 1, minWidth: 200, display: "flex", flexDirection: "column", gap: 10 }}>
+              <Skeleton width="45%" height={22} />
+              <Skeleton width="30%" height={13} />
+              <Skeleton width="55%" height={13} />
+            </div>
+          </div>
+        </section>
+        <section className="vp-wrap" style={{ padding: "0 24px 120px" }}>
+          <Skeleton width={100} height={17} style={{ marginBottom: 16 }} />
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            {Array.from({ length: 4 }).map((_, i) => <SkeletonMenuItem key={i} />)}
+          </div>
+        </section>
       </div>
     );
   }

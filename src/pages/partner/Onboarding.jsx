@@ -9,6 +9,7 @@ import { COMMISSION_RATES, PROMO_DAYS } from "../../lib/commission";
 import LocateButton from "../../components/LocateButton";
 import StepProgress from "../../components/StepProgress";
 import PortalHeader from "../../components/PortalHeader";
+import { SkeletonPage } from "../../components/Skeleton";
 
 const ICON_OPTIONS = [
   { key: "pizza", label: "Pizza" },
@@ -93,9 +94,7 @@ export default function PartnerOnboarding() {
 
   if (authLoading || (user && checkingExisting)) {
     return (
-      <div style={{ fontFamily: FONT, minHeight: "60vh", display: "grid", placeItems: "center" }}>
-        <p style={{ color: C.grayText }}>Carregando…</p>
-      </div>
+      <SkeletonPage />
     );
   }
 

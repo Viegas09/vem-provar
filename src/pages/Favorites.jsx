@@ -6,6 +6,7 @@ import { ICONS } from "../data/icons";
 import { useAuth } from "../context/AuthContext";
 import { fetchFavorites, removeFavorite } from "../data/queries";
 import Header from "../components/Header";
+import { SkeletonPage } from "../components/Skeleton";
 
 function FoodPhoto({ v = 0, icon: Icon, style }) {
   return (
@@ -17,11 +18,7 @@ function FoodPhoto({ v = 0, icon: Icon, style }) {
 }
 
 function LoadingScreen() {
-  return (
-    <div style={{ fontFamily: FONT, minHeight: "60vh", display: "grid", placeItems: "center" }}>
-      <p style={{ color: C.grayText }}>Carregando…</p>
-    </div>
-  );
+  return <SkeletonPage />;
 }
 
 export default function Favorites() {

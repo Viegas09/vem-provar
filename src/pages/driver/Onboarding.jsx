@@ -7,6 +7,7 @@ import { createDriver, fetchDriverByUser } from "../../data/queries";
 import LocateButton from "../../components/LocateButton";
 import StepProgress from "../../components/StepProgress";
 import PortalHeader from "../../components/PortalHeader";
+import { SkeletonPage } from "../../components/Skeleton";
 
 const VEHICLE_OPTIONS = [
   { key: "moto", label: "Moto", icon: Bike },
@@ -61,9 +62,7 @@ export default function DriverOnboarding() {
 
   if (authLoading || (user && checkingExisting)) {
     return (
-      <div style={{ fontFamily: FONT, minHeight: "60vh", display: "grid", placeItems: "center" }}>
-        <p style={{ color: C.grayText }}>Carregando…</p>
-      </div>
+      <SkeletonPage />
     );
   }
 

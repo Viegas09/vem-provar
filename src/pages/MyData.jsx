@@ -6,13 +6,10 @@ import { useAuth } from "../context/AuthContext";
 import { fetchProfile, updateProfile } from "../data/queries";
 import LocateButton from "../components/LocateButton";
 import Header from "../components/Header";
+import { SkeletonPage } from "../components/Skeleton";
 
 function LoadingScreen() {
-  return (
-    <div style={{ fontFamily: FONT, minHeight: "60vh", display: "grid", placeItems: "center" }}>
-      <p style={{ color: C.grayText }}>Carregando…</p>
-    </div>
-  );
+  return <SkeletonPage />;
 }
 
 export default function MyData() {

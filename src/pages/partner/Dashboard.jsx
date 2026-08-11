@@ -12,6 +12,7 @@ import {
 import { getCommissionRate, isInPromoPeriod, promoEndsAt } from "../../lib/commission";
 import { STATUS_META, STATUS_OPTIONS, OPEN_STATUSES } from "../../lib/orderStatus";
 import PortalHeader from "../../components/PortalHeader";
+import { SkeletonPage } from "../../components/Skeleton";
 
 function StatTile({ icon: Icon, label, value, accent }) {
   return (
@@ -186,9 +187,7 @@ export default function PartnerDashboard() {
 
   if (authLoading) {
     return (
-      <div style={{ fontFamily: FONT, minHeight: "60vh", display: "grid", placeItems: "center" }}>
-        <p style={{ color: C.grayText }}>Carregando…</p>
-      </div>
+      <SkeletonPage />
     );
   }
 
@@ -196,9 +195,7 @@ export default function PartnerDashboard() {
 
   if (loading) {
     return (
-      <div style={{ fontFamily: FONT, minHeight: "60vh", display: "grid", placeItems: "center" }}>
-        <p style={{ color: C.grayText }}>Carregando…</p>
-      </div>
+      <SkeletonPage />
     );
   }
 

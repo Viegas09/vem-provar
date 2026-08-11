@@ -7,13 +7,10 @@ import { fetchProfile, fetchRestaurants, fetchAllOrdersAdmin, fetchAllDriversAdm
 import { getCommissionRate, isInPromoPeriod } from "../../lib/commission";
 import { STATUS_META } from "../../lib/orderStatus";
 import PortalHeader from "../../components/PortalHeader";
+import { SkeletonPage } from "../../components/Skeleton";
 
 function LoadingScreen() {
-  return (
-    <div style={{ fontFamily: FONT, minHeight: "60vh", display: "grid", placeItems: "center" }}>
-      <p style={{ color: C.grayText }}>Carregando…</p>
-    </div>
-  );
+  return <SkeletonPage />;
 }
 
 function StatTile({ icon: Icon, label, value, accent }) {

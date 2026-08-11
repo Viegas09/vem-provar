@@ -5,6 +5,7 @@ import { C, FONT } from "../../theme";
 import { useAuth } from "../../context/AuthContext";
 import { fetchDriverByUser } from "../../data/queries";
 import PortalHeader from "../../components/PortalHeader";
+import { SkeletonPage } from "../../components/Skeleton";
 
 const VEHICLE_LABELS = { moto: "Moto", bike: "Bicicleta", carro: "Carro" };
 const VEHICLE_ICONS = { moto: Bike, bike: Bike, carro: Car };
@@ -24,9 +25,7 @@ export default function DriverDashboard() {
 
   if (authLoading) {
     return (
-      <div style={{ fontFamily: FONT, minHeight: "60vh", display: "grid", placeItems: "center" }}>
-        <p style={{ color: C.grayText }}>Carregando…</p>
-      </div>
+      <SkeletonPage />
     );
   }
 
@@ -34,9 +33,7 @@ export default function DriverDashboard() {
 
   if (loading) {
     return (
-      <div style={{ fontFamily: FONT, minHeight: "60vh", display: "grid", placeItems: "center" }}>
-        <p style={{ color: C.grayText }}>Carregando…</p>
-      </div>
+      <SkeletonPage />
     );
   }
 
