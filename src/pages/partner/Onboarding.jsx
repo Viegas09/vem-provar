@@ -5,6 +5,7 @@ import { C, FONT, slugify, formatBRL } from "../../theme";
 import { ICONS } from "../../data/icons";
 import { useAuth } from "../../context/AuthContext";
 import { createRestaurant, slugExists, fetchRestaurantByOwner } from "../../data/queries";
+import { COMMISSION_RATES, PROMO_DAYS } from "../../lib/commission";
 import LocateButton from "../../components/LocateButton";
 import StepProgress from "../../components/StepProgress";
 import PortalHeader from "../../components/PortalHeader";
@@ -29,12 +30,14 @@ const PLAN_OPTIONS = [
     icon: Store,
     title: "Básico",
     desc: "A entrega é feita pelo próprio restaurante (você ou um entregador seu).",
+    commission: COMMISSION_RATES.basico,
   },
   {
     key: "entrega",
     icon: Truck,
     title: "Entrega",
     desc: "O Vem Provar cuida da entrega pra você, usando entregadores cadastrados na plataforma.",
+    commission: COMMISSION_RATES.entrega,
   },
 ];
 
@@ -231,8 +234,12 @@ export default function PartnerOnboarding() {
 
           {step === 3 && (
             <>
-              <p style={{ fontSize: 13.5, color: C.grayText, margin: "-6px 0 4px" }}>
-                Os valores e comissões de cada plano ainda estão sendo definidos — por enquanto é só pra guardar sua preferência.
+              <div style={{ background: "rgba(46,158,91,.08)", color: C.ok, borderRadius: 12, padding: "10px 14px",
+                   fontSize: 13, fontWeight: 600, marginBottom: 4 }}>
+                Primeiros {PROMO_DAYS} dias sem nenhuma comissão, em qualquer plano.
+              </div>
+              <p style={{ fontSize: 13.5, color: C.grayText, margin: "0 0 4px" }}>
+                Sem mensalidade, sem taxa de antecipação, sem pagar pra aparecer melhor. Repasse rápido (D+1 Pix / D+2 cartão).
               </p>
               {PLAN_OPTIONS.map((opt) => {
                 const Icon = opt.icon;
@@ -244,8 +251,11 @@ export default function PartnerOnboarding() {
                              border: `1.5px solid ${active ? C.orange : C.line}`, borderRadius: 14,
                              padding: "16px 18px", cursor: "pointer" }}>
                     <Icon size={22} color={active ? C.orange : C.grayText} style={{ flexShrink: 0, marginTop: 2 }} />
-                    <div>
-                      <div style={{ fontSize: 15, fontWeight: 700 }}>{opt.title}</div>
+                    <div style={{ flex: 1 }}>
+                      <div className="flex items-center justify-between">
+                        <div style={{ fontSize: 15, fontWeight: 700 }}>{opt.title}</div>
+                        <span style={{ fontSize: 12.5, fontWeight: 700, color: C.orange }}>{opt.commission}% de comissão</span>
+                      </div>
                       <div style={{ fontSize: 13.5, color: C.grayText, marginTop: 2 }}>{opt.desc}</div>
                     </div>
                   </button>

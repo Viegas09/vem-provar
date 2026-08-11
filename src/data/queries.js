@@ -19,7 +19,7 @@ export async function fetchRestaurantBySlug(slug) {
   return data;
 }
 
-export async function createOrder({ restaurantId, customerId, address, paymentMethod, subtotal, deliveryFee, total, items }) {
+export async function createOrder({ restaurantId, customerId, address, paymentMethod, subtotal, deliveryFee, total, items, commissionRate, commissionAmount, restaurantPayout }) {
   const { data: order, error: orderError } = await supabase
     .from("orders")
     .insert({
@@ -30,6 +30,10 @@ export async function createOrder({ restaurantId, customerId, address, paymentMe
       subtotal,
       delivery_fee: deliveryFee,
       total,
+      commission_rate: commissionRate,
+      commission_amount: commissionAmount,
+      restaurant_payout: restaurantPayout,
+      payment_status: "simulated",
     })
     .select()
     .single();

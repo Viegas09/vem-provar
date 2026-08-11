@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
-import { Plus, Trash2, Pencil, Store, Package } from "lucide-react";
+import { Plus, Trash2, Pencil, Store, Package, Wallet } from "lucide-react";
 import { C, FONT, formatBRL } from "../../theme";
 import { ICONS } from "../../data/icons";
 import { useAuth } from "../../context/AuthContext";
 import {
   fetchRestaurantByOwner, createMenuItem, updateMenuItem, deleteMenuItem, fetchOrdersForRestaurant, updateOrderStatus,
 } from "../../data/queries";
+import { getCommissionRate, isInPromoPeriod, promoEndsAt } from "../../lib/commission";
 import PortalHeader from "../../components/PortalHeader";
 
 const STATUS_OPTIONS = [
@@ -70,6 +71,46 @@ function MenuItemForm({ restaurantId, item, onSaved, onCancel }) {
         </button>
       </div>
     </form>
+  );
+}
+
+function CommissionCard({ restaurant, orders }) {
+  const rate = getCommissionRate(restaurant);
+  const inPromo = isInPromoPeriod(restaurant.promo_started_at);
+  const totalPayout = orders.reduce((sum, o) => sum + Number(o.restaurant_payout ?? o.total), 0);
+  const totalCommission = orders.reduce((sum, o) => sum + Number(o.commission_amount ?? 0), 0);
+
+  return (
+    <div style={{ background: C.surface, border: `1px solid ${C.line}`, borderRadius: 16, padding: 18, marginBottom: 8 }}>
+      <div className="flex items-center gap-2" style={{ marginBottom: 12 }}>
+        <Wallet size={17} color={C.orange} />
+        <span style={{ fontSize: 14.5, fontWeight: 700 }}>Sua comissão</span>
+        {inPromo ? (
+          <span style={{ fontSize: 11.5, fontWeight: 700, color: C.ok, background: "rgba(46,158,91,.12)",
+               padding: "3px 9px", borderRadius: 999 }}>
+            0% até {promoEndsAt(restaurant.promo_started_at).toLocaleDateString("pt-BR")}
+          </span>
+        ) : (
+          <span style={{ fontSize: 11.5, fontWeight: 700, color: C.orange, background: "rgba(238,108,26,.1)",
+               padding: "3px 9px", borderRadius: 999 }}>
+            {rate}% por pedido
+          </span>
+        )}
+      </div>
+      <div className="flex" style={{ gap: 24, flexWrap: "wrap" }}>
+        <div>
+          <div style={{ fontSize: 12, color: C.grayText }}>Você já recebeu</div>
+          <div style={{ fontSize: 20, fontWeight: 700 }}>{formatBRL(totalPayout)}</div>
+        </div>
+        <div>
+          <div style={{ fontSize: 12, color: C.grayText }}>Comissão total paga</div>
+          <div style={{ fontSize: 20, fontWeight: 700, color: C.grayText }}>{formatBRL(totalCommission)}</div>
+        </div>
+      </div>
+      <p style={{ fontSize: 12, color: C.grayText, marginTop: 10, marginBottom: 0 }}>
+        Repasse D+1 (Pix) / D+2 (cartão) · sem mensalidade · sem taxa de antecipação
+      </p>
+    </div>
   );
 }
 
@@ -141,9 +182,11 @@ export default function PartnerDashboard() {
             <div style={{ fontSize: 13.5, color: C.grayText }}>{restaurant.category}</div>
           </div>
         </div>
-        <p style={{ fontSize: 13.5, color: C.grayText, marginBottom: 32 }}>{restaurant.address}</p>
+        <p style={{ fontSize: 13.5, color: C.grayText, marginBottom: 20 }}>{restaurant.address}</p>
 
-        <div className="flex items-center justify-between" style={{ marginBottom: 14 }}>
+        <CommissionCard restaurant={restaurant} orders={orders} />
+
+        <div className="flex items-center justify-between" style={{ marginBottom: 14, marginTop: 32 }}>
           <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>Cardápio</h2>
           {!showAddForm && (
             <button onClick={() => setShowAddForm(true)} className="flex items-center gap-1"
@@ -217,7 +260,15 @@ export default function PartnerDashboard() {
                   ))}
                 </div>
                 <div className="flex items-center justify-between" style={{ marginTop: 10 }}>
-                  <span style={{ fontSize: 14, fontWeight: 700 }}>{formatBRL(order.total)}</span>
+                  <div>
+                    <span style={{ fontSize: 14, fontWeight: 700 }}>{formatBRL(order.total)}</span>
+                    {order.restaurant_payout != null && (
+                      <div style={{ fontSize: 12, color: C.ok, marginTop: 2 }}>
+                        Você recebe {formatBRL(order.restaurant_payout)}
+                        {Number(order.commission_amount) === 0 ? " · sem comissão" : ` · comissão ${formatBRL(order.commission_amount)}`}
+                      </div>
+                    )}
+                  </div>
                   <select value={order.status} onChange={(e) => handleStatusChange(order.id, e.target.value)}
                     style={{ border: `1.5px solid ${C.line}`, outline: "none", borderRadius: 8, padding: "6px 10px",
                              fontFamily: FONT, fontSize: 13, fontWeight: 600, background: "#fff", cursor: "pointer" }}>

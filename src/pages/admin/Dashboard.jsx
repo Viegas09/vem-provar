@@ -4,6 +4,7 @@ import { Store, Package, Bike, Wallet } from "lucide-react";
 import { C, FONT, formatBRL } from "../../theme";
 import { useAuth } from "../../context/AuthContext";
 import { fetchProfile, fetchRestaurants, fetchAllOrdersAdmin, fetchAllDriversAdmin } from "../../data/queries";
+import { getCommissionRate, isInPromoPeriod } from "../../lib/commission";
 import PortalHeader from "../../components/PortalHeader";
 
 const STATUS_LABELS = {
@@ -82,6 +83,7 @@ export default function AdminDashboard() {
   if (loadingData) return <LoadingScreen />;
 
   const revenue = orders.reduce((sum, o) => sum + Number(o.total), 0);
+  const commissionRevenue = orders.reduce((sum, o) => sum + Number(o.commission_amount ?? 0), 0);
   const recentOrders = orders.slice(0, 15);
 
   return (
@@ -93,7 +95,8 @@ export default function AdminDashboard() {
         <div className="flex" style={{ gap: 14, flexWrap: "wrap", marginBottom: 36 }}>
           <StatTile icon={Store} label="Restaurantes" value={restaurants.length} />
           <StatTile icon={Package} label="Pedidos" value={orders.length} />
-          <StatTile icon={Wallet} label="Receita total" value={formatBRL(revenue)} />
+          <StatTile icon={Wallet} label="Volume total (GMV)" value={formatBRL(revenue)} />
+          <StatTile icon={Wallet} label="Receita da plataforma" value={formatBRL(commissionRevenue)} />
           <StatTile icon={Bike} label="Entregadores" value={drivers.length} />
         </div>
 
@@ -102,19 +105,29 @@ export default function AdminDashboard() {
           <p style={{ color: C.grayText, fontSize: 14 }}>Nenhum restaurante cadastrado ainda.</p>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 36 }}>
-            {restaurants.map((r) => (
-              <div key={r.id} className="flex items-center justify-between" style={{ padding: "12px 16px",
-                   background: "#fff", border: `1px solid ${C.line}`, borderRadius: 12 }}>
-                <div>
-                  <div style={{ fontSize: 14.5, fontWeight: 600 }}>{r.name}</div>
-                  <div style={{ fontSize: 12.5, color: C.grayText }}>{r.category || "—"}</div>
+            {restaurants.map((r) => {
+              const inPromo = isInPromoPeriod(r.promo_started_at);
+              const rate = getCommissionRate(r);
+              return (
+                <div key={r.id} className="flex items-center justify-between" style={{ padding: "12px 16px",
+                     background: "#fff", border: `1px solid ${C.line}`, borderRadius: 12 }}>
+                  <div>
+                    <div style={{ fontSize: 14.5, fontWeight: 600 }}>{r.name}</div>
+                    <div style={{ fontSize: 12.5, color: C.grayText }}>{r.category || "—"}</div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span style={{ fontSize: 12, fontWeight: 600, color: C.orange, background: "rgba(238,108,26,.1)",
+                         padding: "4px 10px", borderRadius: 999 }}>
+                      {r.plan ? (r.plan === "entrega" ? "Entrega" : "Básico") : "Sem plano"}
+                    </span>
+                    <span style={{ fontSize: 12, fontWeight: 600, color: inPromo ? C.ok : C.grayText,
+                         background: inPromo ? "rgba(46,158,91,.1)" : C.surface, padding: "4px 10px", borderRadius: 999 }}>
+                      {inPromo ? "0% promo" : `${rate}%`}
+                    </span>
+                  </div>
                 </div>
-                <span style={{ fontSize: 12, fontWeight: 600, color: C.orange, background: "rgba(238,108,26,.1)",
-                     padding: "4px 10px", borderRadius: 999 }}>
-                  {r.plan ? (r.plan === "entrega" ? "Entrega" : "Básico") : "Sem plano"}
-                </span>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
 

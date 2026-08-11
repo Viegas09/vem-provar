@@ -7,6 +7,7 @@ import { useCart } from "../context/CartContext";
 import { useUserLocation } from "../hooks/useUserLocation";
 import { useAuth } from "../context/AuthContext";
 import { createOrder } from "../data/queries";
+import { getCommissionRate, calculateCommission } from "../lib/commission";
 import Header from "../components/Header";
 import LocateButton from "../components/LocateButton";
 
@@ -49,6 +50,8 @@ export default function Checkout() {
     setSubmitting(true);
     setSubmitError(null);
     try {
+      const commissionRate = getCommissionRate(restaurant);
+      const { commissionAmount, restaurantPayout } = calculateCommission(subtotal, commissionRate);
       const order = await createOrder({
         restaurantId: restaurant.id,
         customerId: user?.id,
@@ -58,6 +61,9 @@ export default function Checkout() {
         deliveryFee,
         total,
         items: cart.items,
+        commissionRate,
+        commissionAmount,
+        restaurantPayout,
       });
       submittedRef.current = true;
       clearCart();
