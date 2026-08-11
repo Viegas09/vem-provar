@@ -10,17 +10,8 @@ import {
   fetchRestaurantByOwner, createMenuItem, updateMenuItem, deleteMenuItem, fetchOrdersForRestaurant, updateOrderStatus,
 } from "../../data/queries";
 import { getCommissionRate, isInPromoPeriod, promoEndsAt } from "../../lib/commission";
+import { STATUS_META, STATUS_OPTIONS, OPEN_STATUSES } from "../../lib/orderStatus";
 import PortalHeader from "../../components/PortalHeader";
-
-const STATUS_META = {
-  pending: { label: "Recebido", color: C.orange, bg: "rgba(238,108,26,.12)" },
-  preparing: { label: "Em preparo", color: "#2E6FE2", bg: "rgba(46,111,226,.1)" },
-  out_for_delivery: { label: "Saiu para entrega", color: "#7C4DFF", bg: "rgba(124,77,255,.1)" },
-  delivered: { label: "Entregue", color: C.ok, bg: "rgba(46,158,91,.1)" },
-  cancelled: { label: "Cancelado", color: "#B42318", bg: "#FDECEC" },
-};
-const STATUS_OPTIONS = Object.entries(STATUS_META).map(([value, meta]) => ({ value, label: meta.label }));
-const OPEN_STATUSES = ["pending", "preparing", "out_for_delivery"];
 
 function StatTile({ icon: Icon, label, value, accent }) {
   return (
@@ -260,14 +251,14 @@ export default function PartnerDashboard() {
           </div>
         )}
 
-        <div className="vp-partner-stats" style={{ marginBottom: 28 }}>
+        <div className="vp-dash-stats" style={{ marginBottom: 28 }}>
           <StatTile icon={Receipt} label="Pedidos hoje" value={todaysOrders.length} />
           <StatTile icon={TrendingUp} label="Faturamento hoje" value={formatBRL(todayRevenue)} />
           <StatTile icon={Clock3} label="Em aberto" value={openOrdersCount} accent={openOrdersCount > 0} />
           <StatTile icon={Wallet} label="Você recebeu" value={formatBRL(totalPayout)} />
         </div>
 
-        <div className="vp-partner-grid">
+        <div className="vp-dash-grid">
           <div>
             <h2 style={{ fontSize: 18, fontWeight: 700, margin: "0 0 14px" }}>Pedidos recebidos</h2>
             {orders.length === 0 ? (
@@ -321,7 +312,7 @@ export default function PartnerDashboard() {
             )}
           </div>
 
-          <div className="vp-partner-side">
+          <div className="vp-dash-side">
             <div>
               <h2 style={{ fontSize: 16, fontWeight: 700, margin: "0 0 12px" }}>Financeiro</h2>
               <MercadoPagoCard restaurant={restaurant} />
