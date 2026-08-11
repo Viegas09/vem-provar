@@ -75,7 +75,7 @@ export default function InstallPrompt() {
   if (!deferredPrompt && !showIOSHint) return null;
 
   return (
-    <div className="vp-fade-in" style={{ position: "fixed", left: 12, right: 12, bottom: 12, zIndex: 45,
+    <div className="vp-fade-in vp-installprompt" style={{ position: "fixed", left: 12, right: 12, zIndex: 45,
          background: C.black, color: "#fff", borderRadius: 14, padding: "12px 14px", fontFamily: FONT,
          boxShadow: "0 10px 30px rgba(0,0,0,.25)", display: "flex", alignItems: "center", gap: 12, maxWidth: 420, margin: "0 auto" }}>
       <div style={{ width: 38, height: 38, borderRadius: 10, background: C.orange, display: "grid", placeItems: "center", flexShrink: 0 }}>

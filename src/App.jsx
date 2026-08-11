@@ -1,6 +1,7 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
 import ScrollToTop from "./components/ScrollToTop";
 import InstallPrompt from "./components/InstallPrompt";
+import BottomNav from "./components/BottomNav";
 import Home from "./pages/Home";
 import Restaurant from "./pages/Restaurant";
 import Cart from "./pages/Cart";
@@ -24,6 +25,9 @@ import AdminLogin from "./pages/admin/Login";
 import AdminDashboard from "./pages/admin/Dashboard";
 
 function App() {
+  const location = useLocation();
+  const isPortalRoute = /^\/(parceiro|entregador|admin)/.test(location.pathname);
+
   return (
     <>
       <ScrollToTop />
@@ -54,6 +58,7 @@ function App() {
         <Route path="/admin/painel" element={<AdminDashboard />} />
       </Routes>
       <InstallPrompt />
+      {!isPortalRoute && <BottomNav />}
     </>
   );
 }

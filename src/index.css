@@ -28,6 +28,8 @@ button:active{ transform:scale(.96); }
 button:disabled:active{ transform:none; }
 button:focus-visible,a:focus-visible{ outline:2px solid #EE6C1A; outline-offset:2px; }
 .vp-scroll{ overflow-x:auto; scrollbar-width:none; } .vp-scroll::-webkit-scrollbar{display:none;}
+.vp-bottomnav{ display:none; }
+.vp-installprompt{ bottom:12px; }
 @media (max-width:860px){
   .vp-navlinks{ display:none; }
   .vp-mobilebtn{ display:grid; }
@@ -37,5 +39,8 @@ button:focus-visible,a:focus-visible{ outline:2px solid #EE6C1A; outline-offset:
   .vp-hero{ grid-template-columns:1fr; gap:28px; }
   .vp-hero-art{ height:260px; }
   .vp-roles{ grid-template-columns:1fr; }
+  .vp-bottomnav{ display:flex; }
+  body.vp-has-bottomnav{ padding-bottom:calc(58px + env(safe-area-inset-bottom)); }
+  body.vp-has-bottomnav .vp-installprompt{ bottom:calc(70px + env(safe-area-inset-bottom)); }
 }
 @media (prefers-reduced-motion:reduce){ *{animation:none!important} }
