@@ -38,6 +38,7 @@ const PLAN_OPTIONS = [
     title: "Entrega",
     desc: "O Vem Provar cuida da entrega pra você, usando entregadores cadastrados na plataforma.",
     commission: COMMISSION_RATES.entrega,
+    comingSoon: true,
   },
 ];
 
@@ -245,16 +246,25 @@ export default function PartnerOnboarding() {
                 const Icon = opt.icon;
                 const active = plan === opt.key;
                 return (
-                  <button key={opt.key} type="button" onClick={() => setPlan(opt.key)}
+                  <button key={opt.key} type="button" disabled={opt.comingSoon}
+                    onClick={() => !opt.comingSoon && setPlan(opt.key)}
                     style={{ display: "flex", alignItems: "flex-start", gap: 12, textAlign: "left",
-                             background: active ? "rgba(238,108,26,.08)" : "#fff",
+                             background: opt.comingSoon ? C.surface : active ? "rgba(238,108,26,.08)" : "#fff",
                              border: `1.5px solid ${active ? C.orange : C.line}`, borderRadius: 14,
-                             padding: "16px 18px", cursor: "pointer" }}>
+                             padding: "16px 18px", cursor: opt.comingSoon ? "default" : "pointer",
+                             opacity: opt.comingSoon ? 0.65 : 1 }}>
                     <Icon size={22} color={active ? C.orange : C.grayText} style={{ flexShrink: 0, marginTop: 2 }} />
                     <div style={{ flex: 1 }}>
                       <div className="flex items-center justify-between">
                         <div style={{ fontSize: 15, fontWeight: 700 }}>{opt.title}</div>
-                        <span style={{ fontSize: 12.5, fontWeight: 700, color: C.orange }}>{opt.commission}% de comissão</span>
+                        {opt.comingSoon ? (
+                          <span style={{ fontSize: 12, fontWeight: 700, color: C.grayText, background: "#fff",
+                               border: `1px solid ${C.line}`, padding: "3px 9px", borderRadius: 999 }}>
+                            Em breve
+                          </span>
+                        ) : (
+                          <span style={{ fontSize: 12.5, fontWeight: 700, color: C.orange }}>{opt.commission}% de comissão</span>
+                        )}
                       </div>
                       <div style={{ fontSize: 13.5, color: C.grayText, marginTop: 2 }}>{opt.desc}</div>
                     </div>
