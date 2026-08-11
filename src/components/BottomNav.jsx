@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Home, Package, ShoppingCart, User } from "lucide-react";
+import { Home, Package, Search, ShoppingCart, User } from "lucide-react";
 import { C, FONT } from "../theme";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
@@ -19,8 +19,9 @@ export default function BottomNav() {
 
   const tabs = [
     { to: "/", icon: Home, label: "Início", active: path === "/" },
-    { to: "/meus-pedidos", icon: Package, label: "Pedidos", active: path.startsWith("/meus-pedidos") || path.startsWith("/pedido") },
+    { to: "/busca", icon: Search, label: "Busca", active: path.startsWith("/busca") },
     { to: "/carrinho", icon: ShoppingCart, label: "Carrinho", active: path.startsWith("/carrinho") || path.startsWith("/checkout"), badge: totalItems },
+    { to: "/meus-pedidos", icon: Package, label: "Pedidos", active: path.startsWith("/meus-pedidos") || path.startsWith("/pedido") },
     { to: profileTo, icon: User, label: "Perfil", active: ["/meus-dados", "/entrar", "/criar-conta", "/favoritos"].some((p) => path.startsWith(p)) },
   ];
 

@@ -7,6 +7,7 @@ import {
 import { C, FONT, WARM } from "../theme";
 import { CATS, ICONS } from "../data/icons";
 import { useRestaurants } from "../hooks/useRestaurants";
+import { useRecentRestaurants } from "../hooks/useRecentRestaurants";
 import { useUserLocation } from "../hooks/useUserLocation";
 import { useFavorites } from "../hooks/useFavorites";
 import { useAuth } from "../context/AuthContext";
@@ -16,6 +17,13 @@ import LocateButton from "../components/LocateButton";
 import WORDMARK_LIGHT from "../assets/wordmark-light.png";
 
 const HOOD_TAGS = ["pediram hoje", "recomendam", "novo perto de você", "em alta"];
+
+function greeting() {
+  const h = new Date().getHours();
+  if (h < 12) return "Bom dia";
+  if (h < 18) return "Boa tarde";
+  return "Boa noite";
+}
 
 function FoodPhoto({ v = 0, icon: Icon, radius = 16, style }) {
   return (
@@ -32,6 +40,7 @@ export default function Home() {
   const [location, setLocation] = useUserLocation();
   const { user } = useAuth();
   const { isFavorite, toggle: toggleFavorite } = useFavorites(user?.id);
+  const { restaurants: recentRestaurants } = useRecentRestaurants(user?.id);
   const [searchParams, setSearchParams] = useSearchParams();
   const query = (searchParams.get("q") || "").trim().toLowerCase();
   const hasQuery = query.length > 0;
@@ -61,6 +70,8 @@ export default function Home() {
     ? [...restaurantsWithDistance].sort((a, b) => (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity))
     : restaurantsWithDistance;
 
+  const firstName = user?.user_metadata?.full_name?.split(" ")[0];
+
   const highlights = restaurants
     .filter((r) => r.menu_items?.length > 0)
     .slice(0, 4)
@@ -80,6 +91,11 @@ export default function Home() {
       <section className="vp-wrap" style={{ padding: "56px 24px 40px" }}>
         <div className="vp-hero vp-fade-in">
           <div>
+            {firstName && (
+              <p style={{ fontSize: 14.5, color: C.grayText, fontWeight: 500, margin: "0 0 6px" }}>
+                {greeting()}, {firstName}
+              </p>
+            )}
             <div className="flex items-center gap-2" style={{ marginBottom: 18 }}>
               <span style={{ background: "rgba(238,108,26,.1)", color: C.orange, fontSize: 12.5, fontWeight: 600,
                              padding: "5px 12px", borderRadius: 999 }}>Itapecerica da Serra</span>
@@ -141,6 +157,24 @@ export default function Home() {
           })}
         </div>
       </section>
+
+      {!error && !hasQuery && recentRestaurants.length > 0 && (
+        <section className="vp-wrap" style={{ padding: "20px 24px 8px" }}>
+          <h2 style={{ fontSize: 18, fontWeight: 700, margin: "0 0 14px", letterSpacing: -.3 }}>Últimas lojas</h2>
+          <div className="vp-scroll" style={{ display: "flex", gap: 14 }}>
+            {recentRestaurants.map((r) => (
+              <Link key={r.slug} to={`/restaurante/${r.slug}`} className="vp-tap" style={{ width: 108, flexShrink: 0,
+                   textDecoration: "none", color: "inherit", display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
+                <FoodPhoto v={r.color_variant} icon={ICONS[r.icon_key] || Store} radius={16} style={{ width: 88, height: 88 }} />
+                <span style={{ fontSize: 12.5, fontWeight: 600, textAlign: "center", lineHeight: 1.3,
+                     overflow: "hidden", textOverflow: "ellipsis", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>
+                  {r.name}
+                </span>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       {error && (
         <section className="vp-wrap" style={{ padding: "24px" }}>

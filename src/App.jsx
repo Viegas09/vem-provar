@@ -3,6 +3,7 @@ import ScrollToTop from "./components/ScrollToTop";
 import InstallPrompt from "./components/InstallPrompt";
 import BottomNav from "./components/BottomNav";
 import Home from "./pages/Home";
+import Search from "./pages/Search";
 import Restaurant from "./pages/Restaurant";
 import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
@@ -33,6 +34,7 @@ function App() {
       <ScrollToTop />
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/busca" element={<Search />} />
         <Route path="/restaurante/:slug" element={<Restaurant />} />
         <Route path="/carrinho" element={<Cart />} />
         <Route path="/checkout" element={<Checkout />} />
