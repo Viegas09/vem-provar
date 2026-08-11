@@ -1,186 +1,58 @@
-import { supabase } from "../lib/supabase";
+const now = new Date();
+const todayISO = (h) => new Date(now.getFullYear(), now.getMonth(), now.getDate(), h).toISOString();
 
-export async function fetchRestaurants() {
-  const { data, error } = await supabase
-    .from("restaurants")
-    .select("*, menu_items(*)")
-    .order("name");
-  if (error) throw error;
-  return data;
+const OWNED_RESTAURANT = {
+  id: "r1", slug: "pizzaria-do-bairro", name: "Pizzaria do Bairro", category: "Pizza · Italiana", icon_key: "pizza", color_variant: 0, rating: 4.7, delivery_time: "30-40", delivery_fee: 5,
+  plan: "basico", promo_started_at: "2026-01-01T00:00:00Z", mp_connected: true, is_open: true,
+  menu_items: [
+    { id: "m1", name: "Pizza Margherita", description: "Molho, mussarela e manjericão fresco", price: 42.9, color_variant: 0, available: true },
+    { id: "m2", name: "Pizza Calabresa", description: "Calabresa fatiada, cebola e azeitonas", price: 39.9, color_variant: 4, available: true },
+  ],
+};
+
+const CLOSED_RESTAURANT = {
+  id: "r2", slug: "burger-house", name: "Burger House", category: "Lanches · Hambúrguer", icon_key: "burger", color_variant: 1, rating: 4.5, delivery_time: "20-30", delivery_fee: 0,
+  plan: "basico", promo_started_at: "2026-01-01T00:00:00Z", mp_connected: false, is_open: false,
+  menu_items: [{ id: "m3", name: "Cheeseburger Duplo", description: "Dois hambúrgueres, queijo cheddar", price: 32.9, color_variant: 1, available: true }],
+};
+
+const MOCK_RESTAURANTS = [OWNED_RESTAURANT, CLOSED_RESTAURANT];
+
+const MOCK_ORDERS = [
+  { id: "o1", created_at: todayISO(19), address: "Rua das Flores, 123", status: "pending", total: 55, subtotal: 50, delivery_fee: 5,
+    commission_rate: 8, commission_amount: 4, restaurant_payout: 46,
+    order_items: [{ id: "oi1", name: "Pizza Margherita", price: 42.9, qty: 1, notes: "Sem cebola" }] },
+  { id: "o2", created_at: todayISO(18), address: "Av. Central, 900", status: "preparing", total: 84.8, subtotal: 79.8, delivery_fee: 5,
+    commission_rate: 8, commission_amount: 6.38, restaurant_payout: 73.42,
+    order_items: [{ id: "oi2", name: "Pizza Calabresa", price: 39.9, qty: 2 }] },
+  { id: "o4", created_at: todayISO(12), address: "Praça da Serra, 10", status: "delivered", total: 48.9, subtotal: 42.9, delivery_fee: 6,
+    commission_rate: 0, commission_amount: 0, restaurant_payout: 42.9,
+    order_items: [{ id: "oi4", name: "Pizza Margherita", price: 42.9, qty: 1 }] },
+];
+
+export async function fetchRestaurants() { return MOCK_RESTAURANTS; }
+export async function fetchRestaurantBySlug(slug) { return MOCK_RESTAURANTS.find((r) => r.slug === slug) || null; }
+export async function createOrder(order) { return { id: "mock-order-123", ...order }; }
+export async function fetchRestaurantByOwner() { return { ...OWNED_RESTAURANT }; }
+export async function slugExists() { return false; }
+export async function createRestaurant(r) { return { id: "mock", ...r }; }
+export async function createMenuItem(i) { return { id: "mock", ...i }; }
+export async function updateMenuItem() {}
+export async function deleteMenuItem() {}
+export async function updateRestaurant(id, changes) {
+  const r = MOCK_RESTAURANTS.find((x) => x.id === id);
+  if (r) Object.assign(r, changes);
 }
-
-export async function fetchRestaurantBySlug(slug) {
-  const { data, error } = await supabase
-    .from("restaurants")
-    .select("*, menu_items(*)")
-    .eq("slug", slug)
-    .maybeSingle();
-  if (error) throw error;
-  return data;
-}
-
-export async function createOrder({ restaurantId, customerId, address, paymentMethod, subtotal, deliveryFee, total, items, commissionRate, commissionAmount, restaurantPayout }) {
-  const { data: order, error: orderError } = await supabase
-    .from("orders")
-    .insert({
-      restaurant_id: restaurantId,
-      customer_id: customerId || null,
-      address,
-      payment_method: paymentMethod,
-      subtotal,
-      delivery_fee: deliveryFee,
-      total,
-      commission_rate: commissionRate,
-      commission_amount: commissionAmount,
-      restaurant_payout: restaurantPayout,
-      payment_status: "simulated",
-    })
-    .select()
-    .single();
-  if (orderError) throw orderError;
-
-  const { error: itemsError } = await supabase.from("order_items").insert(
-    items.map((item) => ({
-      order_id: order.id,
-      menu_item_id: item.id,
-      name: item.name,
-      price: item.price,
-      qty: item.qty,
-      notes: item.notes || null,
-    }))
-  );
-  if (itemsError) throw itemsError;
-
-  return order;
-}
-
-export async function fetchRestaurantByOwner(ownerId) {
-  const { data, error } = await supabase
-    .from("restaurants")
-    .select("*, menu_items(*)")
-    .eq("owner_id", ownerId)
-    .maybeSingle();
-  if (error) throw error;
-  return data;
-}
-
-export async function slugExists(slug) {
-  const { data, error } = await supabase.from("restaurants").select("id").eq("slug", slug).maybeSingle();
-  if (error) throw error;
-  return !!data;
-}
-
-export async function createRestaurant(restaurant) {
-  const { data, error } = await supabase.from("restaurants").insert(restaurant).select().single();
-  if (error) throw error;
-  return data;
-}
-
-export async function createMenuItem(item) {
-  const { data, error } = await supabase.from("menu_items").insert(item).select().single();
-  if (error) throw error;
-  return data;
-}
-
-export async function updateMenuItem(id, changes) {
-  const { error } = await supabase.from("menu_items").update(changes).eq("id", id);
-  if (error) throw error;
-}
-
-export async function deleteMenuItem(id) {
-  const { error } = await supabase.from("menu_items").delete().eq("id", id);
-  if (error) throw error;
-}
-
-export async function fetchOrdersForRestaurant(restaurantId) {
-  const { data, error } = await supabase
-    .from("orders")
-    .select("*, order_items(*)")
-    .eq("restaurant_id", restaurantId)
-    .order("created_at", { ascending: false });
-  if (error) throw error;
-  return data;
-}
-
-export async function fetchOrderById(orderId) {
-  const { data, error } = await supabase
-    .from("orders")
-    .select("*, order_items(*), restaurants(name)")
-    .eq("id", orderId)
-    .maybeSingle();
-  if (error) throw error;
-  return data;
-}
-
-export async function updateOrderStatus(orderId, status) {
-  const { error } = await supabase.from("orders").update({ status }).eq("id", orderId);
-  if (error) throw error;
-}
-
-export async function fetchDriverByUser(userId) {
-  const { data, error } = await supabase.from("drivers").select("*").eq("user_id", userId).maybeSingle();
-  if (error) throw error;
-  return data;
-}
-
-export async function createDriver(driver) {
-  const { data, error } = await supabase.from("drivers").insert(driver).select().single();
-  if (error) throw error;
-  return data;
-}
-
-export async function fetchProfile(userId) {
-  const { data, error } = await supabase.from("profiles").select("*").eq("id", userId).maybeSingle();
-  if (error) throw error;
-  return data;
-}
-
-export async function fetchAllOrdersAdmin() {
-  const { data, error } = await supabase
-    .from("orders")
-    .select("*, order_items(*), restaurants(name)")
-    .order("created_at", { ascending: false });
-  if (error) throw error;
-  return data;
-}
-
-export async function fetchAllDriversAdmin() {
-  const { data, error } = await supabase.from("drivers").select("*").order("created_at", { ascending: false });
-  if (error) throw error;
-  return data;
-}
-
-export async function updateProfile(userId, changes) {
-  const { error } = await supabase.from("profiles").update(changes).eq("id", userId);
-  if (error) throw error;
-}
-
-export async function fetchOrdersForCustomer(customerId) {
-  const { data, error } = await supabase
-    .from("orders")
-    .select("*, order_items(*), restaurants(name, slug, icon_key, color_variant)")
-    .eq("customer_id", customerId)
-    .order("created_at", { ascending: false });
-  if (error) throw error;
-  return data;
-}
-
-export async function fetchFavorites(userId) {
-  const { data, error } = await supabase
-    .from("favorites")
-    .select("*, restaurants(*)")
-    .eq("user_id", userId)
-    .order("created_at", { ascending: false });
-  if (error) throw error;
-  return data;
-}
-
-export async function addFavorite(userId, restaurantId) {
-  const { error } = await supabase.from("favorites").insert({ user_id: userId, restaurant_id: restaurantId });
-  if (error) throw error;
-}
-
-export async function removeFavorite(userId, restaurantId) {
-  const { error } = await supabase.from("favorites").delete().eq("user_id", userId).eq("restaurant_id", restaurantId);
-  if (error) throw error;
-}
+export async function fetchOrdersForRestaurant() { return MOCK_ORDERS; }
+export async function fetchOrderById() { return null; }
+export async function updateOrderStatus() {}
+export async function fetchDriverByUser() { return null; }
+export async function createDriver(d) { return { id: "mock", ...d }; }
+export async function fetchProfile() { return { role: "admin" }; }
+export async function updateProfile() {}
+export async function fetchAllOrdersAdmin() { return []; }
+export async function fetchAllDriversAdmin() { return []; }
+export async function fetchOrdersForCustomer() { return []; }
+export async function fetchFavorites() { return []; }
+export async function addFavorite() {}
+export async function removeFavorite() {}

@@ -47,6 +47,10 @@ export default function Checkout() {
   async function handleConfirm(e) {
     e.preventDefault();
     if (!address.trim() || !restaurant) return;
+    if (restaurant.is_open === false) {
+      setSubmitError("Esse restaurante está fechado no momento e não pode receber pedidos agora.");
+      return;
+    }
     setSubmitting(true);
     setSubmitError(null);
     try {
@@ -66,6 +70,26 @@ export default function Checkout() {
         restaurantPayout,
       });
       submittedRef.current = true;
+
+      if ((payment === "pix" || payment === "card") && restaurant.mp_connected) {
+        try {
+          const mpRes = await fetch("/api/mp-create-preference", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ orderId: order.id, origin: window.location.origin }),
+          });
+          const mpData = await mpRes.json();
+          const checkoutUrl = mpData.initPoint || mpData.sandboxInitPoint;
+          if (mpRes.ok && checkoutUrl) {
+            clearCart();
+            window.location.href = checkoutUrl;
+            return;
+          }
+        } catch {
+          // segue pro fluxo padrão se o Mercado Pago falhar — o pedido já foi criado
+        }
+      }
+
       clearCart();
       navigate("/pedido-confirmado", { state: { orderId: order.id, orderNumber: order.id.slice(0, 8), total, payment } });
     } catch (err) {
@@ -125,15 +149,21 @@ export default function Checkout() {
           </div>
         </div>
 
+        {restaurant?.is_open === false && (
+          <div style={{ background: "#FDECEC", color: "#B42318", borderRadius: 12, padding: 14, fontSize: 14, marginBottom: 16 }}>
+            Esse restaurante está fechado no momento e não pode receber pedidos agora.
+          </div>
+        )}
+
         {submitError && (
           <div style={{ background: "#FDECEC", color: "#B42318", borderRadius: 12, padding: 14, fontSize: 14, marginBottom: 16 }}>
             {submitError}
           </div>
         )}
 
-        <button type="submit" disabled={submitting}
-          style={{ width: "100%", background: submitting ? C.gray : C.orange, color: "#fff", border: "none",
-                   cursor: submitting ? "default" : "pointer", borderRadius: 12, padding: "15px 0", fontFamily: FONT,
+        <button type="submit" disabled={submitting || restaurant?.is_open === false}
+          style={{ width: "100%", background: submitting || restaurant?.is_open === false ? C.gray : C.orange, color: "#fff", border: "none",
+                   cursor: submitting || restaurant?.is_open === false ? "default" : "pointer", borderRadius: 12, padding: "15px 0", fontFamily: FONT,
                    fontSize: 15.5, fontWeight: 600 }}>
           {submitting ? "Confirmando…" : "Confirmar pedido"}
         </button>

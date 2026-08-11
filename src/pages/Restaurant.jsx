@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Star, Clock, Bike, Store, Heart } from "lucide-react";
+import { ArrowLeft, Star, Clock, Bike, Store, Heart, XCircle } from "lucide-react";
 import { C, FONT, WARM, formatBRL } from "../theme";
 import { ICONS } from "../data/icons";
 import { useRestaurant } from "../hooks/useRestaurant";
@@ -66,6 +66,7 @@ export default function Restaurant() {
 
   const qtyOf = (itemId) => cart.items.filter((i) => i.id === itemId).reduce((sum, i) => sum + i.qty, 0);
   const menu = (restaurant.menu_items || []).filter((item) => item.available !== false);
+  const isClosed = restaurant.is_open === false;
 
   return (
     <div style={{ fontFamily: FONT, background: C.white, color: C.black, minHeight: 800 }}>
@@ -109,6 +110,12 @@ export default function Restaurant() {
       </section>
 
       <section className="vp-wrap" style={{ padding: "0 24px 120px" }}>
+        {isClosed && (
+          <div className="flex items-center gap-2" style={{ background: "#FDECEC", color: "#B42318", borderRadius: 12,
+               padding: "12px 16px", fontSize: 13.5, fontWeight: 600, marginBottom: 18 }}>
+            <XCircle size={17} style={{ flexShrink: 0 }} /> Este restaurante está fechado no momento — não é possível fazer pedidos.
+          </div>
+        )}
         <h2 style={{ fontSize: 19, fontWeight: 700, margin: "0 0 14px" }}>Cardápio</h2>
         {menu.length === 0 ? (
           <p style={{ color: C.grayText, fontSize: 14.5 }}>Esse restaurante ainda não cadastrou itens no cardápio.</p>
@@ -117,9 +124,10 @@ export default function Restaurant() {
             {menu.map((item) => {
               const qty = qtyOf(item.id);
               return (
-                <button key={item.id} onClick={() => setSelectedItem(item)} className="vp-tap"
+                <button key={item.id} onClick={() => !isClosed && setSelectedItem(item)} disabled={isClosed} className="vp-tap"
                   style={{ display: "flex", flexDirection: "column", gap: 10, padding: 14, background: "#fff",
-                           border: `1px solid ${C.line}`, borderRadius: 16, textAlign: "left", cursor: "pointer", width: "100%" }}>
+                           border: `1px solid ${C.line}`, borderRadius: 16, textAlign: "left", width: "100%",
+                           cursor: isClosed ? "default" : "pointer", opacity: isClosed ? 0.55 : 1 }}>
                   <div className="flex items-start" style={{ gap: 14 }}>
                     <FoodPhoto v={item.color_variant} radius={12} style={{ width: 72, height: 72, flexShrink: 0 }} />
                     <div style={{ flex: 1, minWidth: 0 }}>
@@ -137,9 +145,9 @@ export default function Restaurant() {
                         </span>
                       )}
                     </div>
-                    <span style={{ background: C.orange, color: "#fff", border: "none", borderRadius: 10,
+                    <span style={{ background: isClosed ? C.gray : C.orange, color: "#fff", border: "none", borderRadius: 10,
                          padding: "9px 16px", fontFamily: FONT, fontSize: 13.5, fontWeight: 600, flexShrink: 0 }}>
-                      Adicionar
+                      {isClosed ? "Fechado" : "Adicionar"}
                     </span>
                   </div>
                 </button>
