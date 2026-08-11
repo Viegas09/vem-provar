@@ -1,8 +1,6 @@
-const CACHE_NAME = "vem-provar-v1";
-const APP_SHELL = ["/", "/index.html", "/manifest.json"];
+const CACHE_NAME = "vem-provar-v2";
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL)));
   self.skipWaiting();
 });
 
@@ -13,20 +11,19 @@ self.addEventListener("activate", (event) => {
   self.clients.claim();
 });
 
+// Network-first: sempre busca a versão mais nova quando online.
+// Só usa o cache como reserva se a rede falhar (offline).
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
   event.respondWith(
-    caches.match(event.request).then((cached) => {
-      const fetchPromise = fetch(event.request)
-        .then((response) => {
-          if (response && response.status === 200 && response.type === "basic") {
-            const clone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
-          }
-          return response;
-        })
-        .catch(() => cached);
-      return cached || fetchPromise;
-    })
+    fetch(event.request)
+      .then((response) => {
+        if (response && response.status === 200 && response.type === "basic") {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+        }
+        return response;
+      })
+      .catch(() => caches.match(event.request))
   );
 });
