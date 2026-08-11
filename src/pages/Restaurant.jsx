@@ -65,7 +65,7 @@ export default function Restaurant() {
   }
 
   const qtyOf = (itemId) => cart.items.filter((i) => i.id === itemId).reduce((sum, i) => sum + i.qty, 0);
-  const menu = restaurant.menu_items || [];
+  const menu = (restaurant.menu_items || []).filter((item) => item.available !== false);
 
   return (
     <div style={{ fontFamily: FONT, background: C.white, color: C.black, minHeight: 800 }}>

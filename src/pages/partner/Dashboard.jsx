@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Navigate, useSearchParams } from "react-router-dom";
 import {
-  Plus, Trash2, Pencil, Store, Package, Wallet, CreditCard, CheckCircle2, Receipt, TrendingUp, Clock3,
+  Plus, Trash2, Pencil, Store, Package, Wallet, CreditCard, CheckCircle2, Receipt, TrendingUp, Clock3, Coins, Pause, Play,
 } from "lucide-react";
 import { C, FONT, formatBRL } from "../../theme";
 import { ICONS } from "../../data/icons";
@@ -13,6 +13,8 @@ import { getCommissionRate, isInPromoPeriod, promoEndsAt } from "../../lib/commi
 import { STATUS_META, STATUS_OPTIONS, OPEN_STATUSES } from "../../lib/orderStatus";
 import PortalHeader from "../../components/PortalHeader";
 import { SkeletonPage } from "../../components/Skeleton";
+
+const KANBAN_STATUSES = ["pending", "preparing", "out_for_delivery", "delivered", "cancelled"];
 
 function StatTile({ icon: Icon, label, value, accent }) {
   return (
@@ -125,6 +127,49 @@ function CommissionCard({ restaurant, orders }) {
   );
 }
 
+function OrderCard({ order, onStatusChange }) {
+  const meta = STATUS_META[order.status] || STATUS_META.pending;
+  return (
+    <div style={{ padding: 14, background: "#fff", border: `1px solid ${C.line}`,
+         borderLeft: `4px solid ${meta.color}`, borderRadius: 14 }}>
+      <div className="flex items-center justify-between">
+        <span style={{ fontSize: 14, fontWeight: 700 }}>#{order.id.slice(0, 8)}</span>
+        <span style={{ fontSize: 12, color: C.grayText }}>
+          {new Date(order.created_at).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
+        </span>
+      </div>
+      <div style={{ fontSize: 13, color: C.grayText, marginTop: 4, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+        {order.address}
+      </div>
+      <div style={{ marginTop: 8 }}>
+        {(order.order_items || []).map((i) => (
+          <div key={i.id} style={{ fontSize: 13, marginBottom: 2 }}>
+            {i.qty}x {i.name}
+            {i.notes && <span style={{ color: C.orange, fontStyle: "italic" }}> — Obs: {i.notes}</span>}
+          </div>
+        ))}
+      </div>
+      <div style={{ marginTop: 10 }}>
+        <span style={{ fontSize: 14, fontWeight: 700 }}>{formatBRL(order.total)}</span>
+        {order.restaurant_payout != null && (
+          <div style={{ fontSize: 11.5, color: C.ok, marginTop: 2 }}>
+            Você recebe {formatBRL(order.restaurant_payout)}
+            {Number(order.commission_amount) === 0 ? " · sem comissão" : ` · comissão ${formatBRL(order.commission_amount)}`}
+          </div>
+        )}
+      </div>
+      <select value={order.status} onChange={(e) => onStatusChange(order.id, e.target.value)}
+        style={{ width: "100%", marginTop: 10, border: `1.5px solid ${meta.color}`, outline: "none", borderRadius: 8,
+                 padding: "6px 8px", fontFamily: FONT, fontSize: 12.5, fontWeight: 700, background: meta.bg,
+                 color: meta.color, cursor: "pointer" }}>
+        {STATUS_OPTIONS.map((s) => (
+          <option key={s.value} value={s.value}>{s.label}</option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
 function MercadoPagoCard({ restaurant }) {
   const clientId = import.meta.env.VITE_MP_CLIENT_ID;
 
@@ -214,11 +259,21 @@ export default function PartnerDashboard() {
     reload();
   }
 
+  async function handleToggleAvailable(item) {
+    await updateMenuItem(item.id, { available: item.available === false });
+    reload();
+  }
+
   const todayKey = new Date().toDateString();
   const todaysOrders = orders.filter((o) => new Date(o.created_at).toDateString() === todayKey);
   const todayRevenue = todaysOrders.reduce((sum, o) => sum + Number(o.total), 0);
   const openOrdersCount = orders.filter((o) => OPEN_STATUSES.includes(o.status)).length;
   const totalPayout = orders.reduce((sum, o) => sum + Number(o.restaurant_payout ?? o.total), 0);
+  const avgTicket = orders.length > 0 ? orders.reduce((sum, o) => sum + Number(o.total), 0) / orders.length : 0;
+  const ordersByStatus = KANBAN_STATUSES.reduce((acc, s) => {
+    acc[s] = orders.filter((o) => o.status === s);
+    return acc;
+  }, {});
 
   return (
     <div style={{ fontFamily: FONT, background: C.white, color: C.black, minHeight: "100vh" }}>
@@ -252,55 +307,39 @@ export default function PartnerDashboard() {
           <StatTile icon={Receipt} label="Pedidos hoje" value={todaysOrders.length} />
           <StatTile icon={TrendingUp} label="Faturamento hoje" value={formatBRL(todayRevenue)} />
           <StatTile icon={Clock3} label="Em aberto" value={openOrdersCount} accent={openOrdersCount > 0} />
+          <StatTile icon={Coins} label="Ticket médio" value={formatBRL(avgTicket)} />
           <StatTile icon={Wallet} label="Você recebeu" value={formatBRL(totalPayout)} />
         </div>
 
         <div className="vp-dash-grid">
-          <div>
+          <div style={{ minWidth: 0 }}>
             <h2 style={{ fontSize: 18, fontWeight: 700, margin: "0 0 14px" }}>Pedidos recebidos</h2>
             {orders.length === 0 ? (
               <p style={{ color: C.grayText, fontSize: 14 }} className="flex items-center gap-2">
                 <Package size={16} /> Nenhum pedido ainda.
               </p>
             ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                {orders.map((order) => {
-                  const meta = STATUS_META[order.status] || STATUS_META.pending;
+              <div className="vp-scroll" style={{ display: "flex", gap: 14, alignItems: "flex-start", paddingBottom: 6 }}>
+                {KANBAN_STATUSES.map((status) => {
+                  const meta = STATUS_META[status];
+                  const list = ordersByStatus[status];
                   return (
-                    <div key={order.id} style={{ padding: 14, background: "#fff", border: `1px solid ${C.line}`,
-                         borderLeft: `4px solid ${meta.color}`, borderRadius: 14 }}>
-                      <div className="flex items-center justify-between">
-                        <span style={{ fontSize: 14, fontWeight: 700 }}>Pedido #{order.id.slice(0, 8)}</span>
-                        <span style={{ fontSize: 13, color: C.grayText }}>
-                          {new Date(order.created_at).toLocaleString("pt-BR")}
+                    <div key={status} style={{ flexShrink: 0, width: 270 }}>
+                      <div className="flex items-center gap-2" style={{ marginBottom: 10, padding: "0 2px" }}>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: meta.color }}>{meta.label}</span>
+                        <span style={{ fontSize: 11.5, fontWeight: 700, color: meta.color, background: meta.bg,
+                             borderRadius: 999, minWidth: 20, height: 20, display: "grid", placeItems: "center", padding: "0 6px" }}>
+                          {list.length}
                         </span>
                       </div>
-                      <div style={{ fontSize: 13.5, color: C.grayText, marginTop: 4 }}>{order.address}</div>
-                      <div style={{ marginTop: 8 }}>
-                        {(order.order_items || []).map((i) => (
-                          <div key={i.id} style={{ fontSize: 13.5, marginBottom: 2 }}>
-                            {i.qty}x {i.name}
-                            {i.notes && <span style={{ color: C.orange, fontStyle: "italic" }}> — Obs: {i.notes}</span>}
+                      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                        {list.length === 0 ? (
+                          <div style={{ border: `1.5px dashed ${C.line}`, borderRadius: 14, padding: 16, textAlign: "center" }}>
+                            <span style={{ fontSize: 12.5, color: C.grayText }}>Vazio</span>
                           </div>
-                        ))}
-                      </div>
-                      <div className="flex items-center justify-between" style={{ marginTop: 10, flexWrap: "wrap", gap: 8 }}>
-                        <div>
-                          <span style={{ fontSize: 14, fontWeight: 700 }}>{formatBRL(order.total)}</span>
-                          {order.restaurant_payout != null && (
-                            <div style={{ fontSize: 12, color: C.ok, marginTop: 2 }}>
-                              Você recebe {formatBRL(order.restaurant_payout)}
-                              {Number(order.commission_amount) === 0 ? " · sem comissão" : ` · comissão ${formatBRL(order.commission_amount)}`}
-                            </div>
-                          )}
-                        </div>
-                        <select value={order.status} onChange={(e) => handleStatusChange(order.id, e.target.value)}
-                          style={{ border: `1.5px solid ${meta.color}`, outline: "none", borderRadius: 8, padding: "6px 10px",
-                                   fontFamily: FONT, fontSize: 13, fontWeight: 700, background: meta.bg, color: meta.color, cursor: "pointer" }}>
-                          {STATUS_OPTIONS.map((s) => (
-                            <option key={s.value} value={s.value}>{s.label}</option>
-                          ))}
-                        </select>
+                        ) : (
+                          list.map((order) => <OrderCard key={order.id} order={order} onStatusChange={handleStatusChange} />)
+                        )}
                       </div>
                     </div>
                   );
@@ -344,24 +383,40 @@ export default function PartnerDashboard() {
                       onSaved={() => { setEditingItem(null); reload(); }}
                       onCancel={() => setEditingItem(null)} />
                   ) : (
-                    <div key={item.id} className="flex items-center" style={{ gap: 10, padding: 12, background: "#fff",
-                         border: `1px solid ${C.line}`, borderRadius: 14 }}>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: 14.5, fontWeight: 600 }}>{item.name}</div>
-                        <div style={{ fontSize: 12.5, color: C.grayText, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                          {item.description}
+                    <div key={item.id} style={{ padding: 12, background: "#fff",
+                         border: `1px solid ${C.line}`, borderRadius: 14, opacity: item.available === false ? 0.55 : 1 }}>
+                      <div className="flex items-center" style={{ gap: 10 }}>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div className="flex items-center gap-2">
+                            <span style={{ fontSize: 14.5, fontWeight: 600 }}>{item.name}</span>
+                            {item.available === false && (
+                              <span style={{ fontSize: 10.5, fontWeight: 700, color: C.grayText, background: C.surface,
+                                   padding: "2px 7px", borderRadius: 999, flexShrink: 0 }}>
+                                Pausado
+                              </span>
+                            )}
+                          </div>
+                          <div style={{ fontSize: 12.5, color: C.grayText, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                            {item.description}
+                          </div>
+                          <div style={{ fontSize: 13.5, fontWeight: 700, marginTop: 4 }}>{formatBRL(item.price)}</div>
                         </div>
-                        <div style={{ fontSize: 13.5, fontWeight: 700, marginTop: 4 }}>{formatBRL(item.price)}</div>
+                        <button onClick={() => setEditingItem(item.id)}
+                          style={{ width: 32, height: 32, borderRadius: 8, border: `1px solid ${C.line}`, background: "#fff",
+                                   cursor: "pointer", display: "grid", placeItems: "center", flexShrink: 0 }}>
+                          <Pencil size={14} />
+                        </button>
+                        <button onClick={() => handleDelete(item.id)}
+                          style={{ width: 32, height: 32, borderRadius: 8, border: `1px solid ${C.line}`, background: "#fff",
+                                   cursor: "pointer", display: "grid", placeItems: "center", flexShrink: 0 }}>
+                          <Trash2 size={14} color="#B42318" />
+                        </button>
                       </div>
-                      <button onClick={() => setEditingItem(item.id)}
-                        style={{ width: 32, height: 32, borderRadius: 8, border: `1px solid ${C.line}`, background: "#fff",
-                                 cursor: "pointer", display: "grid", placeItems: "center", flexShrink: 0 }}>
-                        <Pencil size={14} />
-                      </button>
-                      <button onClick={() => handleDelete(item.id)}
-                        style={{ width: 32, height: 32, borderRadius: 8, border: `1px solid ${C.line}`, background: "#fff",
-                                 cursor: "pointer", display: "grid", placeItems: "center", flexShrink: 0 }}>
-                        <Trash2 size={14} color="#B42318" />
+                      <button onClick={() => handleToggleAvailable(item)} className="flex items-center justify-center gap-1"
+                        style={{ width: "100%", marginTop: 10, background: "none", border: `1px solid ${C.line}`,
+                                 borderRadius: 8, cursor: "pointer", padding: "7px 0", fontFamily: FONT, fontSize: 12.5,
+                                 fontWeight: 600, color: item.available === false ? C.ok : C.grayText }}>
+                        {item.available === false ? <><Play size={13} /> Retomar vendas</> : <><Pause size={13} /> Pausar vendas</>}
                       </button>
                     </div>
                   )
