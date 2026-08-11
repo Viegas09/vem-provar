@@ -15,6 +15,7 @@ import { getCommissionRate, isInPromoPeriod, promoEndsAt } from "../../lib/commi
 import { STATUS_META, STATUS_OPTIONS, OPEN_STATUSES } from "../../lib/orderStatus";
 import { SkeletonPage } from "../../components/Skeleton";
 import WORDMARK_DARK from "../../assets/wordmark-dark.png";
+import LOGO_MARK_HEART from "../../assets/logo-mark-heart.png";
 
 const KANBAN_STATUSES = ["pending", "preparing", "out_for_delivery", "delivered", "cancelled"];
 const NAV_ITEMS = [
@@ -307,6 +308,13 @@ function MercadoPagoCard({ restaurant }) {
   );
 }
 
+function HeartForkMark({ size = 32 }) {
+  return (
+    <img src={LOGO_MARK_HEART} alt="Vem Provar" width={size} height={size}
+      style={{ display: "block", objectFit: "contain" }} draggable={false} />
+  );
+}
+
 function PartnerSidebar({ restaurant, activeSection, onSectionChange, onToggleOpen, userEmail, onSignOut, collapsed, onToggleCollapsed }) {
   const isOpen = restaurant.is_open !== false;
   return (
@@ -315,10 +323,7 @@ function PartnerSidebar({ restaurant, activeSection, onSectionChange, onToggleOp
            flexDirection: collapsed ? "column" : "row", gap: collapsed ? 10 : 8 }}>
         <Link to="/" style={{ textDecoration: "none" }}>
           {collapsed ? (
-            <div style={{ width: 32, height: 32, borderRadius: 9, background: C.orange, display: "grid",
-                 placeItems: "center", color: "#fff", fontWeight: 800, fontSize: 12.5 }}>
-              VP
-            </div>
+            <HeartForkMark size={32} />
           ) : (
             <img src={WORDMARK_DARK} alt="Vem Provar" style={{ height: 30, width: "auto", display: "block" }} draggable={false} />
           )}
