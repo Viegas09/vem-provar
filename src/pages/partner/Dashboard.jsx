@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import {
   Plus, Trash2, Pencil, Store, Package, Wallet, CreditCard, CheckCircle2, XCircle, Receipt, TrendingUp,
-  Clock3, Coins, Pause, Play, Home as HomeIcon, UtensilsCrossed, LogOut,
+  Clock3, Coins, Pause, Play, Home as HomeIcon, UtensilsCrossed, LogOut, ChevronLeft, ChevronRight,
 } from "lucide-react";
 import { C, FONT, formatBRL } from "../../theme";
 import { ICONS } from "../../data/icons";
@@ -307,14 +307,27 @@ function MercadoPagoCard({ restaurant }) {
   );
 }
 
-function PartnerSidebar({ restaurant, activeSection, onSectionChange, onToggleOpen, userEmail, onSignOut }) {
+function PartnerSidebar({ restaurant, activeSection, onSectionChange, onToggleOpen, userEmail, onSignOut, collapsed, onToggleCollapsed }) {
   const isOpen = restaurant.is_open !== false;
   return (
-    <aside className="vp-portal-sidebar">
-      <div className="flex items-center justify-between">
+    <aside className={`vp-portal-sidebar${collapsed ? " vp-portal-sidebar--collapsed" : ""}`}>
+      <div className="flex items-center" style={{ justifyContent: collapsed ? "center" : "space-between",
+           flexDirection: collapsed ? "column" : "row", gap: collapsed ? 10 : 8 }}>
         <Link to="/" style={{ textDecoration: "none" }}>
-          <img src={WORDMARK_DARK} alt="Vem Provar" style={{ height: 30, width: "auto", display: "block" }} draggable={false} />
+          {collapsed ? (
+            <div style={{ width: 32, height: 32, borderRadius: 9, background: C.orange, display: "grid",
+                 placeItems: "center", color: "#fff", fontWeight: 800, fontSize: 12.5 }}>
+              VP
+            </div>
+          ) : (
+            <img src={WORDMARK_DARK} alt="Vem Provar" style={{ height: 30, width: "auto", display: "block" }} draggable={false} />
+          )}
         </Link>
+        <button onClick={onToggleCollapsed} className="vp-portal-collapse-btn" title={collapsed ? "Expandir menu" : "Recolher menu"}
+          style={{ width: 28, height: 28, borderRadius: 8, border: `1px solid ${C.line}`, background: "#fff",
+                   cursor: "pointer", placeItems: "center", flexShrink: 0 }}>
+          {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
+        </button>
         <button onClick={onSignOut} className="vp-portal-signout-mobile"
           style={{ width: 34, height: 34, borderRadius: 9, border: `1px solid ${C.line}`, background: "#fff",
                    cursor: "pointer", placeItems: "center" }}>
@@ -323,18 +336,22 @@ function PartnerSidebar({ restaurant, activeSection, onSectionChange, onToggleOp
       </div>
 
       <button onClick={onToggleOpen} className="flex items-center gap-2"
+        title={isOpen ? "Loja aberta — clique para fechar" : "Loja fechada — clique para reabrir"}
         style={{ background: isOpen ? "rgba(46,158,91,.1)" : "rgba(180,35,24,.08)",
                  border: `1px solid ${isOpen ? C.ok : "#B42318"}`, borderRadius: 12,
-                 padding: "10px 12px", cursor: "pointer", textAlign: "left", width: "100%" }}>
+                 padding: collapsed ? "10px" : "10px 12px", cursor: "pointer", textAlign: "left", width: "100%",
+                 justifyContent: collapsed ? "center" : "flex-start" }}>
         {isOpen ? <CheckCircle2 size={17} color={C.ok} style={{ flexShrink: 0 }} /> : <XCircle size={17} color="#B42318" style={{ flexShrink: 0 }} />}
-        <div>
-          <div style={{ fontSize: 13, fontWeight: 700, color: isOpen ? C.ok : "#B42318" }}>
-            {isOpen ? "Loja aberta" : "Loja fechada"}
+        {!collapsed && (
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: isOpen ? C.ok : "#B42318" }}>
+              {isOpen ? "Loja aberta" : "Loja fechada"}
+            </div>
+            <div style={{ fontSize: 11, color: C.grayText }}>
+              {isOpen ? "Clique para fechar" : "Clique para reabrir"}
+            </div>
           </div>
-          <div style={{ fontSize: 11, color: C.grayText }}>
-            {isOpen ? "Clique para fechar" : "Clique para reabrir"}
-          </div>
-        </div>
+        )}
       </button>
 
       <nav className="vp-portal-nav">
@@ -342,24 +359,29 @@ function PartnerSidebar({ restaurant, activeSection, onSectionChange, onToggleOp
           const ItemIcon = item.icon;
           const active = activeSection === item.key;
           return (
-            <button key={item.key} onClick={() => onSectionChange(item.key)} className="flex items-center gap-2"
+            <button key={item.key} onClick={() => onSectionChange(item.key)} title={item.label} className="flex items-center gap-2"
               style={{ flexShrink: 0, background: active ? C.black : "none", color: active ? "#fff" : C.grayText,
-                       border: "none", borderRadius: 10, cursor: "pointer", padding: "10px 14px",
-                       fontFamily: FONT, fontSize: 13.5, fontWeight: 600, whiteSpace: "nowrap" }}>
-              <ItemIcon size={16} /> {item.label}
+                       border: "none", borderRadius: 10, cursor: "pointer", padding: collapsed ? "10px" : "10px 14px",
+                       fontFamily: FONT, fontSize: 13.5, fontWeight: 600, whiteSpace: "nowrap",
+                       justifyContent: collapsed ? "center" : "flex-start" }}>
+              <ItemIcon size={16} /> {!collapsed && item.label}
             </button>
           );
         })}
       </nav>
 
-      <div className="vp-portal-bottom" style={{ marginTop: "auto", flexDirection: "column", gap: 10, paddingTop: 14, borderTop: `1px solid ${C.line}` }}>
-        <span style={{ fontSize: 12, color: C.grayText, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-          {userEmail}
-        </span>
-        <button onClick={onSignOut} className="flex items-center gap-2"
+      <div className="vp-portal-bottom" style={{ marginTop: "auto", flexDirection: "column", gap: 10, paddingTop: 14,
+           borderTop: `1px solid ${C.line}`, alignItems: collapsed ? "center" : "stretch" }}>
+        {!collapsed && (
+          <span style={{ fontSize: 12, color: C.grayText, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            {userEmail}
+          </span>
+        )}
+        <button onClick={onSignOut} title="Sair" className="flex items-center gap-2"
           style={{ background: "none", border: `1px solid ${C.line}`, borderRadius: 10, cursor: "pointer",
-                   padding: "9px 12px", fontFamily: FONT, fontSize: 13, fontWeight: 600, color: C.black }}>
-          <LogOut size={14} /> Sair
+                   padding: collapsed ? "9px" : "9px 12px", fontFamily: FONT, fontSize: 13, fontWeight: 600, color: C.black,
+                   justifyContent: "center" }}>
+          <LogOut size={14} /> {!collapsed && "Sair"}
         </button>
       </div>
     </aside>
@@ -376,7 +398,16 @@ export default function PartnerDashboard() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [activeSection, setActiveSection] = useState("inicio");
+  const [collapsed, setCollapsed] = useState(() => localStorage.getItem("vp_sidebar_collapsed") === "1");
   const mpStatus = searchParams.get("mp");
+
+  function toggleCollapsed() {
+    setCollapsed((c) => {
+      const next = !c;
+      localStorage.setItem("vp_sidebar_collapsed", next ? "1" : "0");
+      return next;
+    });
+  }
 
   async function reload() {
     const r = await fetchRestaurantByOwner(user.id);
@@ -440,7 +471,8 @@ export default function PartnerDashboard() {
     <div style={{ fontFamily: FONT, background: C.white, color: C.black }}>
       <div className="vp-portal-shell">
         <PartnerSidebar restaurant={restaurant} activeSection={activeSection} onSectionChange={setActiveSection}
-          onToggleOpen={handleToggleOpen} userEmail={user.email} onSignOut={handleSignOut} />
+          onToggleOpen={handleToggleOpen} userEmail={user.email} onSignOut={handleSignOut}
+          collapsed={collapsed} onToggleCollapsed={toggleCollapsed} />
 
         <main className="vp-portal-main">
           <div style={{ maxWidth: 1000 }}>
