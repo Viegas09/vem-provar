@@ -100,14 +100,18 @@ export default function Restaurant() {
             {menu.map((item) => {
               const qty = qtyOf(item.id);
               return (
-                <button key={item.id} onClick={() => setSelectedItem(item)} className="flex items-center vp-tap"
-                  style={{ gap: 14, padding: 14, background: "#fff", border: `1px solid ${C.line}`, borderRadius: 16,
-                           textAlign: "left", cursor: "pointer", width: "100%" }}>
-                  <FoodPhoto v={item.color_variant} radius={12} style={{ width: 72, height: 72, flexShrink: 0 }} />
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 15.5, fontWeight: 600 }}>{item.name}</div>
-                    <div style={{ fontSize: 13, color: C.grayText, marginTop: 2 }}>{item.description}</div>
-                    <div className="flex items-center gap-2" style={{ marginTop: 6 }}>
+                <button key={item.id} onClick={() => setSelectedItem(item)} className="vp-tap"
+                  style={{ display: "flex", flexDirection: "column", gap: 10, padding: 14, background: "#fff",
+                           border: `1px solid ${C.line}`, borderRadius: 16, textAlign: "left", cursor: "pointer", width: "100%" }}>
+                  <div className="flex items-start" style={{ gap: 14 }}>
+                    <FoodPhoto v={item.color_variant} radius={12} style={{ width: 72, height: 72, flexShrink: 0 }} />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 15.5, fontWeight: 600 }}>{item.name}</div>
+                      <div style={{ fontSize: 13, color: C.grayText, marginTop: 2 }}>{item.description}</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
                       <span style={{ fontSize: 14.5, fontWeight: 700 }}>{formatBRL(item.price)}</span>
                       {qty > 0 && (
                         <span key={qty} className="vp-pop" style={{ fontSize: 12, fontWeight: 700, color: C.orange,
@@ -116,11 +120,11 @@ export default function Restaurant() {
                         </span>
                       )}
                     </div>
+                    <span style={{ background: C.orange, color: "#fff", border: "none", borderRadius: 10,
+                         padding: "9px 16px", fontFamily: FONT, fontSize: 13.5, fontWeight: 600, flexShrink: 0 }}>
+                      Adicionar
+                    </span>
                   </div>
-                  <span style={{ background: C.orange, color: "#fff", border: "none", borderRadius: 10,
-                       padding: "9px 16px", fontFamily: FONT, fontSize: 13.5, fontWeight: 600, flexShrink: 0 }}>
-                    Adicionar
-                  </span>
                 </button>
               );
             })}

@@ -1,8 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { X, Download, Share } from "lucide-react";
 import { C, FONT } from "../theme";
 
 const DISMISS_KEY = "vp-install-dismissed";
+const SHOW_DELAY_MS = 4000;
+const FORM_TAGS = ["INPUT", "TEXTAREA", "SELECT"];
 
 function isStandalone() {
   return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
@@ -16,6 +18,9 @@ export default function InstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [showIOSHint, setShowIOSHint] = useState(false);
   const [dismissed, setDismissed] = useState(() => localStorage.getItem(DISMISS_KEY) === "1");
+  const [ready, setReady] = useState(false);
+  const [formActive, setFormActive] = useState(false);
+  const blurTimer = useRef(null);
 
   useEffect(() => {
     if (isStandalone() || dismissed) return;
@@ -28,7 +33,29 @@ export default function InstallPrompt() {
 
     if (isIOS()) setShowIOSHint(true);
 
-    return () => window.removeEventListener("beforeinstallprompt", handleBeforeInstall);
+    const showTimer = setTimeout(() => setReady(true), SHOW_DELAY_MS);
+
+    function handleFocusIn(e) {
+      if (FORM_TAGS.includes(e.target.tagName)) {
+        clearTimeout(blurTimer.current);
+        setFormActive(true);
+      }
+    }
+    function handleFocusOut(e) {
+      if (FORM_TAGS.includes(e.target.tagName)) {
+        blurTimer.current = setTimeout(() => setFormActive(false), 400);
+      }
+    }
+    document.addEventListener("focusin", handleFocusIn);
+    document.addEventListener("focusout", handleFocusOut);
+
+    return () => {
+      window.removeEventListener("beforeinstallprompt", handleBeforeInstall);
+      document.removeEventListener("focusin", handleFocusIn);
+      document.removeEventListener("focusout", handleFocusOut);
+      clearTimeout(showTimer);
+      clearTimeout(blurTimer.current);
+    };
   }, [dismissed]);
 
   function handleDismiss() {
@@ -44,7 +71,7 @@ export default function InstallPrompt() {
     handleDismiss();
   }
 
-  if (dismissed || isStandalone()) return null;
+  if (dismissed || isStandalone() || !ready || formActive) return null;
   if (!deferredPrompt && !showIOSHint) return null;
 
   return (
