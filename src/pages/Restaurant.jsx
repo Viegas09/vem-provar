@@ -11,7 +11,14 @@ import Header from "../components/Header";
 import ItemModal from "../components/ItemModal";
 import { Skeleton, SkeletonMenuItem } from "../components/Skeleton";
 
-function FoodPhoto({ v = 0, icon: Icon, radius = 16, style }) {
+function FoodPhoto({ v = 0, icon: Icon, radius = 16, style, photoUrl }) {
+  if (photoUrl) {
+    return (
+      <div style={{ borderRadius: radius, overflow: "hidden", ...style }}>
+        <img src={photoUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+      </div>
+    );
+  }
   return (
     <div style={{ position: "relative", background: WARM[v % WARM.length], borderRadius: radius, overflow: "hidden", ...style }}>
       <div style={{ position: "absolute", inset: 0, background: "radial-gradient(120% 80% at 25% 12%, rgba(255,255,255,.28), transparent 60%)" }} />
@@ -129,7 +136,7 @@ export default function Restaurant() {
                            border: `1px solid ${C.line}`, borderRadius: 16, textAlign: "left", width: "100%",
                            cursor: isClosed ? "default" : "pointer", opacity: isClosed ? 0.55 : 1 }}>
                   <div className="flex items-start" style={{ gap: 14 }}>
-                    <FoodPhoto v={item.color_variant} radius={12} style={{ width: 72, height: 72, flexShrink: 0 }} />
+                    <FoodPhoto v={item.color_variant} radius={12} style={{ width: 72, height: 72, flexShrink: 0 }} photoUrl={item.image_url} />
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 15.5, fontWeight: 600 }}>{item.name}</div>
                       <div style={{ fontSize: 13, color: C.grayText, marginTop: 2 }}>{item.description}</div>

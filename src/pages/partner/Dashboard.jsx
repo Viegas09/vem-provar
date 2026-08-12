@@ -3,13 +3,14 @@ import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import {
   Plus, Trash2, Pencil, Store, Package, Wallet, CreditCard, CheckCircle2, XCircle, Receipt, TrendingUp,
   Clock3, Coins, Pause, Play, Home as HomeIcon, UtensilsCrossed, LogOut, ChevronLeft, ChevronRight,
+  ImagePlus, BarChart3,
 } from "lucide-react";
 import { C, FONT, formatBRL } from "../../theme";
 import { ICONS } from "../../data/icons";
 import { useAuth } from "../../context/AuthContext";
 import {
   fetchRestaurantByOwner, createMenuItem, updateMenuItem, deleteMenuItem, fetchOrdersForRestaurant,
-  updateOrderStatus, updateRestaurant,
+  updateOrderStatus, updateRestaurant, uploadMenuItemPhoto,
 } from "../../data/queries";
 import { getCommissionRate, isInPromoPeriod, promoEndsAt } from "../../lib/commission";
 import { STATUS_META, STATUS_OPTIONS, OPEN_STATUSES } from "../../lib/orderStatus";
@@ -20,6 +21,7 @@ import LOGO_MARK_HEART from "../../assets/logo-mark-heart.png";
 const KANBAN_STATUSES = ["pending", "preparing", "out_for_delivery", "delivered", "cancelled"];
 const NAV_ITEMS = [
   { key: "inicio", label: "Início", icon: HomeIcon },
+  { key: "desempenho", label: "Desempenho", icon: BarChart3 },
   { key: "financeiro", label: "Financeiro", icon: Wallet },
   { key: "cardapio", label: "Cardápio", icon: UtensilsCrossed },
 ];
@@ -57,14 +59,27 @@ function MenuItemForm({ restaurantId, item, onSaved, onCancel }) {
   const [name, setName] = useState(item?.name || "");
   const [description, setDescription] = useState(item?.description || "");
   const [price, setPrice] = useState(item?.price ?? "");
+  const [photoFile, setPhotoFile] = useState(null);
+  const [photoPreview, setPhotoPreview] = useState(item?.image_url || null);
   const [saving, setSaving] = useState(false);
+
+  function handlePhotoChange(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setPhotoFile(file);
+    setPhotoPreview(URL.createObjectURL(file));
+  }
 
   async function handleSubmit(e) {
     e.preventDefault();
     setSaving(true);
     try {
+      let imageUrl = item?.image_url || null;
+      if (photoFile) {
+        imageUrl = await uploadMenuItemPhoto(restaurantId, photoFile);
+      }
       if (item) {
-        await updateMenuItem(item.id, { name, description, price: Number(price) });
+        await updateMenuItem(item.id, { name, description, price: Number(price), image_url: imageUrl });
       } else {
         await createMenuItem({
           restaurant_id: restaurantId,
@@ -72,6 +87,7 @@ function MenuItemForm({ restaurantId, item, onSaved, onCancel }) {
           description,
           price: Number(price),
           color_variant: Math.floor(Math.random() * 5),
+          image_url: imageUrl,
         });
       }
       onSaved();
@@ -83,6 +99,21 @@ function MenuItemForm({ restaurantId, item, onSaved, onCancel }) {
   return (
     <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 10, background: C.surface,
          borderRadius: 14, padding: 16, marginBottom: 14 }}>
+      <label style={{ display: "flex", alignItems: "center", gap: 12, cursor: "pointer" }}>
+        <input type="file" accept="image/*" onChange={handlePhotoChange} style={{ display: "none" }} />
+        <div style={{ width: 64, height: 64, borderRadius: 12, flexShrink: 0, overflow: "hidden",
+             border: `1.5px dashed ${C.line}`, background: "#fff", display: "grid", placeItems: "center" }}>
+          {photoPreview ? (
+            <img src={photoPreview} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          ) : (
+            <ImagePlus size={20} color={C.grayText} />
+          )}
+        </div>
+        <div>
+          <div style={{ fontSize: 13.5, fontWeight: 600 }}>{photoPreview ? "Trocar foto" : "Adicionar foto"}</div>
+          <div style={{ fontSize: 12, color: C.grayText }}>Opcional, mas ajuda o cliente a decidir</div>
+        </div>
+      </label>
       <input required value={name} onChange={(e) => setName(e.target.value)} placeholder="Nome do item"
         style={{ border: `1.5px solid ${C.line}`, outline: "none", borderRadius: 10, padding: "10px 12px",
                  fontFamily: FONT, fontSize: 14.5, background: "#fff" }} />
@@ -220,6 +251,95 @@ function RepasseDetail({ restaurant, orders }) {
                 <span style={{ fontSize: 13, color: C.grayText }}>{formatBRL(o.total)}</span>
                 <span style={{ fontSize: 13, color: "#B42318" }}>- {formatBRL(o.commission_amount || 0)}</span>
                 <span style={{ fontSize: 13.5, fontWeight: 700, color: C.ok }}>{formatBRL(o.restaurant_payout ?? o.total)}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function RevenueBarChart({ orders }) {
+  const [hover, setHover] = useState(null);
+  const days = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - (6 - i));
+    return d;
+  });
+  const data = days.map((d) => {
+    const key = d.toDateString();
+    const dayOrders = orders.filter((o) => new Date(o.created_at).toDateString() === key);
+    return { date: d, total: dayOrders.reduce((sum, o) => sum + Number(o.total), 0), count: dayOrders.length };
+  });
+  const max = Math.max(1, ...data.map((d) => d.total));
+  const periodTotal = data.reduce((sum, d) => sum + d.total, 0);
+  const chartH = 150;
+  const barGap = 12;
+  const barW = 30;
+  const unitW = barW + barGap;
+  const viewW = data.length * unitW;
+
+  return (
+    <div style={{ background: "#fff", border: `1px solid ${C.line}`, borderRadius: 16, padding: 20 }}>
+      <div style={{ fontSize: 14, fontWeight: 700 }}>Faturamento — últimos 7 dias</div>
+      <div style={{ fontSize: 12, color: C.grayText, marginTop: 2, marginBottom: 18 }}>
+        Total no período: {formatBRL(periodTotal)}
+      </div>
+      <div style={{ position: "relative" }}>
+        {hover !== null && (
+          <div style={{ position: "absolute", top: 0, left: `${((hover * unitW + unitW / 2) / viewW) * 100}%`,
+               transform: "translate(-50%, -100%)", background: C.black, color: "#fff", padding: "6px 10px",
+               borderRadius: 8, fontSize: 11.5, fontWeight: 600, whiteSpace: "nowrap", pointerEvents: "none", zIndex: 1 }}>
+            {formatBRL(data[hover].total)} · {data[hover].count} pedido{data[hover].count === 1 ? "" : "s"}
+          </div>
+        )}
+        <svg width="100%" height={chartH + 26} viewBox={`0 0 ${viewW} ${chartH + 26}`} preserveAspectRatio="xMidYMid meet">
+          <line x1={0} y1={chartH} x2={viewW} y2={chartH} stroke={C.line} strokeWidth={1} />
+          {data.map((d, i) => {
+            const h = max > 0 ? Math.max((d.total / max) * (chartH - 14), d.total > 0 ? 4 : 0) : 0;
+            const x = i * unitW + barGap / 2;
+            const y = chartH - h;
+            return (
+              <g key={i} onMouseEnter={() => setHover(i)} onMouseLeave={() => setHover(null)} style={{ cursor: "pointer" }}>
+                <rect x={x} y={y - 6} width={barW} height={Math.max(h + 6, 12)} fill="transparent" />
+                <rect x={x} y={y} width={barW} height={h} rx={4}
+                  fill={hover === i ? C.orange : "rgba(238,108,26,.7)"} />
+                <text x={x + barW / 2} y={chartH + 17} textAnchor="middle" fontSize={10.5} fill={C.grayText} fontFamily={FONT}>
+                  {d.date.toLocaleDateString("pt-BR", { weekday: "short" }).replace(".", "").slice(0, 3)}
+                </text>
+              </g>
+            );
+          })}
+        </svg>
+      </div>
+    </div>
+  );
+}
+
+function TopItemsChart({ orders }) {
+  const counts = {};
+  orders.forEach((o) => (o.order_items || []).forEach((i) => {
+    counts[i.name] = (counts[i.name] || 0) + i.qty;
+  }));
+  const top = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+  const max = Math.max(1, ...top.map(([, q]) => q));
+
+  return (
+    <div style={{ background: "#fff", border: `1px solid ${C.line}`, borderRadius: 16, padding: 20 }}>
+      <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 16 }}>Itens mais vendidos</div>
+      {top.length === 0 ? (
+        <p style={{ color: C.grayText, fontSize: 13.5, margin: 0 }}>Sem dados suficientes ainda.</p>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          {top.map(([name, qty]) => (
+            <div key={name}>
+              <div className="flex items-center justify-between" style={{ marginBottom: 5 }}>
+                <span style={{ fontSize: 13, fontWeight: 600 }}>{name}</span>
+                <span style={{ fontSize: 12.5, color: C.grayText, fontWeight: 600, flexShrink: 0 }}>{qty}x</span>
+              </div>
+              <div style={{ height: 8, borderRadius: 999, background: C.surface, overflow: "hidden" }}>
+                <div style={{ height: "100%", width: `${(qty / max) * 100}%`, background: C.orange, borderRadius: 999 }} />
               </div>
             </div>
           ))}
@@ -550,6 +670,22 @@ export default function PartnerDashboard() {
               </>
             )}
 
+            {activeSection === "desempenho" && (
+              <>
+                <h2 style={{ fontSize: 18, fontWeight: 700, margin: "0 0 18px" }}>Desempenho</h2>
+                <div className="vp-dash-stats" style={{ marginBottom: 24 }}>
+                  <StatTile icon={Receipt} label="Pedidos (total)" value={orders.length} />
+                  <StatTile icon={TrendingUp} label="Faturamento (total)" value={formatBRL(orders.reduce((s, o) => s + Number(o.total), 0))} />
+                  <StatTile icon={Coins} label="Ticket médio" value={formatBRL(avgTicket)} />
+                  <StatTile icon={Wallet} label="Você recebeu" value={formatBRL(totalPayout)} />
+                </div>
+                <div className="vp-dash-grid">
+                  <RevenueBarChart orders={orders} />
+                  <TopItemsChart orders={orders} />
+                </div>
+              </>
+            )}
+
             {activeSection === "financeiro" && (
               <>
                 <h2 style={{ fontSize: 18, fontWeight: 700, margin: "0 0 18px" }}>Financeiro</h2>
@@ -594,6 +730,14 @@ export default function PartnerDashboard() {
                       <div key={item.id} style={{ padding: 14, background: "#fff",
                            border: `1px solid ${C.line}`, borderRadius: 14, opacity: item.available === false ? 0.55 : 1 }}>
                         <div className="flex items-center" style={{ gap: 12 }}>
+                          <div style={{ width: 52, height: 52, borderRadius: 10, flexShrink: 0, overflow: "hidden",
+                               background: C.surface, display: "grid", placeItems: "center" }}>
+                            {item.image_url ? (
+                              <img src={item.image_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                            ) : (
+                              <ImagePlus size={18} color={C.gray} />
+                            )}
+                          </div>
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <div className="flex items-center gap-2">
                               <span style={{ fontSize: 15, fontWeight: 600 }}>{item.name}</span>

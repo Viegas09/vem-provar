@@ -18,9 +18,15 @@ export default function ItemModal({ item, icon: Icon, onClose, onAdd }) {
       <div onClick={(e) => e.stopPropagation()} className="vp-fade-in"
         style={{ background: "#fff", borderRadius: "20px 20px 0 0", width: "100%", maxWidth: 480,
                  maxHeight: "92vh", overflowY: "auto" }}>
-        <div style={{ position: "relative", height: 150, background: WARM[(item.color_variant ?? 0) % WARM.length] }}>
-          <div style={{ position: "absolute", inset: 0, background: "radial-gradient(120% 80% at 25% 12%, rgba(255,255,255,.28), transparent 60%)" }} />
-          {Icon && <Icon size={40} color="rgba(255,255,255,.5)" style={{ position: "absolute", right: 16, bottom: 16 }} />}
+        <div style={{ position: "relative", height: 150, background: item.image_url ? "#000" : WARM[(item.color_variant ?? 0) % WARM.length], overflow: "hidden" }}>
+          {item.image_url ? (
+            <img src={item.image_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+          ) : (
+            <>
+              <div style={{ position: "absolute", inset: 0, background: "radial-gradient(120% 80% at 25% 12%, rgba(255,255,255,.28), transparent 60%)" }} />
+              {Icon && <Icon size={40} color="rgba(255,255,255,.5)" style={{ position: "absolute", right: 16, bottom: 16 }} />}
+            </>
+          )}
           <button onClick={onClose}
             style={{ position: "absolute", top: 12, right: 12, width: 34, height: 34, borderRadius: 999,
                      background: "rgba(255,255,255,.94)", border: "none", cursor: "pointer", display: "grid", placeItems: "center" }}>

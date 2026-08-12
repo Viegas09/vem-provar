@@ -87,6 +87,15 @@ export async function createMenuItem(item) {
   return data;
 }
 
+export async function uploadMenuItemPhoto(restaurantId, file) {
+  const ext = file.name.split(".").pop();
+  const path = `${restaurantId}/${Date.now()}.${ext}`;
+  const { error } = await supabase.storage.from("menu-photos").upload(path, file, { upsert: true });
+  if (error) throw error;
+  const { data } = supabase.storage.from("menu-photos").getPublicUrl(path);
+  return data.publicUrl;
+}
+
 export async function updateMenuItem(id, changes) {
   const { error } = await supabase.from("menu_items").update(changes).eq("id", id);
   if (error) throw error;
