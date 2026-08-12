@@ -359,6 +359,156 @@ function TopItemsChart({ orders }) {
   );
 }
 
+const HOUR_BUCKETS = [
+  [0, 2], [2, 4], [4, 6], [6, 8], [8, 10], [10, 12],
+  [12, 14], [14, 16], [16, 18], [18, 20], [20, 22], [22, 24],
+];
+const fmtHour = (h) => `${String(h).padStart(2, "0")}:00`;
+
+function BestHourChart({ orders }) {
+  const [hover, setHover] = useState(null);
+  const buckets = HOUR_BUCKETS.map(([start, end]) => ({
+    start, end,
+    count: orders.filter((o) => {
+      const h = new Date(o.created_at).getHours();
+      return h >= start && h < end;
+    }).length,
+  }));
+  const max = Math.max(1, ...buckets.map((b) => b.count));
+  const best = buckets.reduce((a, b) => (b.count > a.count ? b : a), buckets[0]);
+
+  return (
+    <div style={{ background: "#fff", border: `1px solid ${C.line}`, borderRadius: 16, padding: 20 }}>
+      <div style={{ fontSize: 14, fontWeight: 700 }}>Melhor horário</div>
+      {best.count > 0 ? (
+        <>
+          <div style={{ fontSize: 20, fontWeight: 700, marginTop: 4 }}>{fmtHour(best.start)} às {fmtHour(best.end)}</div>
+          <div style={{ fontSize: 12, color: C.grayText, marginBottom: 18 }}>{best.count} venda{best.count === 1 ? "" : "s"}</div>
+        </>
+      ) : (
+        <div style={{ fontSize: 12, color: C.grayText, marginTop: 4, marginBottom: 18 }}>Sem dados suficientes ainda.</div>
+      )}
+      <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+        {buckets.map((b) => (
+          <div key={b.start} className="flex items-center gap-2"
+            onMouseEnter={() => setHover(b.start)} onMouseLeave={() => setHover(null)}>
+            <span style={{ fontSize: 11, color: C.grayText, width: 82, flexShrink: 0 }}>{fmtHour(b.start)} - {fmtHour(b.end)}</span>
+            <div style={{ flex: 1, height: 14, background: C.surface, borderRadius: 999, overflow: "hidden" }}>
+              <div style={{ height: "100%", width: `${(b.count / max) * 100}%`,
+                   background: b.start === best.start || hover === b.start ? C.orange : "rgba(238,108,26,.4)",
+                   borderRadius: 999, transition: "background .12s" }} />
+            </div>
+            <span style={{ fontSize: 11.5, fontWeight: 600, width: 16, textAlign: "right", flexShrink: 0 }}>{b.count}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+const WEEKDAYS = [
+  { idx: 1, short: "Seg", full: "Segunda-feira" },
+  { idx: 2, short: "Ter", full: "Terça-feira" },
+  { idx: 3, short: "Qua", full: "Quarta-feira" },
+  { idx: 4, short: "Qui", full: "Quinta-feira" },
+  { idx: 5, short: "Sex", full: "Sexta-feira" },
+  { idx: 6, short: "Sáb", full: "Sábado" },
+  { idx: 0, short: "Dom", full: "Domingo" },
+];
+
+function BestDayChart({ orders }) {
+  const [hover, setHover] = useState(null);
+  const counts = WEEKDAYS.map((w) => ({
+    ...w,
+    count: orders.filter((o) => new Date(o.created_at).getDay() === w.idx).length,
+  }));
+  const max = Math.max(1, ...counts.map((c) => c.count));
+  const best = counts.reduce((a, b) => (b.count > a.count ? b : a), counts[0]);
+  const chartH = 110;
+  const barW = 28;
+  const barGap = 14;
+  const unitW = barW + barGap;
+  const viewW = counts.length * unitW;
+
+  return (
+    <div style={{ background: "#fff", border: `1px solid ${C.line}`, borderRadius: 16, padding: 20 }}>
+      <div style={{ fontSize: 14, fontWeight: 700 }}>Melhor dia</div>
+      {best.count > 0 ? (
+        <>
+          <div style={{ fontSize: 20, fontWeight: 700, marginTop: 4 }}>{best.full}</div>
+          <div style={{ fontSize: 12, color: C.grayText, marginBottom: 16 }}>{best.count} venda{best.count === 1 ? "" : "s"}</div>
+        </>
+      ) : (
+        <div style={{ fontSize: 12, color: C.grayText, marginTop: 4, marginBottom: 16 }}>Sem dados suficientes ainda.</div>
+      )}
+      <div style={{ position: "relative" }}>
+        {hover !== null && (
+          <div style={{ position: "absolute", top: 0, left: `${((hover * unitW + unitW / 2) / viewW) * 100}%`,
+               transform: "translate(-50%, -100%)", background: C.black, color: "#fff", padding: "6px 10px",
+               borderRadius: 8, fontSize: 11.5, fontWeight: 600, whiteSpace: "nowrap", pointerEvents: "none", zIndex: 1 }}>
+            {counts[hover].count} venda{counts[hover].count === 1 ? "" : "s"}
+          </div>
+        )}
+        <svg width="100%" height={chartH + 24} viewBox={`0 0 ${viewW} ${chartH + 24}`} preserveAspectRatio="xMidYMid meet">
+          <line x1={0} y1={chartH} x2={viewW} y2={chartH} stroke={C.line} strokeWidth={1} />
+          {counts.map((c, i) => {
+            const h = max > 0 ? Math.max((c.count / max) * (chartH - 12), c.count > 0 ? 4 : 0) : 0;
+            const x = i * unitW + barGap / 2;
+            const y = chartH - h;
+            const isBest = c.idx === best.idx;
+            return (
+              <g key={c.idx} onMouseEnter={() => setHover(i)} onMouseLeave={() => setHover(null)} style={{ cursor: "pointer" }}>
+                <rect x={x} y={y - 6} width={barW} height={Math.max(h + 6, 12)} fill="transparent" />
+                <rect x={x} y={y} width={barW} height={h} rx={4} fill={isBest || hover === i ? C.orange : "rgba(238,108,26,.55)"} />
+                <text x={x + barW / 2} y={chartH + 16} textAnchor="middle" fontSize={10.5} fill={C.grayText} fontFamily={FONT}>
+                  {c.short}
+                </text>
+              </g>
+            );
+          })}
+        </svg>
+      </div>
+    </div>
+  );
+}
+
+const PAYMENT_LABELS = { pix: "Pix", card: "Cartão", cash: "Dinheiro" };
+
+function PaymentMethodsChart({ orders }) {
+  const counts = {};
+  orders.forEach((o) => {
+    const key = o.payment_method || "outros";
+    counts[key] = (counts[key] || 0) + 1;
+  });
+  const rows = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+  const max = Math.max(1, ...rows.map(([, c]) => c));
+
+  return (
+    <div style={{ background: "#fff", border: `1px solid ${C.line}`, borderRadius: 16, padding: 20 }}>
+      <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 16 }}>Formas de pagamento mais usadas</div>
+      {rows.length === 0 ? (
+        <p style={{ color: C.grayText, fontSize: 13.5, margin: 0 }}>Sem dados suficientes ainda.</p>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          {rows.map(([key, count]) => (
+            <div key={key}>
+              <div className="flex items-center justify-between" style={{ marginBottom: 4 }}>
+                <span style={{ fontSize: 13, fontWeight: 600 }}>{PAYMENT_LABELS[key] || key}</span>
+                <span style={{ fontSize: 12.5, color: C.grayText, fontWeight: 600, flexShrink: 0 }}>
+                  {count} pedido{count === 1 ? "" : "s"}
+                </span>
+              </div>
+              <div style={{ height: 8, borderRadius: 999, background: C.surface, overflow: "hidden" }}>
+                <div style={{ height: "100%", width: `${(count / max) * 100}%`, background: C.orange, borderRadius: 999 }} />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function ComplementsManager({ item, onChange }) {
   const [addingGroup, setAddingGroup] = useState(false);
   const [groupName, setGroupName] = useState("");
@@ -867,6 +1017,13 @@ export default function PartnerDashboard() {
                 <div className="vp-dash-grid">
                   <RevenueBarChart orders={orders} />
                   <TopItemsChart orders={orders} />
+                </div>
+                <div className="vp-dash-grid" style={{ marginTop: 24 }}>
+                  <BestHourChart orders={orders} />
+                  <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+                    <BestDayChart orders={orders} />
+                    <PaymentMethodsChart orders={orders} />
+                  </div>
                 </div>
               </>
             )}
