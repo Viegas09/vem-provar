@@ -21,7 +21,8 @@ export function CartProvider({ children }) {
 
   function addItem(restaurantSlug, item, qty = 1) {
     const notes = item.notes || "";
-    const lineId = `${item.id}::${notes}`;
+    const complementsKey = (item.complements || []).map((c) => c.id).sort().join(",");
+    const lineId = `${item.id}::${notes}::${complementsKey}`;
     setCart((prev) => {
       if (prev.restaurantSlug && prev.restaurantSlug !== restaurantSlug && prev.items.length > 0) {
         const confirmSwap = window.confirm(

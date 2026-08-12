@@ -3,7 +3,7 @@ import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import {
   Plus, Trash2, Pencil, Store, Package, Wallet, CreditCard, CheckCircle2, XCircle, Receipt, TrendingUp,
   Clock3, Coins, Pause, Play, Home as HomeIcon, UtensilsCrossed, LogOut, ChevronLeft, ChevronRight,
-  ImagePlus, BarChart3,
+  ImagePlus, BarChart3, ListPlus, ChevronDown, ChevronUp,
 } from "lucide-react";
 import { C, FONT, formatBRL } from "../../theme";
 import { ICONS } from "../../data/icons";
@@ -11,6 +11,7 @@ import { useAuth } from "../../context/AuthContext";
 import {
   fetchRestaurantByOwner, createMenuItem, updateMenuItem, deleteMenuItem, fetchOrdersForRestaurant,
   updateOrderStatus, updateRestaurant, uploadMenuItemPhoto,
+  createComplementGroup, deleteComplementGroup, createComplementItem, deleteComplementItem,
 } from "../../data/queries";
 import { getCommissionRate, isInPromoPeriod, promoEndsAt } from "../../lib/commission";
 import { STATUS_META, STATUS_OPTIONS, OPEN_STATUSES } from "../../lib/orderStatus";
@@ -358,6 +359,175 @@ function TopItemsChart({ orders }) {
   );
 }
 
+function ComplementsManager({ item, onChange }) {
+  const [addingGroup, setAddingGroup] = useState(false);
+  const [groupName, setGroupName] = useState("");
+  const [groupRequired, setGroupRequired] = useState(false);
+  const [groupMin, setGroupMin] = useState(0);
+  const [groupMax, setGroupMax] = useState(1);
+  const [addingItemFor, setAddingItemFor] = useState(null);
+  const [itemName, setItemName] = useState("");
+  const [itemPrice, setItemPrice] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  const groups = item.complement_groups || [];
+
+  async function handleAddGroup(e) {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      await createComplementGroup(item.id, {
+        name: groupName,
+        required: groupRequired,
+        min_qty: groupRequired ? Math.max(1, Number(groupMin) || 1) : Math.max(0, Number(groupMin) || 0),
+        max_qty: Math.max(1, Number(groupMax) || 1),
+      });
+      setGroupName(""); setGroupRequired(false); setGroupMin(0); setGroupMax(1); setAddingGroup(false);
+      onChange();
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleDeleteGroup(groupId) {
+    if (!window.confirm("Remover esse grupo e todos os complementos dele?")) return;
+    await deleteComplementGroup(groupId);
+    onChange();
+  }
+
+  async function handleAddItem(e, groupId) {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      await createComplementItem(groupId, { name: itemName, price: Number(itemPrice) || 0 });
+      setItemName(""); setItemPrice(""); setAddingItemFor(null);
+      onChange();
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleDeleteItem(itemId) {
+    await deleteComplementItem(itemId);
+    onChange();
+  }
+
+  return (
+    <div style={{ marginTop: 12, padding: 14, background: C.surface, border: `1px solid ${C.line}`, borderRadius: 12 }}>
+      <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 10 }}>Complementos</div>
+      {groups.length === 0 && (
+        <p style={{ fontSize: 12.5, color: C.grayText, margin: "0 0 10px" }}>Nenhum grupo de complementos ainda.</p>
+      )}
+      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        {groups.map((group) => (
+          <div key={group.id} style={{ border: `1px solid ${C.line}`, borderRadius: 10, padding: 10, background: "#fff" }}>
+            <div className="flex items-center justify-between">
+              <div>
+                <span style={{ fontSize: 13, fontWeight: 700 }}>{group.name}</span>
+                <span style={{ fontSize: 11, color: C.grayText, marginLeft: 6 }}>
+                  {group.min_qty > 0 ? "Obrigatório" : "Opcional"} · mín {group.min_qty} / máx {group.max_qty}
+                </span>
+              </div>
+              <button onClick={() => handleDeleteGroup(group.id)}
+                style={{ width: 26, height: 26, borderRadius: 7, border: `1px solid ${C.line}`, background: "#fff",
+                         cursor: "pointer", display: "grid", placeItems: "center", flexShrink: 0 }}>
+                <Trash2 size={13} color="#B42318" />
+              </button>
+            </div>
+
+            {(group.complement_items || []).length > 0 && (
+              <div style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 6 }}>
+                {group.complement_items.map((ci) => (
+                  <div key={ci.id} className="flex items-center justify-between" style={{ fontSize: 12.5 }}>
+                    <span>{ci.name}{Number(ci.price) > 0 && ` · +${formatBRL(ci.price)}`}</span>
+                    <button onClick={() => handleDeleteItem(ci.id)}
+                      style={{ background: "none", border: "none", cursor: "pointer", color: C.grayText, padding: 2 }}>
+                      <Trash2 size={12} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {addingItemFor === group.id ? (
+              <form onSubmit={(e) => handleAddItem(e, group.id)} className="flex items-center gap-2" style={{ marginTop: 8 }}>
+                <input required value={itemName} onChange={(e) => setItemName(e.target.value)} placeholder="Nome"
+                  style={{ flex: 1, minWidth: 0, border: `1.5px solid ${C.line}`, borderRadius: 8, padding: "6px 8px",
+                           fontFamily: FONT, fontSize: 12.5 }} />
+                <input type="number" min="0" step="0.01" value={itemPrice} onChange={(e) => setItemPrice(e.target.value)}
+                  placeholder="R$"
+                  style={{ width: 64, flexShrink: 0, border: `1.5px solid ${C.line}`, borderRadius: 8, padding: "6px 8px",
+                           fontFamily: FONT, fontSize: 12.5 }} />
+                <button type="submit" disabled={saving}
+                  style={{ background: C.orange, color: "#fff", border: "none", borderRadius: 8, padding: "6px 10px",
+                           cursor: "pointer", fontSize: 12.5, fontWeight: 600, flexShrink: 0 }}>
+                  OK
+                </button>
+                <button type="button" onClick={() => setAddingItemFor(null)}
+                  style={{ background: "none", border: `1px solid ${C.line}`, borderRadius: 8, padding: "6px 10px",
+                           cursor: "pointer", fontSize: 12.5, flexShrink: 0 }}>
+                  ×
+                </button>
+              </form>
+            ) : (
+              <button onClick={() => setAddingItemFor(group.id)} className="flex items-center gap-1"
+                style={{ marginTop: 8, background: "none", border: "none", cursor: "pointer", color: C.orange,
+                         fontSize: 12.5, fontWeight: 600, padding: 0 }}>
+                <Plus size={12} /> Adicionar opção
+              </button>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {addingGroup ? (
+        <form onSubmit={handleAddGroup} style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 8,
+             background: "#fff", border: `1px solid ${C.line}`, borderRadius: 10, padding: 10 }}>
+          <input required value={groupName} onChange={(e) => setGroupName(e.target.value)}
+            placeholder="Nome do grupo (ex: Turbine seu lanche)"
+            style={{ border: `1.5px solid ${C.line}`, borderRadius: 8, padding: "7px 9px", fontFamily: FONT, fontSize: 12.5 }} />
+          <label className="flex items-center gap-2" style={{ fontSize: 12.5 }}>
+            <input type="checkbox" checked={groupRequired} onChange={(e) => setGroupRequired(e.target.checked)} />
+            Obrigatório
+          </label>
+          <div className="flex items-center gap-4">
+            <label className="flex items-center gap-2" style={{ fontSize: 11.5, color: C.grayText }}>
+              Mín
+              <input type="number" min="0" value={groupMin} onChange={(e) => setGroupMin(e.target.value)}
+                style={{ width: 50, border: `1.5px solid ${C.line}`, borderRadius: 8, padding: "5px 7px",
+                         fontFamily: FONT, fontSize: 12.5 }} />
+            </label>
+            <label className="flex items-center gap-2" style={{ fontSize: 11.5, color: C.grayText }}>
+              Máx
+              <input type="number" min="1" value={groupMax} onChange={(e) => setGroupMax(e.target.value)}
+                style={{ width: 50, border: `1.5px solid ${C.line}`, borderRadius: 8, padding: "5px 7px",
+                         fontFamily: FONT, fontSize: 12.5 }} />
+            </label>
+          </div>
+          <div className="flex" style={{ gap: 8 }}>
+            <button type="submit" disabled={saving}
+              style={{ background: C.orange, color: "#fff", border: "none", borderRadius: 8, padding: "7px 14px",
+                       cursor: "pointer", fontSize: 12.5, fontWeight: 600 }}>
+              Salvar grupo
+            </button>
+            <button type="button" onClick={() => setAddingGroup(false)}
+              style={{ background: "none", border: `1px solid ${C.line}`, borderRadius: 8, padding: "7px 14px",
+                       cursor: "pointer", fontSize: 12.5, color: C.grayText }}>
+              Cancelar
+            </button>
+          </div>
+        </form>
+      ) : (
+        <button onClick={() => setAddingGroup(true)} className="flex items-center gap-1"
+          style={{ marginTop: 12, background: "#fff", border: `1px solid ${C.line}`, borderRadius: 8, cursor: "pointer",
+                   padding: "7px 12px", fontFamily: FONT, fontSize: 12.5, fontWeight: 600, color: C.black }}>
+          <Plus size={13} /> Adicionar grupo
+        </button>
+      )}
+    </div>
+  );
+}
+
 function OrderCard({ order, onStatusChange }) {
   const meta = STATUS_META[order.status] || STATUS_META.pending;
   return (
@@ -374,9 +544,14 @@ function OrderCard({ order, onStatusChange }) {
       </div>
       <div style={{ marginTop: 8 }}>
         {(order.order_items || []).map((i) => (
-          <div key={i.id} style={{ fontSize: 13, marginBottom: 2 }}>
+          <div key={i.id} style={{ fontSize: 13, marginBottom: 4 }}>
             {i.qty}x {i.name}
             {i.notes && <span style={{ color: C.orange, fontStyle: "italic" }}> — Obs: {i.notes}</span>}
+            {i.complements && i.complements.length > 0 && (
+              <div style={{ fontSize: 12, color: C.grayText, marginTop: 1 }}>
+                + {i.complements.map((c) => c.name).join(", ")}
+              </div>
+            )}
           </div>
         ))}
       </div>
@@ -531,6 +706,7 @@ export default function PartnerDashboard() {
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
+  const [expandedComplements, setExpandedComplements] = useState(null);
   const [activeSection, setActiveSection] = useState("inicio");
   const [collapsed, setCollapsed] = useState(() => localStorage.getItem("vp_sidebar_collapsed") === "1");
   const mpStatus = searchParams.get("mp");
@@ -773,12 +949,31 @@ export default function PartnerDashboard() {
                             <Trash2 size={15} color="#B42318" />
                           </button>
                         </div>
-                        <button onClick={() => handleToggleAvailable(item)} className="flex items-center justify-center gap-1"
-                          style={{ width: "100%", marginTop: 12, background: "none", border: `1px solid ${C.line}`,
-                                   borderRadius: 8, cursor: "pointer", padding: "8px 0", fontFamily: FONT, fontSize: 13,
-                                   fontWeight: 600, color: item.available === false ? C.ok : C.grayText }}>
-                          {item.available === false ? <><Play size={14} /> Retomar vendas</> : <><Pause size={14} /> Pausar vendas</>}
-                        </button>
+                        <div className="flex items-center" style={{ gap: 8, marginTop: 8 }}>
+                          <button onClick={() => handleToggleAvailable(item)} className="flex items-center justify-center gap-1"
+                            style={{ flex: 1, background: "none", border: `1px solid ${C.line}`,
+                                     borderRadius: 8, cursor: "pointer", padding: "8px 0", fontFamily: FONT, fontSize: 13,
+                                     fontWeight: 600, color: item.available === false ? C.ok : C.grayText }}>
+                            {item.available === false ? <><Play size={14} /> Retomar vendas</> : <><Pause size={14} /> Pausar vendas</>}
+                          </button>
+                          <button onClick={() => setExpandedComplements(expandedComplements === item.id ? null : item.id)}
+                            className="flex items-center justify-center gap-1"
+                            style={{ flex: 1, background: "none", border: `1px solid ${C.line}`,
+                                     borderRadius: 8, cursor: "pointer", padding: "8px 0", fontFamily: FONT, fontSize: 13,
+                                     fontWeight: 600, color: C.grayText }}>
+                            <ListPlus size={14} /> Complementos
+                            {(item.complement_groups || []).length > 0 && (
+                              <span style={{ fontSize: 11, fontWeight: 700, color: C.orange, background: "rgba(238,108,26,.1)",
+                                   borderRadius: 999, minWidth: 16, height: 16, display: "grid", placeItems: "center", padding: "0 4px" }}>
+                                {item.complement_groups.length}
+                              </span>
+                            )}
+                            {expandedComplements === item.id ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                          </button>
+                        </div>
+                        {expandedComplements === item.id && (
+                          <ComplementsManager item={item} onChange={reload} />
+                        )}
                       </div>
                     )
                   )}

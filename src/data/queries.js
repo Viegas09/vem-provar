@@ -1,9 +1,11 @@
 import { supabase } from "../lib/supabase";
 
+const MENU_ITEMS_SELECT = "*, menu_items(*, complement_groups(*, complement_items(*)))";
+
 export async function fetchRestaurants() {
   const { data, error } = await supabase
     .from("restaurants")
-    .select("*, menu_items(*)")
+    .select(MENU_ITEMS_SELECT)
     .order("name");
   if (error) throw error;
   return data;
@@ -12,7 +14,7 @@ export async function fetchRestaurants() {
 export async function fetchRestaurantBySlug(slug) {
   const { data, error } = await supabase
     .from("restaurants")
-    .select("*, menu_items(*)")
+    .select(MENU_ITEMS_SELECT)
     .eq("slug", slug)
     .maybeSingle();
   if (error) throw error;
@@ -47,6 +49,7 @@ export async function createOrder({ restaurantId, customerId, address, paymentMe
       price: item.price,
       qty: item.qty,
       notes: item.notes || null,
+      complements: item.complements || [],
     }))
   );
   if (itemsError) throw itemsError;
@@ -57,7 +60,7 @@ export async function createOrder({ restaurantId, customerId, address, paymentMe
 export async function fetchRestaurantByOwner(ownerId) {
   const { data, error } = await supabase
     .from("restaurants")
-    .select("*, menu_items(*)")
+    .select(MENU_ITEMS_SELECT)
     .eq("owner_id", ownerId)
     .maybeSingle();
   if (error) throw error;
@@ -103,6 +106,36 @@ export async function updateMenuItem(id, changes) {
 
 export async function deleteMenuItem(id) {
   const { error } = await supabase.from("menu_items").delete().eq("id", id);
+  if (error) throw error;
+}
+
+export async function createComplementGroup(menuItemId, group) {
+  const { data, error } = await supabase
+    .from("complement_groups")
+    .insert({ menu_item_id: menuItemId, ...group })
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function deleteComplementGroup(id) {
+  const { error } = await supabase.from("complement_groups").delete().eq("id", id);
+  if (error) throw error;
+}
+
+export async function createComplementItem(groupId, item) {
+  const { data, error } = await supabase
+    .from("complement_items")
+    .insert({ group_id: groupId, ...item })
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function deleteComplementItem(id) {
+  const { error } = await supabase.from("complement_items").delete().eq("id", id);
   if (error) throw error;
 }
 

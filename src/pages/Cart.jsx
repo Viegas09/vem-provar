@@ -41,6 +41,11 @@ export default function Cart() {
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 15, fontWeight: 600 }}>{item.name}</div>
                     <div style={{ fontSize: 13.5, color: C.grayText, marginTop: 4 }}>{formatBRL(item.price)} cada</div>
+                    {item.complements && item.complements.length > 0 && (
+                      <div style={{ fontSize: 12.5, color: C.grayText, marginTop: 4 }}>
+                        + {item.complements.map((c) => c.name).join(", ")}
+                      </div>
+                    )}
                     {item.notes && (
                       <div style={{ fontSize: 12.5, color: C.grayText, marginTop: 4, fontStyle: "italic" }}>Obs: {item.notes}</div>
                     )}
