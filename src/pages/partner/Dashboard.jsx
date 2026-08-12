@@ -62,6 +62,7 @@ function MenuItemForm({ restaurantId, item, onSaved, onCancel }) {
   const [photoFile, setPhotoFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(item?.image_url || null);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState(null);
 
   function handlePhotoChange(e) {
     const file = e.target.files?.[0];
@@ -73,6 +74,7 @@ function MenuItemForm({ restaurantId, item, onSaved, onCancel }) {
   async function handleSubmit(e) {
     e.preventDefault();
     setSaving(true);
+    setError(null);
     try {
       let imageUrl = item?.image_url || null;
       if (photoFile) {
@@ -91,6 +93,8 @@ function MenuItemForm({ restaurantId, item, onSaved, onCancel }) {
         });
       }
       onSaved();
+    } catch (err) {
+      setError(err.message || "Não foi possível salvar o item. Tente novamente.");
     } finally {
       setSaving(false);
     }
@@ -124,6 +128,11 @@ function MenuItemForm({ restaurantId, item, onSaved, onCancel }) {
         placeholder="Preço (R$)"
         style={{ border: `1.5px solid ${C.line}`, outline: "none", borderRadius: 10, padding: "10px 12px",
                  fontFamily: FONT, fontSize: 14.5, background: "#fff" }} />
+      {error && (
+        <div style={{ background: "#FDECEC", color: "#B42318", borderRadius: 10, padding: "10px 12px", fontSize: 13 }}>
+          {error}
+        </div>
+      )}
       <div className="flex" style={{ gap: 10 }}>
         <button type="submit" disabled={saving}
           style={{ background: C.orange, color: "#fff", border: "none", cursor: "pointer", borderRadius: 10,
