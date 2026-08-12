@@ -3,7 +3,7 @@ import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import {
   Plus, Trash2, Pencil, Store, Package, Wallet, CreditCard, CheckCircle2, XCircle, Receipt, TrendingUp,
   Clock3, Coins, Pause, Play, Home as HomeIcon, UtensilsCrossed, LogOut, ChevronLeft, ChevronRight,
-  ImagePlus, BarChart3, ListPlus, ChevronDown, ChevronUp,
+  ImagePlus, BarChart3, ListPlus, ChevronDown, ChevronUp, TrendingDown,
 } from "lucide-react";
 import { C, FONT, formatBRL } from "../../theme";
 import { ICONS } from "../../data/icons";
@@ -26,20 +26,15 @@ const NAV_ITEMS = [
   { key: "financeiro", label: "Financeiro", icon: Wallet },
   { key: "cardapio", label: "Cardápio", icon: UtensilsCrossed },
 ];
-const PERIOD_OPTIONS = [
-  { value: "hoje", label: "Hoje" },
-  { value: "7dias", label: "Últimos 7 dias" },
-  { value: "tudo", label: "Tudo" },
+const MONTH_NAMES = [
+  "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+  "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
 ];
-
-function filterByPeriod(orders, period) {
-  if (period === "tudo") return orders;
-  const now = new Date();
-  const cutoff = period === "hoje"
-    ? new Date(now.getFullYear(), now.getMonth(), now.getDate())
-    : new Date(now.getTime() - 7 * 24 * 3600 * 1000);
-  return orders.filter((o) => new Date(o.created_at) >= cutoff);
-}
+const monthKey = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+const monthLabel = (key) => {
+  const [y, m] = key.split("-");
+  return `${MONTH_NAMES[Number(m) - 1]} de ${y}`;
+};
 
 function StatTile({ icon: Icon, label, value, accent }) {
   return (
@@ -190,23 +185,27 @@ function CommissionCard({ restaurant, orders }) {
   );
 }
 
-function RepasseLine({ label, sub, value, negative, bold, last }) {
+function FinanceStat({ icon: Icon, label, value, tone }) {
+  const color = tone === "up" ? C.ok : tone === "down" ? "#B42318" : C.black;
   return (
-    <div className="flex items-start justify-between" style={{ padding: "14px 16px", borderBottom: last ? "none" : `1px solid ${C.line}`, gap: 12 }}>
-      <div>
-        <div style={{ fontSize: bold ? 14.5 : 13.5, fontWeight: bold ? 700 : 500 }}>{label}</div>
-        {sub && <div style={{ fontSize: 12, color: C.grayText, marginTop: 2 }}>{sub}</div>}
+    <div style={{ flex: "1 1 170px", background: "#fff", border: `1px solid ${C.line}`, borderRadius: 16, padding: 16 }}>
+      <div className="flex items-center gap-2" style={{ marginBottom: 8 }}>
+        <Icon size={15} color={color} />
+        <span style={{ fontSize: 12, color: C.grayText, fontWeight: 600 }}>{label}</span>
       </div>
-      <div style={{ fontSize: bold ? 15 : 13.5, fontWeight: bold ? 700 : 600, color: negative ? "#B42318" : C.black, flexShrink: 0 }}>
-        {value}
-      </div>
+      <div style={{ fontSize: 19, fontWeight: 700, color }}>{value}</div>
     </div>
   );
 }
 
 function RepasseDetail({ restaurant, orders }) {
-  const [period, setPeriod] = useState("tudo");
-  const filtered = filterByPeriod(orders, period);
+  const currentKey = monthKey(new Date());
+  const availableMonths = Array.from(new Set(orders.map((o) => monthKey(new Date(o.created_at)))));
+  if (!availableMonths.includes(currentKey)) availableMonths.push(currentKey);
+  availableMonths.sort().reverse();
+  const [month, setMonth] = useState(availableMonths[0]);
+
+  const filtered = orders.filter((o) => monthKey(new Date(o.created_at)) === month);
   const totalSales = filtered.reduce((sum, o) => sum + Number(o.total), 0);
   const totalCommission = filtered.reduce((sum, o) => sum + Number(o.commission_amount ?? 0), 0);
   const totalPayout = filtered.reduce((sum, o) => sum + Number(o.restaurant_payout ?? o.total), 0);
@@ -214,36 +213,31 @@ function RepasseDetail({ restaurant, orders }) {
 
   return (
     <div>
-      <div className="vp-scroll flex items-center gap-2" style={{ marginBottom: 18 }}>
-        {PERIOD_OPTIONS.map((opt) => {
-          const active = period === opt.value;
-          return (
-            <button key={opt.value} onClick={() => setPeriod(opt.value)}
-              style={{ flexShrink: 0, background: active ? C.black : "#fff", color: active ? "#fff" : C.grayText,
-                       border: `1.5px solid ${active ? C.black : C.line}`, borderRadius: 999, cursor: "pointer",
-                       padding: "7px 14px", fontFamily: FONT, fontSize: 13, fontWeight: 600 }}>
-              {opt.label}
-            </button>
-          );
-        })}
+      <div style={{ marginBottom: 18 }}>
+        <select value={month} onChange={(e) => setMonth(e.target.value)}
+          style={{ border: `1.5px solid ${C.line}`, outline: "none", borderRadius: 10, padding: "9px 14px",
+                   fontFamily: FONT, fontSize: 13.5, fontWeight: 600, background: "#fff", cursor: "pointer" }}>
+          {availableMonths.map((key) => (
+            <option key={key} value={key}>{monthLabel(key)}</option>
+          ))}
+        </select>
       </div>
 
-      <div className="vp-dash-grid" style={{ marginBottom: 28 }}>
-        <div style={{ background: C.surface, border: `1px solid ${C.line}`, borderRadius: 16, padding: 22 }}>
-          <div style={{ fontSize: 13, color: C.grayText, fontWeight: 600 }}>Valor a receber</div>
-          <div style={{ fontSize: 32, fontWeight: 700, marginTop: 6 }}>{formatBRL(totalPayout)}</div>
-          <div style={{ fontSize: 12.5, color: C.grayText, marginTop: 10 }}>
-            Repasse D+1 (Pix) / D+2 (cartão) direto na sua conta conectada.
-          </div>
-        </div>
-        <div style={{ background: "#fff", border: `1px solid ${C.line}`, borderRadius: 16 }}>
-          <RepasseLine label="Total de vendas no período" sub={`${filtered.length} pedido${filtered.length === 1 ? "" : "s"}`} value={formatBRL(totalSales)} />
-          <RepasseLine label={`Comissão Vem Provar (${rate}%)`} sub="Sem taxa escondida, sem mensalidade" value={`- ${formatBRL(totalCommission)}`} negative />
-          <RepasseLine label="Total" value={formatBRL(totalPayout)} bold last />
+      <div className="flex" style={{ gap: 12, flexWrap: "wrap", marginBottom: 24 }}>
+        <FinanceStat icon={TrendingUp} label="Valor das vendas" value={formatBRL(totalSales)} tone="up" />
+        <FinanceStat icon={TrendingDown} label={`Comissão (${rate}%)`} value={`- ${formatBRL(totalCommission)}`} tone="down" />
+        <FinanceStat icon={Wallet} label="Valor líquido" value={formatBRL(totalPayout)} tone="neutral" />
+      </div>
+
+      <div style={{ background: C.surface, border: `1px solid ${C.line}`, borderRadius: 16, padding: 22, marginBottom: 28 }}>
+        <div style={{ fontSize: 13, color: C.grayText, fontWeight: 600 }}>Valor líquido de {monthLabel(month).toLowerCase()}</div>
+        <div style={{ fontSize: 32, fontWeight: 700, marginTop: 6 }}>{formatBRL(totalPayout)}</div>
+        <div style={{ fontSize: 12.5, color: C.grayText, marginTop: 10 }}>
+          Repasse D+1 (Pix) / D+2 (cartão) direto na sua conta conectada · {filtered.length} pedido{filtered.length === 1 ? "" : "s"} no mês.
         </div>
       </div>
 
-      <h3 style={{ fontSize: 15, fontWeight: 700, margin: "0 0 12px" }}>Pedidos do período</h3>
+      <h3 style={{ fontSize: 15, fontWeight: 700, margin: "0 0 12px" }}>Pedidos do mês</h3>
       {filtered.length === 0 ? (
         <p style={{ color: C.grayText, fontSize: 14 }}>Nenhum pedido nesse período.</p>
       ) : (
