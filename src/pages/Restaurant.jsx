@@ -127,7 +127,7 @@ export default function Restaurant() {
         {menu.length === 0 ? (
           <p style={{ color: C.grayText, fontSize: 14.5 }}>Esse restaurante ainda não cadastrou itens no cardápio.</p>
         ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(360px, 1fr))", gap: 12 }}>
             {menu.map((item) => {
               const qty = qtyOf(item.id);
               return (

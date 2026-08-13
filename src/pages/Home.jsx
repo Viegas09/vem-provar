@@ -48,7 +48,6 @@ function FoodPhoto({ v = 0, icon: Icon, radius = 16, style }) {
 }
 
 export default function Home() {
-  const [likes, setLikes] = useState({});
   const [sortBy, setSortBy] = useState("relevancia");
   const { restaurants, loading, error } = useRestaurants();
   const [location, setLocation] = useUserLocation();
@@ -95,6 +94,8 @@ export default function Home() {
     .filter((r) => r.menu_items?.length > 0)
     .slice(0, 4)
     .map((r, i) => ({
+      restaurantId: r.id,
+      slug: r.slug,
       dish: r.menu_items[0].name,
       rest: r.name,
       v: r.menu_items[0].color_variant,
@@ -217,15 +218,18 @@ export default function Home() {
           </div>
           <div className="vp-scroll" style={{ display: "flex", gap: 18 }}>
             {highlights.map((h, i) => (
-              <div key={i} className="vp-tap" style={{ width: 220, flexShrink: 0, cursor: "pointer",
-                   background: "#fff", border: `1px solid ${C.line}`, borderRadius: 18, overflow: "hidden" }}>
+              <Link key={i} to={`/restaurante/${h.slug}`} className="vp-tap" style={{ width: 220, flexShrink: 0,
+                   background: "#fff", border: `1px solid ${C.line}`, borderRadius: 18, overflow: "hidden",
+                   textDecoration: "none", color: "inherit", display: "block" }}>
                 <div style={{ position: "relative" }}>
                   <FoodPhoto v={h.v} icon={h.icon} radius={0} style={{ height: 130 }} />
-                  <button onClick={() => setLikes((l) => ({ ...l, [i]: !l[i] }))}
-                    style={{ position: "absolute", top: 10, right: 10, width: 34, height: 34, borderRadius: 999,
-                             background: "rgba(255,255,255,.94)", border: "none", cursor: "pointer", display: "grid", placeItems: "center" }}>
-                    <Heart size={17} color={likes[i] ? C.orange : C.grayText} fill={likes[i] ? C.orange : "none"} />
-                  </button>
+                  {user && (
+                    <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleFavorite(h.restaurantId); }}
+                      style={{ position: "absolute", top: 10, right: 10, width: 34, height: 34, borderRadius: 999,
+                               background: "rgba(255,255,255,.94)", border: "none", cursor: "pointer", display: "grid", placeItems: "center" }}>
+                      <Heart size={17} color={isFavorite(h.restaurantId) ? C.orange : C.grayText} fill={isFavorite(h.restaurantId) ? C.orange : "none"} />
+                    </button>
+                  )}
                 </div>
                 <div style={{ padding: "12px 14px 14px" }}>
                   <div style={{ fontSize: 15, fontWeight: 600 }}>{h.dish}</div>
@@ -233,7 +237,7 @@ export default function Home() {
                   <span style={{ display: "inline-block", marginTop: 10, fontSize: 11.5, fontWeight: 600, color: C.orange,
                                  background: "rgba(238,108,26,.1)", padding: "4px 9px", borderRadius: 8 }}>{h.tag}</span>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         </section>
@@ -337,7 +341,11 @@ export default function Home() {
                 Cadastre seu restaurante <ArrowRight size={17} />
               </Link>
             </div>
-            <div id="entregador" style={{ background: "rgba(255,255,255,.04)", borderRadius: 20, padding: "30px 28px" }}>
+            <div id="entregador" style={{ background: "rgba(255,255,255,.04)", borderRadius: 20, padding: "30px 28px", position: "relative" }}>
+              <span style={{ position: "absolute", top: 24, right: 28, fontSize: 11, fontWeight: 700, color: C.gray,
+                   background: "rgba(255,255,255,.08)", padding: "3px 10px", borderRadius: 999 }}>
+                Em breve
+              </span>
               <div style={{ width: 52, height: 52, borderRadius: 14, background: C.orange, display: "grid", placeItems: "center", marginBottom: 16 }}>
                 <Bike size={24} color="#fff" />
               </div>
