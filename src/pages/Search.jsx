@@ -1,18 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, Search as SearchIcon, Store, X } from "lucide-react";
-import { C, FONT } from "../theme";
+import { C, FONT, WARM } from "../theme";
 import { ICONS } from "../data/icons";
 import { useRestaurants } from "../hooks/useRestaurants";
+import { SkeletonCard } from "../components/Skeleton";
 
 function FoodPhoto({ v = 0, icon: Icon, style }) {
-  const WARM = [
-    "linear-gradient(140deg,#F2A24E,#D65E12)",
-    "linear-gradient(140deg,#E8B04B,#C77A1E)",
-    "linear-gradient(140deg,#DE8A5A,#A85431)",
-    "linear-gradient(140deg,#EFC38A,#D98E3D)",
-    "linear-gradient(140deg,#E27A52,#B84A28)",
-  ];
   return (
     <div style={{ position: "relative", background: WARM[v % WARM.length], borderRadius: 14, overflow: "hidden", ...style }}>
       <div style={{ position: "absolute", inset: 0, background: "radial-gradient(120% 80% at 25% 12%, rgba(255,255,255,.28), transparent 60%)" }} />
@@ -71,7 +65,9 @@ export default function Search() {
             Digite o nome de um restaurante ou prato para buscar.
           </p>
         ) : loading ? (
-          <p style={{ color: C.grayText, fontSize: 14, textAlign: "center", padding: "40px 0" }}>Buscando…</p>
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            {Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} />)}
+          </div>
         ) : results.length === 0 ? (
           <p style={{ color: C.grayText, fontSize: 14, textAlign: "center", padding: "40px 0" }}>
             Nenhum resultado para "{term.trim()}".

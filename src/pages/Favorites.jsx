@@ -48,7 +48,7 @@ export default function Favorites() {
   return (
     <div style={{ fontFamily: FONT, background: C.white, color: C.black, minHeight: "100vh" }}>
       <Header />
-      <section className="vp-wrap" style={{ padding: "32px 24px 100px", maxWidth: 900 }}>
+      <section className="vp-wrap" style={{ padding: "32px 24px 32px", maxWidth: 900 }}>
         <h1 style={{ fontSize: 22, fontWeight: 700, margin: "0 0 20px" }}>Favoritos</h1>
 
         {loading ? (

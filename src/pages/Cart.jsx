@@ -16,7 +16,7 @@ export default function Cart() {
     <div style={{ fontFamily: FONT, background: C.white, color: C.black, minHeight: "100vh" }}>
       <Header />
 
-      <section className="vp-wrap" style={{ padding: "32px 24px 120px", maxWidth: 640 }}>
+      <section className="vp-wrap" style={{ padding: "32px 24px 32px", maxWidth: 640 }}>
         <h1 style={{ fontSize: 24, fontWeight: 700, margin: "0 0 20px" }}>Seu carrinho</h1>
 
         {cart.items.length === 0 ? (

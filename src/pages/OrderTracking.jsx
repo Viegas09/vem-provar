@@ -64,7 +64,7 @@ export default function OrderTracking() {
   return (
     <div style={{ fontFamily: FONT, background: C.white, color: C.black, minHeight: "100vh" }}>
       <Header />
-      <section className="vp-wrap" style={{ padding: "32px 24px 80px", maxWidth: 560 }}>
+      <section className="vp-wrap" style={{ padding: "32px 24px 32px", maxWidth: 560 }}>
         <h1 style={{ fontSize: 22, fontWeight: 700, margin: "0 0 4px" }}>Pedido #{order.id.slice(0, 8)}</h1>
         <p style={{ fontSize: 14, color: C.grayText, margin: "0 0 24px" }}>
           {order.restaurants?.name} · {new Date(order.created_at).toLocaleString("pt-BR")}
@@ -94,6 +94,11 @@ export default function OrderTracking() {
                 <span>{item.qty}x {item.name}</span>
                 <span style={{ color: C.grayText }}>{formatBRL(item.price * item.qty)}</span>
               </div>
+              {item.complements && item.complements.length > 0 && (
+                <div style={{ fontSize: 12.5, color: C.grayText, marginTop: 2 }}>
+                  + {item.complements.map((c) => c.name).join(", ")}
+                </div>
+              )}
               {item.notes && (
                 <div style={{ fontSize: 12.5, color: C.grayText, fontStyle: "italic", marginTop: 2 }}>Obs: {item.notes}</div>
               )}

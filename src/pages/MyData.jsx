@@ -63,7 +63,7 @@ export default function MyData() {
   return (
     <div style={{ fontFamily: FONT, background: C.white, color: C.black, minHeight: "100vh" }}>
       <Header />
-      <section className="vp-wrap" style={{ padding: "32px 24px 100px", maxWidth: 480 }}>
+      <section className="vp-wrap" style={{ padding: "32px 24px 32px", maxWidth: 480 }}>
         <h1 style={{ fontSize: 22, fontWeight: 700, margin: "0 0 20px" }}>Meus dados</h1>
 
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 14 }}>

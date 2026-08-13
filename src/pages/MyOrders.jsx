@@ -5,16 +5,9 @@ import { C, FONT, formatBRL } from "../theme";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
 import { fetchOrdersForCustomer } from "../data/queries";
+import { STATUS_META } from "../lib/orderStatus";
 import Header from "../components/Header";
 import { SkeletonPage } from "../components/Skeleton";
-
-const STATUS_LABELS = {
-  pending: "Recebido",
-  preparing: "Em preparo",
-  out_for_delivery: "Saiu para entrega",
-  delivered: "Entregue",
-  cancelled: "Cancelado",
-};
 
 function LoadingScreen() {
   return <SkeletonPage />;
@@ -51,7 +44,7 @@ export default function MyOrders() {
   return (
     <div style={{ fontFamily: FONT, background: C.white, color: C.black, minHeight: "100vh" }}>
       <Header />
-      <section className="vp-wrap" style={{ padding: "32px 24px 100px", maxWidth: 640 }}>
+      <section className="vp-wrap" style={{ padding: "32px 24px 32px", maxWidth: 640 }}>
         <h1 style={{ fontSize: 22, fontWeight: 700, margin: "0 0 20px" }}>Meus pedidos</h1>
 
         {loadingOrders ? (
@@ -64,14 +57,16 @@ export default function MyOrders() {
           </div>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            {orders.map((order) => (
+            {orders.map((order) => {
+              const meta = STATUS_META[order.status] || STATUS_META.pending;
+              return (
               <div key={order.id} style={{ padding: 16, background: "#fff", border: `1px solid ${C.line}`, borderRadius: 16 }}>
                 <Link to={`/pedido/${order.id}`} style={{ textDecoration: "none", color: "inherit" }}>
                   <div className="flex items-center justify-between">
                     <span style={{ fontSize: 15, fontWeight: 700 }}>{order.restaurants?.name || "Restaurante"}</span>
-                    <span style={{ fontSize: 12, fontWeight: 600, color: C.grayText, background: C.surface,
+                    <span style={{ fontSize: 12, fontWeight: 700, color: meta.color, background: meta.bg,
                          padding: "4px 10px", borderRadius: 999 }}>
-                      {STATUS_LABELS[order.status] || order.status}
+                      {meta.label}
                     </span>
                   </div>
                   <div style={{ fontSize: 12.5, color: C.grayText, marginTop: 4 }}>
@@ -93,7 +88,8 @@ export default function MyOrders() {
                   </button>
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </section>
