@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
 import ScrollToTop from "./components/ScrollToTop";
 import InstallPrompt from "./components/InstallPrompt";
 import BottomNav from "./components/BottomNav";
+import SplashScreen from "./components/SplashScreen";
 import Home from "./pages/Home";
 import Search from "./pages/Search";
 import Restaurant from "./pages/Restaurant";
@@ -25,9 +27,15 @@ import AdminDashboard from "./pages/admin/Dashboard";
 function App() {
   const location = useLocation();
   const isPortalRoute = /^\/(parceiro|entregador|admin)/.test(location.pathname);
+  const [showSplash, setShowSplash] = useState(
+    () => !isPortalRoute && !sessionStorage.getItem("vp_splash_shown")
+  );
+
+  if (showSplash) sessionStorage.setItem("vp_splash_shown", "1");
 
   return (
     <>
+      {showSplash && <SplashScreen onDone={() => setShowSplash(false)} />}
       <ScrollToTop />
       <Routes>
         <Route path="/" element={<Home />} />
