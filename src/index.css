@@ -32,6 +32,13 @@ html{ scroll-behavior:smooth; }
 @media (min-width:960px){ .vp-toast-stack{ bottom:24px; } }
 @keyframes vp-check-in{ 0%{ opacity:0; transform:scale(.4); } 55%{ opacity:1; transform:scale(1.15); } 100%{ transform:scale(1); } }
 .vp-check-in{ animation:vp-check-in .55s cubic-bezier(.28,1.4,.5,1) both; }
+@keyframes vp-route-in{ from{ opacity:0; transform:translateY(10px); } to{ opacity:1; transform:none; } }
+.vp-route-fade{ animation:vp-route-in .28s cubic-bezier(.22,.8,.32,1) both; }
+@keyframes vp-order-glow{ 0%,100%{ box-shadow:0 0 0 0 rgba(238,108,26,.4); } 50%{ box-shadow:0 0 0 7px rgba(238,108,26,0); } }
+.vp-order-new{ animation:vp-order-glow 1.7s ease-in-out infinite; }
+@keyframes vp-pull-spin{ to{ transform:rotate(360deg); } }
+.vp-pull-indicator{ display:flex; align-items:center; justify-content:center; overflow:hidden; transition:height .15s ease; }
+.vp-pull-indicator svg{ animation:vp-pull-spin .7s linear infinite; }
 .vp-wrap{ max-width:1140px; margin:0 auto; padding:0 24px; }
 .vp-navlinks{ display:flex; align-items:center; gap:28px; }
 .vp-hero{ display:grid; grid-template-columns:1.08fr .92fr; gap:48px; align-items:center; }

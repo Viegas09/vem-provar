@@ -11,6 +11,7 @@ import { STATUS_META } from "../lib/orderStatus";
 import Header from "../components/Header";
 import ReviewModal from "../components/ReviewModal";
 import { SkeletonPage } from "../components/Skeleton";
+import PullToRefresh from "../components/PullToRefresh";
 
 function LoadingScreen() {
   return <SkeletonPage />;
@@ -62,15 +63,19 @@ export default function MyOrders() {
   const [reviewedMap, setReviewedMap] = useState({});
   const [reviewOrder, setReviewOrder] = useState(null);
 
-  useEffect(() => {
-    if (!user) return;
-    Promise.all([fetchOrdersForCustomer(user.id), fetchReviewsForCustomer(user.id)]).then(([ordersData, reviewsData]) => {
+  function loadOrders() {
+    return Promise.all([fetchOrdersForCustomer(user.id), fetchReviewsForCustomer(user.id)]).then(([ordersData, reviewsData]) => {
       setOrders(ordersData);
       const map = {};
       reviewsData.forEach((r) => { map[r.order_id] = r; });
       setReviewedMap(map);
       setLoadingOrders(false);
     });
+  }
+
+  useEffect(() => {
+    if (!user) return;
+    loadOrders();
   }, [user]);
 
   if (authLoading) return <LoadingScreen />;
@@ -101,6 +106,7 @@ export default function MyOrders() {
   return (
     <div style={{ fontFamily: FONT, background: C.white, color: C.black, minHeight: "100vh" }}>
       <Header />
+      <PullToRefresh onRefresh={loadOrders}>
       <section className="vp-wrap" style={{ padding: "32px 24px 32px", maxWidth: 640 }}>
         <h1 style={{ fontSize: 22, fontWeight: 700, margin: "0 0 20px" }}>Meus pedidos</h1>
 
@@ -194,6 +200,7 @@ export default function MyOrders() {
           </div>
         )}
       </section>
+      </PullToRefresh>
 
       {reviewOrder && (
         <ReviewModal

@@ -20,6 +20,7 @@ import AppHeader from "../components/AppHeader";
 import ReviewNudge from "../components/ReviewNudge";
 import LocateButton from "../components/LocateButton";
 import { SkeletonCard } from "../components/Skeleton";
+import PullToRefresh from "../components/PullToRefresh";
 import WORDMARK_LIGHT from "../assets/wordmark-light.png";
 
 const HOOD_TAGS = ["pediram hoje", "recomendam", "novo perto de você", "em alta"];
@@ -56,7 +57,7 @@ export default function Home() {
   const isAppMode = useAppMode();
   const navigate = useNavigate();
   const [sortBy, setSortBy] = useState("relevancia");
-  const { restaurants, loading, error } = useRestaurants();
+  const { restaurants, loading, error, refetch } = useRestaurants();
   const [location, setLocation] = useUserLocation();
   const { user } = useAuth();
   const { isFavorite, toggle: toggleFavorite } = useFavorites(user?.id);
@@ -127,6 +128,8 @@ export default function Home() {
   return (
     <div style={{ fontFamily: FONT, background: C.white, color: C.black, minHeight: 800 }}>
       {isAppMode ? <AppHeader /> : <Header />}
+
+      <PullToRefresh onRefresh={refetch}>
 
       {/* ── Hero: pedir comida (só no site) ── */}
       {!isAppMode && (
@@ -279,7 +282,7 @@ export default function Home() {
                     <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleFavorite(h.restaurantId); }}
                       style={{ position: "absolute", top: 10, right: 10, width: 34, height: 34, borderRadius: 999,
                                background: "rgba(255,255,255,.94)", border: "none", cursor: "pointer", display: "grid", placeItems: "center" }}>
-                      <Heart size={17} color={isFavorite(h.restaurantId) ? C.orange : C.grayText} fill={isFavorite(h.restaurantId) ? C.orange : "none"} />
+                      <Heart key={String(isFavorite(h.restaurantId))} className="vp-pop" size={17} color={isFavorite(h.restaurantId) ? C.orange : C.grayText} fill={isFavorite(h.restaurantId) ? C.orange : "none"} />
                     </button>
                   )}
                 </div>
@@ -347,7 +350,7 @@ export default function Home() {
                     style={{ position: "absolute", top: 10, right: 10, width: 32, height: 32, borderRadius: 999,
                              background: "rgba(255,255,255,.94)", border: `1px solid ${C.line}`, cursor: "pointer",
                              display: "grid", placeItems: "center", zIndex: 1 }}>
-                    <Heart size={15} color={isFavorite(r.id) ? C.orange : C.grayText} fill={isFavorite(r.id) ? C.orange : "none"} />
+                    <Heart key={String(isFavorite(r.id))} className="vp-pop" size={15} color={isFavorite(r.id) ? C.orange : C.grayText} fill={isFavorite(r.id) ? C.orange : "none"} />
                   </button>
                 )}
                 <FoodPhoto v={r.color_variant} icon={ICONS[r.icon_key] || Store} style={{ width: 88, height: 88, flexShrink: 0 }} />
@@ -452,6 +455,7 @@ export default function Home() {
           </footer>
         </>
       )}
+      </PullToRefresh>
     </div>
   );
 }

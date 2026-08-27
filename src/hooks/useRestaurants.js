@@ -1,10 +1,16 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { fetchRestaurants } from "../data/queries";
 
 export function useRestaurants() {
   const [restaurants, setRestaurants] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const refetch = useCallback(() => {
+    return fetchRestaurants()
+      .then((data) => setRestaurants(data))
+      .catch((err) => setError(err));
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -24,5 +30,5 @@ export function useRestaurants() {
     };
   }, []);
 
-  return { restaurants, loading, error };
+  return { restaurants, loading, error, refetch };
 }

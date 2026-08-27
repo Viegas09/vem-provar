@@ -59,6 +59,7 @@ function App() {
       ) : (
         <>
           <ScrollToTop />
+          <div key={location.pathname} className="vp-route-fade">
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/busca" element={<Search />} />
@@ -91,6 +92,7 @@ function App() {
             <Route path="/admin/entrar" element={<AdminLogin />} />
             <Route path="/admin/painel" element={<AdminDashboard />} />
           </Routes>
+          </div>
           <InstallPrompt />
           {!isPortalRoute && <BottomNav />}
         </>

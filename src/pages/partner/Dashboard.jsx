@@ -1,14 +1,15 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import {
   Plus, Trash2, Pencil, Store, Package, Wallet, CreditCard, CheckCircle2, XCircle, Receipt, TrendingUp,
   Clock3, Coins, Pause, Play, Home as HomeIcon, UtensilsCrossed, LogOut, ChevronLeft, ChevronRight,
   ImagePlus, BarChart3, ListPlus, ChevronDown, ChevronUp, TrendingDown, MessageCircle, X, Tag,
-  Lock, HelpCircle,
+  Lock, HelpCircle, Bell,
 } from "lucide-react";
 import { C, FONT, formatBRL } from "../../theme";
 import { ICONS } from "../../data/icons";
 import { useAuth } from "../../context/AuthContext";
+import { useToast } from "../../context/ToastContext";
 import {
   fetchRestaurantByOwner, createMenuItem, updateMenuItem, deleteMenuItem, fetchOrdersForRestaurant,
   updateOrderStatus, updateRestaurant, uploadMenuItemPhoto, uploadRestaurantPhoto,
@@ -1141,10 +1142,10 @@ function ComplementsManager({ item, onChange }) {
   );
 }
 
-function OrderCard({ order, onStatusChange, onOpenChat }) {
+function OrderCard({ order, onStatusChange, onOpenChat, isNew }) {
   const meta = STATUS_META[order.status] || STATUS_META.pending;
   return (
-    <div style={{ padding: 14, background: "#fff", border: `1px solid ${C.line}`,
+    <div className={isNew ? "vp-order-new" : undefined} style={{ padding: 14, background: "#fff", border: `1px solid ${C.line}`,
          borderLeft: `4px solid ${meta.color}`, borderRadius: 14 }}>
       <div className="flex items-center justify-between">
         <span style={{ fontSize: 14, fontWeight: 700 }}>#{order.id.slice(0, 8)}</span>
@@ -1287,7 +1288,7 @@ function HeartForkMark({ size = 32 }) {
   );
 }
 
-function PartnerSidebar({ restaurant, activeSection, onSectionChange, onToggleOpen, userEmail, onSignOut, collapsed, onToggleCollapsed }) {
+function PartnerSidebar({ restaurant, activeSection, onSectionChange, onToggleOpen, userEmail, onSignOut, collapsed, onToggleCollapsed, hasNewOrder }) {
   const isOpen = restaurant.is_open !== false;
   return (
     <aside className={`vp-portal-sidebar${collapsed ? " vp-portal-sidebar--collapsed" : ""}`}>
@@ -1338,11 +1339,16 @@ function PartnerSidebar({ restaurant, activeSection, onSectionChange, onToggleOp
           const active = activeSection === item.key;
           return (
             <button key={item.key} onClick={() => onSectionChange(item.key)} title={item.label} className="flex items-center gap-2"
-              style={{ flexShrink: 0, background: active ? C.black : "none", color: active ? "#fff" : C.grayText,
+              style={{ position: "relative", flexShrink: 0, background: active ? C.black : "none", color: active ? "#fff" : C.grayText,
                        border: "none", borderRadius: 10, cursor: "pointer", padding: collapsed ? "10px" : "10px 14px",
                        fontFamily: FONT, fontSize: 13.5, fontWeight: 600, whiteSpace: "nowrap",
                        justifyContent: collapsed ? "center" : "flex-start" }}>
               <ItemIcon size={16} /> {!collapsed && item.label}
+              {item.key === "inicio" && hasNewOrder && (
+                <span style={{ position: "absolute", top: collapsed ? 4 : "50%", right: collapsed ? 4 : 10,
+                     transform: collapsed ? "none" : "translateY(-50%)", width: 8, height: 8, borderRadius: 999,
+                     background: C.orange, animation: "vp-pulse 1.4s ease-in-out infinite" }} />
+              )}
             </button>
           );
         })}
@@ -1368,6 +1374,7 @@ function PartnerSidebar({ restaurant, activeSection, onSectionChange, onToggleOp
 
 export default function PartnerDashboard() {
   const { user, loading: authLoading, signOut } = useAuth();
+  const { showToast } = useToast();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [restaurant, setRestaurant] = useState(null);
@@ -1381,6 +1388,8 @@ export default function PartnerDashboard() {
   const [activeSection, setActiveSection] = useState("inicio");
   const [collapsed, setCollapsed] = useState(() => localStorage.getItem("vp_sidebar_collapsed") === "1");
   const [chatOrder, setChatOrder] = useState(null);
+  const [newOrderIds, setNewOrderIds] = useState(() => new Set());
+  const knownOrderIds = useRef(null);
   const mpStatus = searchParams.get("mp");
 
   function toggleCollapsed() {
@@ -1396,6 +1405,16 @@ export default function PartnerDashboard() {
     setRestaurant(r);
     if (r) {
       const o = await fetchOrdersForRestaurant(r.id);
+      if (knownOrderIds.current === null) {
+        knownOrderIds.current = new Set(o.map((it) => it.id));
+      } else {
+        const arrived = o.filter((it) => !knownOrderIds.current.has(it.id));
+        if (arrived.length > 0) {
+          arrived.forEach((it) => knownOrderIds.current.add(it.id));
+          setNewOrderIds((prev) => new Set([...prev, ...arrived.map((it) => it.id)]));
+          showToast(arrived.length === 1 ? "Novo pedido recebido!" : `${arrived.length} novos pedidos recebidos!`, { icon: Bell, duration: 3200 });
+        }
+      }
       setOrders(o);
       const c = await fetchCouponsForRestaurant(r.id);
       setCoupons(c);
@@ -1406,6 +1425,19 @@ export default function PartnerDashboard() {
   useEffect(() => {
     if (user) reload();
   }, [user]);
+
+  useEffect(() => {
+    if (!user) return;
+    const interval = setInterval(reload, 25000);
+    return () => clearInterval(interval);
+  }, [user]);
+
+  useEffect(() => {
+    if (activeSection === "inicio" && newOrderIds.size > 0) {
+      const t = setTimeout(() => setNewOrderIds(new Set()), 4000);
+      return () => clearTimeout(t);
+    }
+  }, [activeSection, newOrderIds.size]);
 
   useEffect(() => {
     if (user) subscribeToPush(user.id);
@@ -1465,7 +1497,7 @@ export default function PartnerDashboard() {
       <div className="vp-portal-shell">
         <PartnerSidebar restaurant={restaurant} activeSection={activeSection} onSectionChange={setActiveSection}
           onToggleOpen={handleToggleOpen} userEmail={user.email} onSignOut={handleSignOut}
-          collapsed={collapsed} onToggleCollapsed={toggleCollapsed} />
+          collapsed={collapsed} onToggleCollapsed={toggleCollapsed} hasNewOrder={newOrderIds.size > 0} />
 
         <main className="vp-portal-main">
           <div style={{ maxWidth: 1000 }}>
@@ -1527,7 +1559,10 @@ export default function PartnerDashboard() {
                                 <span style={{ fontSize: 12.5, color: C.grayText }}>Vazio</span>
                               </div>
                             ) : (
-                              list.map((order) => <OrderCard key={order.id} order={order} onStatusChange={handleStatusChange} onOpenChat={setChatOrder} />)
+                              list.map((order) => (
+                                <OrderCard key={order.id} order={order} onStatusChange={handleStatusChange}
+                                  onOpenChat={setChatOrder} isNew={newOrderIds.has(order.id)} />
+                              ))
                             )}
                           </div>
                         </div>

@@ -205,7 +205,7 @@ export default function Restaurant() {
               style={{ position: "absolute", top: 5, right: 5, width: 26, height: 26, borderRadius: 999, border: "none",
                        background: "rgba(255,255,255,.94)", cursor: "pointer", display: "grid", placeItems: "center",
                        boxShadow: "0 1px 4px rgba(0,0,0,.15)" }}>
-              <Heart size={13} color={isFavoriteItem(item.id) ? C.orange : C.grayText} fill={isFavoriteItem(item.id) ? C.orange : "none"} />
+              <Heart key={String(isFavoriteItem(item.id))} className="vp-pop" size={13} color={isFavoriteItem(item.id) ? C.orange : C.grayText} fill={isFavoriteItem(item.id) ? C.orange : "none"} />
             </button>
           )}
         </div>
@@ -229,7 +229,7 @@ export default function Restaurant() {
             </RoundIconButton>
             {user && (
               <RoundIconButton onClick={() => toggleFavorite(restaurant.id)}>
-                <Heart size={17} color={isFavorite(restaurant.id) ? C.orange : C.black} fill={isFavorite(restaurant.id) ? C.orange : "none"} />
+                <Heart key={String(isFavorite(restaurant.id))} className="vp-pop" size={17} color={isFavorite(restaurant.id) ? C.orange : C.black} fill={isFavorite(restaurant.id) ? C.orange : "none"} />
               </RoundIconButton>
             )}
           </div>
@@ -317,7 +317,7 @@ export default function Restaurant() {
                           style={{ position: "absolute", top: 6, left: 6, width: 26, height: 26, borderRadius: 999, border: "none",
                                    background: "rgba(255,255,255,.94)", cursor: "pointer", display: "grid", placeItems: "center",
                                    boxShadow: "0 1px 4px rgba(0,0,0,.15)" }}>
-                          <Heart size={13} color={isFavoriteItem(item.id) ? C.orange : C.grayText} fill={isFavoriteItem(item.id) ? C.orange : "none"} />
+                          <Heart key={String(isFavoriteItem(item.id))} className="vp-pop" size={13} color={isFavoriteItem(item.id) ? C.orange : C.grayText} fill={isFavoriteItem(item.id) ? C.orange : "none"} />
                         </button>
                       )}
                     </div>
