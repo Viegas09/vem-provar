@@ -20,13 +20,13 @@ import { Skeleton, SkeletonMenuItem } from "../components/Skeleton";
 function FoodPhoto({ v = 0, icon: Icon, radius = 16, style, photoUrl, iconSize = 26 }) {
   if (photoUrl) {
     return (
-      <div style={{ borderRadius: radius, overflow: "hidden", ...style }}>
+      <div className="vp-photo" style={{ borderRadius: radius, overflow: "hidden", ...style }}>
         <img src={photoUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
       </div>
     );
   }
   return (
-    <div style={{ position: "relative", background: WARM[v % WARM.length], borderRadius: radius, overflow: "hidden", ...style }}>
+    <div className="vp-photo" style={{ position: "relative", background: WARM[v % WARM.length], borderRadius: radius, overflow: "hidden", ...style }}>
       <div style={{ position: "absolute", inset: 0, background: "radial-gradient(120% 80% at 25% 12%, rgba(255,255,255,.28), transparent 60%)" }} />
       {Icon && <Icon size={iconSize} color="rgba(255,255,255,.5)" style={{ position: "absolute", right: 10, bottom: 10 }} />}
     </div>

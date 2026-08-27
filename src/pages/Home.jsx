@@ -13,6 +13,7 @@ import { useFavorites } from "../hooks/useFavorites";
 import { useAppMode } from "../hooks/useAppMode";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
+import { useToast } from "../context/ToastContext";
 import { distanceKm } from "../lib/geolocation";
 import Header from "../components/Header";
 import AppHeader from "../components/AppHeader";
@@ -44,7 +45,7 @@ function greeting() {
 
 function FoodPhoto({ v = 0, icon: Icon, radius = 16, style }) {
   return (
-    <div style={{ position: "relative", background: WARM[v % WARM.length], borderRadius: radius, overflow: "hidden", ...style }}>
+    <div className="vp-photo" style={{ position: "relative", background: WARM[v % WARM.length], borderRadius: radius, overflow: "hidden", ...style }}>
       <div style={{ position: "absolute", inset: 0, background: "radial-gradient(120% 80% at 25% 12%, rgba(255,255,255,.28), transparent 60%)" }} />
       {Icon && <Icon size={30} color="rgba(255,255,255,.5)" style={{ position: "absolute", right: 12, bottom: 12 }} />}
     </div>
@@ -61,6 +62,7 @@ export default function Home() {
   const { isFavorite, toggle: toggleFavorite } = useFavorites(user?.id);
   const { orders: recentOrders } = useRecentOrders(user?.id);
   const { addItem } = useCart();
+  const { showToast } = useToast();
   const [reorderedId, setReorderedId] = useState(null);
   const [searchParams, setSearchParams] = useSearchParams();
   const query = (searchParams.get("q") || "").trim().toLowerCase();
@@ -78,6 +80,7 @@ export default function Home() {
       addItem(slug, { id: item.menu_item_id, name: item.name, price: item.price, notes: item.notes || "" }, item.qty);
     });
     setReorderedId(order.id);
+    showToast(`Pedido de ${order.restaurants?.name || "novo"} adicionado ao carrinho`);
   }
 
   const matchingRestaurants = hasQuery

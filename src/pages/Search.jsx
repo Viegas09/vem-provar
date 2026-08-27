@@ -8,7 +8,7 @@ import { SkeletonCard } from "../components/Skeleton";
 
 function FoodPhoto({ v = 0, icon: Icon, style }) {
   return (
-    <div style={{ position: "relative", background: WARM[v % WARM.length], borderRadius: 14, overflow: "hidden", ...style }}>
+    <div className="vp-photo" style={{ position: "relative", background: WARM[v % WARM.length], borderRadius: 14, overflow: "hidden", ...style }}>
       <div style={{ position: "absolute", inset: 0, background: "radial-gradient(120% 80% at 25% 12%, rgba(255,255,255,.28), transparent 60%)" }} />
       {Icon && <Icon size={26} color="rgba(255,255,255,.5)" style={{ position: "absolute", right: 10, bottom: 10 }} />}
     </div>

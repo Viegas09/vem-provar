@@ -1,13 +1,15 @@
 import { useState } from "react";
-import { X, Minus, Plus, Check, Share2 } from "lucide-react";
+import { X, Minus, Plus, Check, Share2, ShoppingCart } from "lucide-react";
 import { C, FONT, WARM, formatBRL } from "../theme";
 import { useShare } from "../hooks/useShare";
+import { useToast } from "../context/ToastContext";
 
 export default function ItemModal({ item, icon: Icon, restaurantName, onClose, onAdd }) {
   const [qty, setQty] = useState(1);
   const [notes, setNotes] = useState("");
   const [selected, setSelected] = useState({});
   const { copied: shareCopied, share } = useShare();
+  const { showToast } = useToast();
 
   const groups = item.complement_groups || [];
 
@@ -43,6 +45,7 @@ export default function ItemModal({ item, icon: Icon, restaurantName, onClose, o
       });
     });
     onAdd({ id: item.id, name: item.name, price: unitPrice, notes: notes.trim(), complements }, qty);
+    showToast(`${item.name} adicionado ao carrinho`, { icon: ShoppingCart });
     onClose();
   }
 

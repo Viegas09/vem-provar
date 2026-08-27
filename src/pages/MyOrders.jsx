@@ -5,6 +5,7 @@ import { C, FONT, WARM, formatBRL } from "../theme";
 import { ICONS } from "../data/icons";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
+import { useToast } from "../context/ToastContext";
 import { fetchOrdersForCustomer, fetchReviewsForCustomer } from "../data/queries";
 import { STATUS_META } from "../lib/orderStatus";
 import Header from "../components/Header";
@@ -54,6 +55,7 @@ function ItemThumb({ name, size = 30 }) {
 export default function MyOrders() {
   const { user, loading: authLoading } = useAuth();
   const { addItem } = useCart();
+  const { showToast } = useToast();
   const [orders, setOrders] = useState([]);
   const [loadingOrders, setLoadingOrders] = useState(true);
   const [reordered, setReordered] = useState(null);
@@ -82,6 +84,7 @@ export default function MyOrders() {
       addItem(slug, { id: item.menu_item_id, name: item.name, price: item.price, notes: item.notes || "" }, item.qty);
     });
     setReordered(order.id);
+    showToast(`Pedido de ${order.restaurants?.name || "novo"} adicionado ao carrinho`);
   }
 
   const groups = [];
