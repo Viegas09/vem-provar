@@ -88,7 +88,10 @@ export default async function handler(req, res) {
     const payment = await paymentRes.json();
     if (!paymentRes.ok || !payment.id) {
       console.error("mp-create-payment: mercado pago error", payment);
-      res.status(502).json({ error: "mercadopago_error", detail: payment.message || null });
+      const causeDetail = Array.isArray(payment.cause) && payment.cause.length > 0
+        ? payment.cause.map((c) => c.description || c.code).filter(Boolean).join("; ")
+        : null;
+      res.status(502).json({ error: "mercadopago_error", detail: causeDetail || payment.message || null });
       return;
     }
 
