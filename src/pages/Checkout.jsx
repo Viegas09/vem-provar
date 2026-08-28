@@ -13,9 +13,12 @@ import { isRestaurantOpenNow } from "../lib/businessHours";
 import Header from "../components/Header";
 import LocateButton from "../components/LocateButton";
 import AddressModal, { emptyAddressForm } from "../components/AddressModal";
+import PixPayment from "../components/PixPayment";
+import CardPaymentBrick from "../components/CardPaymentBrick";
 
 const PAYMENT_METHODS = [
   { id: "pix", label: "Pix", icon: QrCode },
+  { id: "card_online", label: "Cartão de crédito (online)", icon: CreditCard },
   { id: "card", label: "Cartão na entrega", icon: CreditCard },
   { id: "cash", label: "Dinheiro", icon: Banknote },
 ];
@@ -75,6 +78,7 @@ export default function Checkout() {
   const [payment, setPayment] = useState("pix");
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(null);
+  const [paymentStep, setPaymentStep] = useState(null);
   const submittedRef = useRef(false);
 
   const [scheduleMode, setScheduleMode] = useState("now");
@@ -235,25 +239,11 @@ export default function Checkout() {
       });
       submittedRef.current = true;
 
-      if ((payment === "pix" || payment === "card") && restaurant.mp_connected) {
-        try {
-          const mpRes = await fetch("/api/mp-create-preference", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ orderId: order.id, origin: window.location.origin }),
-          });
-          const mpData = await mpRes.json();
-          console.log("checkout: mp-create-preference response", mpRes.status, mpData);
-          const checkoutUrl = mpData.initPoint || mpData.sandboxInitPoint;
-          if (mpRes.ok && checkoutUrl) {
-            clearCart();
-            window.location.href = checkoutUrl;
-            return;
-          }
-        } catch (mpErr) {
-          console.error("checkout: mp-create-preference fetch threw", mpErr);
-          // segue pro fluxo padrão se o Mercado Pago falhar — o pedido já foi criado
-        }
+      if ((payment === "pix" || payment === "card_online") && restaurant.mp_connected) {
+        clearCart();
+        setPaymentStep({ orderId: order.id, method: payment, total: orderTotal });
+        setSubmitting(false);
+        return;
       }
 
       clearCart();
@@ -263,6 +253,31 @@ export default function Checkout() {
       setSubmitError("Não foi possível confirmar o pedido. Tente novamente.");
       setSubmitting(false);
     }
+  }
+
+  if (paymentStep) {
+    const orderNumber = paymentStep.orderId.slice(0, 8);
+    function handlePaid() {
+      navigate("/pedido-confirmado", { state: { orderId: paymentStep.orderId, orderNumber, total: paymentStep.total, payment: paymentStep.method } });
+    }
+    function handleCancelPayment() {
+      navigate(`/pedido/${paymentStep.orderId}`);
+    }
+    return (
+      <div style={{ fontFamily: FONT, background: C.white, color: C.black, minHeight: "100vh" }}>
+        <Header />
+        <div className="vp-wrap" style={{ padding: "32px 24px 32px", maxWidth: 480 }}>
+          <h1 style={{ fontSize: 22, fontWeight: 700, margin: "0 0 20px" }}>Pagamento</h1>
+          {paymentStep.method === "pix" ? (
+            <PixPayment orderId={paymentStep.orderId} total={paymentStep.total} defaultEmail={user?.email}
+              onPaid={handlePaid} onCancel={handleCancelPayment} />
+          ) : (
+            <CardPaymentBrick orderId={paymentStep.orderId} total={paymentStep.total}
+              onPaid={handlePaid} onCancel={handleCancelPayment} />
+          )}
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -436,7 +451,7 @@ export default function Checkout() {
 
         <h2 style={{ fontSize: 15, fontWeight: 700, margin: "0 0 10px" }}>Forma de pagamento</h2>
         <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 24 }}>
-          {PAYMENT_METHODS.map((m) => {
+          {PAYMENT_METHODS.filter((m) => m.id !== "card_online" || restaurant?.mp_connected).map((m) => {
             const Icon = m.icon;
             const active = payment === m.id;
             const label = m.id === "card" ? (isPickup ? "Cartão na retirada" : "Cartão na entrega") : m.label;
