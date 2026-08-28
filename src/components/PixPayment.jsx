@@ -35,8 +35,8 @@ export default function PixPayment({ orderId, total, defaultEmail, onPaid, onCan
       });
       const data = await res.json();
       if (!res.ok || !data.pix?.qrCode) {
-        console.error("PixPayment: mp-create-payment failed", data);
-        setError(data.detail || "Não foi possível gerar o Pix agora. Tente novamente.");
+        console.error("PixPayment: mp-create-payment failed", res.status, data);
+        setError(data.detail || `Não foi possível gerar o Pix agora (${data.error || res.status}). Tente novamente.`);
         setCreating(false);
         return;
       }

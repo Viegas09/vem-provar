@@ -111,6 +111,6 @@ export default async function handler(req, res) {
     });
   } catch (err) {
     console.error("mp-create-payment error", err);
-    res.status(500).json({ error: "internal_error" });
+    res.status(500).json({ error: "internal_error", detail: err.message || null });
   }
 }
