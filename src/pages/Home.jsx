@@ -280,6 +280,7 @@ export default function Home() {
                   <FoodPhoto v={h.v} icon={h.icon} radius={0} style={{ height: 130 }} />
                   {user && (
                     <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleFavorite(h.restaurantId); }}
+                      aria-label={isFavorite(h.restaurantId) ? `Remover ${h.rest} dos favoritos` : `Favoritar ${h.rest}`}
                       style={{ position: "absolute", top: 10, right: 10, width: 34, height: 34, borderRadius: 999,
                                background: "rgba(255,255,255,.94)", border: "none", cursor: "pointer", display: "grid", placeItems: "center" }}>
                       <Heart key={String(isFavorite(h.restaurantId))} className="vp-pop" size={17} color={isFavorite(h.restaurantId) ? C.orange : C.grayText} fill={isFavorite(h.restaurantId) ? C.orange : "none"} />
@@ -347,6 +348,7 @@ export default function Home() {
                    border: `1px solid ${C.line}`, borderRadius: 16, cursor: "pointer", textDecoration: "none", color: "inherit", position: "relative" }}>
                 {user && (
                   <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleFavorite(r.id); }}
+                    aria-label={isFavorite(r.id) ? `Remover ${r.name} dos favoritos` : `Favoritar ${r.name}`}
                     style={{ position: "absolute", top: 10, right: 10, width: 32, height: 32, borderRadius: 999,
                              background: "rgba(255,255,255,.94)", border: `1px solid ${C.line}`, cursor: "pointer",
                              display: "grid", placeItems: "center", zIndex: 1 }}>

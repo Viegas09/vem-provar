@@ -83,7 +83,7 @@ export default function Search() {
       <div style={{ position: "sticky", top: 0, zIndex: 10, background: C.white, borderBottom: `1px solid ${C.line}`,
            padding: "14px 16px", paddingTop: "calc(14px + env(safe-area-inset-top))" }}>
         <div className="flex items-center gap-2" style={{ maxWidth: 640, margin: "0 auto" }}>
-          <button onClick={() => navigate(-1)}
+          <button onClick={() => navigate(-1)} aria-label="Voltar"
             style={{ width: 38, height: 38, borderRadius: 10, border: `1px solid ${C.line}`, background: "#fff",
                      display: "grid", placeItems: "center", cursor: "pointer", flexShrink: 0 }}>
             <ArrowLeft size={18} />
@@ -94,7 +94,7 @@ export default function Search() {
               placeholder="Busque por restaurante ou prato"
               style={{ border: "none", outline: "none", flex: 1, background: "transparent", fontFamily: FONT, fontSize: 14.5 }} />
             {term && (
-              <button onClick={() => setTerm("")} style={{ background: "none", border: "none", cursor: "pointer", color: C.grayText, display: "grid", placeItems: "center" }}>
+              <button onClick={() => setTerm("")} aria-label="Limpar busca" style={{ background: "none", border: "none", cursor: "pointer", color: C.grayText, display: "grid", placeItems: "center" }}>
                 <X size={16} />
               </button>
             )}
@@ -134,9 +134,15 @@ export default function Search() {
                 {Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} />)}
               </div>
             ) : results.length === 0 ? (
-              <p style={{ color: C.grayText, fontSize: 14, textAlign: "center", padding: "40px 0" }}>
-                {hasQuery ? `Nenhum resultado para "${term.trim()}".` : `Nenhum restaurante de ${activeCat?.label.toLowerCase()} por enquanto.`}
-              </p>
+              <div className="vp-fade-in" style={{ textAlign: "center", padding: "48px 0" }}>
+                <div style={{ width: 64, height: 64, borderRadius: "50%", background: C.surface,
+                     display: "grid", placeItems: "center", margin: "0 auto 14px" }}>
+                  <SearchIcon size={26} color={C.grayText} />
+                </div>
+                <p style={{ color: C.grayText, fontSize: 14, margin: 0 }}>
+                  {hasQuery ? `Nenhum resultado para "${term.trim()}".` : `Nenhum restaurante de ${activeCat?.label.toLowerCase()} por enquanto.`}
+                </p>
+              </div>
             ) : (
               <>
                 <div className="flex items-center gap-2 vp-scroll" style={{ overflowX: "auto", marginBottom: 14, paddingBottom: 2 }}>

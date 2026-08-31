@@ -113,10 +113,19 @@ export default function MyOrders() {
         {loadingOrders ? (
           <LoadingScreen />
         ) : orders.length === 0 ? (
-          <div style={{ textAlign: "center", padding: "40px 0" }}>
-            <Package size={44} color={C.gray} style={{ margin: "0 auto 14px" }} />
-            <p style={{ color: C.grayText, fontSize: 14.5, margin: "0 0 14px" }}>Você ainda não fez nenhum pedido.</p>
-            <Link to="/" style={{ color: C.orange, fontWeight: 600, textDecoration: "none" }}>Ver restaurantes</Link>
+          <div className="vp-fade-in" style={{ textAlign: "center", padding: "48px 0" }}>
+            <div style={{ width: 72, height: 72, borderRadius: "50%", background: "rgba(238,108,26,.08)",
+                 display: "grid", placeItems: "center", margin: "0 auto 16px" }}>
+              <Package size={30} color={C.orange} />
+            </div>
+            <p style={{ fontSize: 15.5, fontWeight: 700, margin: "0 0 4px" }}>Você ainda não fez nenhum pedido</p>
+            <p style={{ fontSize: 13.5, color: C.grayText, margin: "0 0 18px" }}>
+              Seus pedidos vão aparecer aqui assim que você fizer o primeiro.
+            </p>
+            <Link to="/" style={{ display: "inline-flex", background: C.orange, color: "#fff", fontWeight: 600,
+                 textDecoration: "none", padding: "11px 22px", borderRadius: 10, fontSize: 14 }}>
+              Ver restaurantes
+            </Link>
           </div>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>

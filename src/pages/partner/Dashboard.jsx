@@ -1108,7 +1108,7 @@ function ComplementsManager({ item, onChange }) {
                   {group.min_qty > 0 ? "Obrigatório" : "Opcional"} · mín {group.min_qty} / máx {group.max_qty}
                 </span>
               </div>
-              <button onClick={() => handleDeleteGroup(group.id)}
+              <button onClick={() => handleDeleteGroup(group.id)} aria-label={`Excluir grupo de complementos ${group.name}`}
                 style={{ width: 26, height: 26, borderRadius: 7, border: `1px solid ${C.line}`, background: "#fff",
                          cursor: "pointer", display: "grid", placeItems: "center", flexShrink: 0 }}>
                 <Trash2 size={13} color="#B42318" />
@@ -1120,7 +1120,7 @@ function ComplementsManager({ item, onChange }) {
                 {group.complement_items.map((ci) => (
                   <div key={ci.id} className="flex items-center justify-between" style={{ fontSize: 12.5 }}>
                     <span>{ci.name}{Number(ci.price) > 0 && ` · +${formatBRL(ci.price)}`}</span>
-                    <button onClick={() => handleDeleteItem(ci.id)}
+                    <button onClick={() => handleDeleteItem(ci.id)} aria-label={`Excluir complemento ${ci.name}`}
                       style={{ background: "none", border: "none", cursor: "pointer", color: C.grayText, padding: 2 }}>
                       <Trash2 size={12} />
                     </button>
@@ -1297,7 +1297,7 @@ function OrderChatModal({ order, onClose }) {
            borderRadius: 18, padding: 18 }}>
         <div className="flex items-center justify-between" style={{ marginBottom: 12 }}>
           <span style={{ fontSize: 15, fontWeight: 700 }}>Pedido #{order.id.slice(0, 8)}</span>
-          <button onClick={onClose} style={{ width: 30, height: 30, borderRadius: 999, border: `1px solid ${C.line}`,
+          <button onClick={onClose} aria-label="Fechar conversa" style={{ width: 30, height: 30, borderRadius: 999, border: `1px solid ${C.line}`,
                background: "#fff", cursor: "pointer", display: "grid", placeItems: "center" }}>
             <X size={15} />
           </button>
@@ -1388,17 +1388,20 @@ function PartnerSidebar({ restaurant, activeSection, onSectionChange, onToggleOp
           )}
         </Link>
         <NotificationBell />
-        <button onClick={onToggleSound} title={soundEnabled ? "Desativar som de alerta de pedido novo" : "Ativar som de alerta de pedido novo"}
+        <button onClick={onToggleSound}
+          title={soundEnabled ? "Desativar som de alerta de pedido novo" : "Ativar som de alerta de pedido novo"}
+          aria-label={soundEnabled ? "Desativar som de alerta de pedido novo" : "Ativar som de alerta de pedido novo"}
           style={{ width: 34, height: 34, borderRadius: 8, border: `1px solid ${C.line}`, background: soundEnabled ? "rgba(238,108,26,.1)" : "#fff",
                    cursor: "pointer", display: "grid", placeItems: "center", flexShrink: 0 }}>
           {soundEnabled ? <Volume2 size={15} color={C.orange} /> : <VolumeX size={15} color={C.grayText} />}
         </button>
-        <button onClick={onToggleCollapsed} className="vp-portal-collapse-btn" title={collapsed ? "Expandir menu" : "Recolher menu"}
+        <button onClick={onToggleCollapsed} className="vp-portal-collapse-btn"
+          title={collapsed ? "Expandir menu" : "Recolher menu"} aria-label={collapsed ? "Expandir menu" : "Recolher menu"}
           style={{ width: 28, height: 28, borderRadius: 8, border: `1px solid ${C.line}`, background: "#fff",
                    cursor: "pointer", placeItems: "center", flexShrink: 0 }}>
           {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
         </button>
-        <button onClick={onSignOut} className="vp-portal-signout-mobile"
+        <button onClick={onSignOut} className="vp-portal-signout-mobile" aria-label="Sair da conta"
           style={{ width: 34, height: 34, borderRadius: 9, border: `1px solid ${C.line}`, background: "#fff",
                    cursor: "pointer", placeItems: "center" }}>
           <LogOut size={15} />
@@ -1407,6 +1410,7 @@ function PartnerSidebar({ restaurant, activeSection, onSectionChange, onToggleOp
 
       <button onClick={onToggleOpen} className="flex items-center gap-2"
         title={isOpen ? "Loja aberta — clique para fechar" : "Loja fechada — clique para reabrir"}
+        aria-label={isOpen ? "Loja aberta — clique para fechar" : "Loja fechada — clique para reabrir"}
         style={{ background: isOpen ? "rgba(46,158,91,.1)" : "rgba(180,35,24,.08)",
                  border: `1px solid ${isOpen ? C.ok : "#B42318"}`, borderRadius: 12,
                  padding: collapsed ? "10px" : "10px 12px", cursor: "pointer", textAlign: "left", width: "100%",
@@ -1429,7 +1433,7 @@ function PartnerSidebar({ restaurant, activeSection, onSectionChange, onToggleOp
           const ItemIcon = item.icon;
           const active = activeSection === item.key;
           return (
-            <button key={item.key} onClick={() => onSectionChange(item.key)} title={item.label} className="flex items-center gap-2"
+            <button key={item.key} onClick={() => onSectionChange(item.key)} title={item.label} aria-label={item.label} className="flex items-center gap-2"
               style={{ position: "relative", flexShrink: 0, background: active ? C.black : "none", color: active ? "#fff" : C.grayText,
                        border: "none", borderRadius: 10, cursor: "pointer", padding: collapsed ? "10px" : "10px 14px",
                        fontFamily: FONT, fontSize: 13.5, fontWeight: 600, whiteSpace: "nowrap",
@@ -1452,7 +1456,7 @@ function PartnerSidebar({ restaurant, activeSection, onSectionChange, onToggleOp
             {userEmail}
           </span>
         )}
-        <button onClick={onSignOut} title="Sair" className="flex items-center gap-2"
+        <button onClick={onSignOut} title="Sair" aria-label="Sair da conta" className="flex items-center gap-2"
           style={{ background: "none", border: `1px solid ${C.line}`, borderRadius: 10, cursor: "pointer",
                    padding: collapsed ? "9px" : "9px 12px", fontFamily: FONT, fontSize: 13, fontWeight: 600, color: C.black,
                    justifyContent: "center" }}>
@@ -1936,6 +1940,7 @@ export default function PartnerDashboard() {
                         <div className="flex items-center gap-2" style={{ marginBottom: 10 }}>
                           {menuDragEnabled && <GripVertical size={15} color={C.gray} style={{ cursor: "grab", flexShrink: 0 }} />}
                           <input type="checkbox" checked={items.every((i) => selectedItems.has(i.id))}
+                            aria-label={`Selecionar todos os itens de ${categoryName}`}
                             onChange={() => toggleCategorySelected(items)}
                             style={{ width: 15, height: 15, cursor: "pointer", flexShrink: 0 }} />
                           <button type="button" onClick={() => toggleCategoryCollapsed(categoryName)}
@@ -1967,6 +1972,7 @@ export default function PartnerDashboard() {
                                   <div className="flex items-center" style={{ gap: 12 }}>
                                     {menuDragEnabled && <GripVertical size={15} color={C.gray} style={{ cursor: "grab", flexShrink: 0 }} />}
                                     <input type="checkbox" checked={selectedItems.has(item.id)}
+                                      aria-label={`Selecionar ${item.name}`}
                                       onChange={() => toggleItemSelected(item.id)}
                                       style={{ width: 15, height: 15, cursor: "pointer", flexShrink: 0 }} />
                                     <div style={{ width: 52, height: 52, borderRadius: 10, flexShrink: 0, overflow: "hidden",
@@ -1992,12 +1998,12 @@ export default function PartnerDashboard() {
                                       </div>
                                       <div style={{ fontSize: 14, fontWeight: 700, marginTop: 4 }}>{formatBRL(item.price)}</div>
                                     </div>
-                                    <button onClick={() => setEditingItem(item.id)}
+                                    <button onClick={() => setEditingItem(item.id)} aria-label={`Editar ${item.name}`}
                                       style={{ width: 34, height: 34, borderRadius: 8, border: `1px solid ${C.line}`, background: "#fff",
                                                cursor: "pointer", display: "grid", placeItems: "center", flexShrink: 0 }}>
                                       <Pencil size={15} />
                                     </button>
-                                    <button onClick={() => handleDelete(item.id)}
+                                    <button onClick={() => handleDelete(item.id)} aria-label={`Excluir ${item.name}`}
                                       style={{ width: 34, height: 34, borderRadius: 8, border: `1px solid ${C.line}`, background: "#fff",
                                                cursor: "pointer", display: "grid", placeItems: "center", flexShrink: 0 }}>
                                       <Trash2 size={15} color="#B42318" />

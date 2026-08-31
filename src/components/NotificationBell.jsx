@@ -68,7 +68,8 @@ export default function NotificationBell({ variant = "boxed" }) {
 
   return (
     <div ref={wrapRef} style={{ position: "relative" }}>
-      <button onClick={() => setOpen((v) => !v)} className={boxed ? undefined : "flex items-center gap-1"}
+      <button onClick={() => setOpen((v) => !v)} aria-label={unreadCount > 0 ? `Notificações, ${unreadCount} não lidas` : "Notificações"}
+        className={boxed ? undefined : "flex items-center gap-1"}
         style={boxed
           ? { position: "relative", color: C.black, display: "grid", placeItems: "center", width: 42, height: 42,
               borderRadius: 10, border: `1px solid ${C.line}`, background: "#fff", cursor: "pointer", flexShrink: 0 }

@@ -42,6 +42,11 @@ html{ scroll-behavior:smooth; }
 .vp-card-grid{ display:flex; flex-direction:column; gap:10px; }
 .vp-form-grid{ display:flex; flex-direction:column; gap:10px; }
 .vp-form-grid-2{ display:contents; }
+.vp-checkout-grid{ display:flex; flex-direction:column; }
+@media (min-width:960px){
+  .vp-checkout-grid{ display:grid; grid-template-columns:1.4fr 1fr; gap:36px; align-items:start; }
+  .vp-checkout-summary{ position:sticky; top:24px; }
+}
 @media (min-width:960px){
   .vp-card-grid{ display:grid; grid-template-columns:repeat(2,1fr); align-items:start; gap:12px; }
   .vp-form-grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }

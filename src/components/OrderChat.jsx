@@ -94,7 +94,7 @@ export default function OrderChat({ orderId, sender, emptyLabel }) {
         <input value={text} onChange={(e) => setText(e.target.value)} placeholder="Escreva uma mensagem…"
           style={{ flex: 1, border: `1.5px solid ${C.line}`, outline: "none", borderRadius: 10, padding: "9px 12px",
                    fontFamily: FONT, fontSize: 14, background: "transparent" }} />
-        <button type="submit" disabled={!text.trim() || sending}
+        <button type="submit" disabled={!text.trim() || sending} aria-label="Enviar mensagem"
           style={{ width: 38, height: 38, borderRadius: 10, border: "none", flexShrink: 0,
                    background: text.trim() && !sending ? C.orange : C.gray, color: "#fff",
                    cursor: text.trim() && !sending ? "pointer" : "default", display: "grid", placeItems: "center" }}>

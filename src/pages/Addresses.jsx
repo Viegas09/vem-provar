@@ -113,12 +113,12 @@ export default function Addresses() {
                       </div>
                     </div>
                     <div className="flex items-center gap-1" style={{ flexShrink: 0 }}>
-                      <button onClick={() => setModal(a)}
+                      <button onClick={() => setModal(a)} aria-label={`Editar endereço ${a.label}`}
                         style={{ width: 32, height: 32, borderRadius: 8, border: `1px solid ${C.line}`, background: "#fff",
                                  cursor: "pointer", display: "grid", placeItems: "center" }}>
                         <Pencil size={14} />
                       </button>
-                      <button onClick={() => handleDelete(a.id)}
+                      <button onClick={() => handleDelete(a.id)} aria-label={`Excluir endereço ${a.label}`}
                         style={{ width: 32, height: 32, borderRadius: 8, border: `1px solid ${C.line}`, background: "#fff",
                                  cursor: "pointer", display: "grid", placeItems: "center" }}>
                         <Trash2 size={14} color="#B42318" />

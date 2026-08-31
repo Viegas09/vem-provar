@@ -102,7 +102,7 @@ export default function AddressModal({ initial, onClose, onSave }) {
                  maxHeight: "92vh", overflowY: "auto" }}>
         <div className="flex items-center justify-between" style={{ padding: "18px 20px 4px" }}>
           <span style={{ fontSize: 18, fontWeight: 700 }}>{initial ? "Editar endereço" : "Novo endereço"}</span>
-          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: C.grayText,
+          <button onClick={onClose} aria-label="Fechar" style={{ background: "none", border: "none", cursor: "pointer", color: C.grayText,
                display: "grid", placeItems: "center" }}>
             <X size={20} />
           </button>

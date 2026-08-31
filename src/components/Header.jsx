@@ -96,7 +96,7 @@ export default function Header() {
           <Link to="/parceiro/entrar" style={{ color: C.black, textDecoration: "none", fontSize: 14.5, fontWeight: 500 }}>Cadastre seu restaurante</Link>
           <span style={{ width: 1, height: 22, background: C.line }} />
           {user && <NotificationBell variant="plain" />}
-          <Link to="/carrinho" className="flex items-center gap-1" style={{ position: "relative", color: C.black, textDecoration: "none" }}>
+          <Link to="/carrinho" aria-label={totalItems > 0 ? `Carrinho, ${totalItems} itens` : "Carrinho"} className="flex items-center gap-1" style={{ position: "relative", color: C.black, textDecoration: "none" }}>
             <ShoppingCart size={20} />
             {totalItems > 0 && (
               <span key={totalItems} className="vp-pop" style={{ position: "absolute", top: -8, right: -10, background: C.orange, color: "#fff",

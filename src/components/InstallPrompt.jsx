@@ -93,7 +93,7 @@ export default function InstallPrompt() {
           Instalar
         </button>
       )}
-      <button onClick={handleDismiss}
+      <button onClick={handleDismiss} aria-label="Dispensar"
         style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,.7)", flexShrink: 0, padding: 0 }}>
         <X size={16} />
       </button>

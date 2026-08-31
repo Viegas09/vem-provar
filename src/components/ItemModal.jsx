@@ -67,11 +67,12 @@ export default function ItemModal({ item, icon: Icon, restaurantName, onClose, o
           )}
           <div style={{ position: "absolute", top: 12, right: 12, display: "flex", gap: 8 }}>
             <button onClick={() => share({ title: item.name, text: `Dá uma olhada em ${item.name}${restaurantName ? ` no ${restaurantName}` : ""} pelo Vem Provar!` })}
+              aria-label="Compartilhar"
               style={{ width: 34, height: 34, borderRadius: 999,
                        background: "rgba(255,255,255,.94)", border: "none", cursor: "pointer", display: "grid", placeItems: "center" }}>
               {shareCopied ? <Check size={16} color={C.ok} /> : <Share2 size={16} />}
             </button>
-            <button onClick={onClose}
+            <button onClick={onClose} aria-label="Fechar"
               style={{ width: 34, height: 34, borderRadius: 999,
                        background: "rgba(255,255,255,.94)", border: "none", cursor: "pointer", display: "grid", placeItems: "center" }}>
               <X size={17} />
@@ -156,7 +157,7 @@ export default function ItemModal({ item, icon: Icon, restaurantName, onClose, o
         <div className="flex items-center gap-3" style={{ padding: "14px 20px 24px", borderTop: `1px solid ${C.line}`,
              position: "sticky", bottom: 0, background: "#fff" }}>
           <div className="flex items-center gap-2" style={{ flexShrink: 0 }}>
-            <button onClick={() => setQty((q) => Math.max(1, q - 1))}
+            <button onClick={() => setQty((q) => Math.max(1, q - 1))} aria-label="Diminuir quantidade"
               style={{ width: 34, height: 34, borderRadius: 8, border: `1px solid ${C.line}`, background: "#fff",
                        cursor: "pointer", display: "grid", placeItems: "center" }}>
               <Minus size={15} />
@@ -164,7 +165,7 @@ export default function ItemModal({ item, icon: Icon, restaurantName, onClose, o
             <span key={qty} className="vp-pop" style={{ fontSize: 16, fontWeight: 700, minWidth: 22, textAlign: "center", display: "inline-block" }}>
               {qty}
             </span>
-            <button onClick={() => setQty((q) => q + 1)}
+            <button onClick={() => setQty((q) => q + 1)} aria-label="Aumentar quantidade"
               style={{ width: 34, height: 34, borderRadius: 8, border: "none", background: C.orange, color: "#fff",
                        cursor: "pointer", display: "grid", placeItems: "center" }}>
               <Plus size={15} />

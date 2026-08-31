@@ -190,7 +190,7 @@ export default function PartnerOnboarding() {
                 placeholder="Categoria (ex: Pizza · Italiana)" style={fieldStyle} />
               <div>
                 <label style={{ fontSize: 13, fontWeight: 600, color: C.grayText, display: "block", marginBottom: 6 }}>
-                  Categoria (é como seu restaurante aparece na busca por categorias)
+                  Tipo (é como seu restaurante aparece na busca por categorias)
                 </label>
                 <select value={iconKey} onChange={(e) => setIconKey(e.target.value)} style={fieldStyle}>
                   {ICON_OPTIONS.map((opt) => (

@@ -33,9 +33,9 @@ function FoodPhoto({ v = 0, icon: Icon, radius = 16, style, photoUrl, iconSize =
   );
 }
 
-function RoundIconButton({ onClick, children, style }) {
+function RoundIconButton({ onClick, children, style, ariaLabel }) {
   return (
-    <button onClick={onClick}
+    <button onClick={onClick} aria-label={ariaLabel}
       style={{ width: 38, height: 38, borderRadius: 999, border: "none", cursor: "pointer",
                background: "rgba(255,255,255,.94)", display: "grid", placeItems: "center",
                boxShadow: "0 2px 8px rgba(0,0,0,.15)", flexShrink: 0, ...style }}>
@@ -202,6 +202,7 @@ export default function Restaurant() {
           <FoodPhoto v={item.color_variant} radius={12} style={{ width: 88, height: 88 }} photoUrl={item.image_url} />
           {user && (
             <button type="button" onClick={(e) => { e.stopPropagation(); toggleFavoriteItem(item.id); }}
+              aria-label={isFavoriteItem(item.id) ? `Remover ${item.name} dos favoritos` : `Favoritar ${item.name}`}
               style={{ position: "absolute", top: 5, right: 5, width: 26, height: 26, borderRadius: 999, border: "none",
                        background: "rgba(255,255,255,.94)", cursor: "pointer", display: "grid", placeItems: "center",
                        boxShadow: "0 1px 4px rgba(0,0,0,.15)" }}>
@@ -222,13 +223,14 @@ export default function Restaurant() {
           style={{ width: "100%", height: "100%" }} photoUrl={restaurant.banner_url} />
         <div className="flex items-center justify-between vp-wrap"
           style={{ position: "absolute", top: 14, left: 0, right: 0, padding: "0 16px" }}>
-          <RoundIconButton onClick={() => navigate(-1)}><ArrowLeft size={18} /></RoundIconButton>
+          <RoundIconButton onClick={() => navigate(-1)} ariaLabel="Voltar"><ArrowLeft size={18} /></RoundIconButton>
           <div className="flex items-center gap-2">
-            <RoundIconButton onClick={() => share({ title: restaurant.name, text: `Dá uma olhada no ${restaurant.name} no Vem Provar!` })}>
+            <RoundIconButton ariaLabel="Compartilhar" onClick={() => share({ title: restaurant.name, text: `Dá uma olhada no ${restaurant.name} no Vem Provar!` })}>
               {shareCopied ? <Check size={17} color={C.ok} /> : <Share2 size={17} />}
             </RoundIconButton>
             {user && (
-              <RoundIconButton onClick={() => toggleFavorite(restaurant.id)}>
+              <RoundIconButton ariaLabel={isFavorite(restaurant.id) ? `Remover ${restaurant.name} dos favoritos` : `Favoritar ${restaurant.name}`}
+                onClick={() => toggleFavorite(restaurant.id)}>
                 <Heart key={String(isFavorite(restaurant.id))} className="vp-pop" size={17} color={isFavorite(restaurant.id) ? C.orange : C.black} fill={isFavorite(restaurant.id) ? C.orange : "none"} />
               </RoundIconButton>
             )}
@@ -286,7 +288,7 @@ export default function Restaurant() {
             placeholder={`Buscar em ${restaurant.name}`}
             style={{ border: "none", outline: "none", flex: 1, background: "transparent", fontFamily: FONT, fontSize: 14 }} />
           {menuSearch && (
-            <button onClick={() => setMenuSearch("")} style={{ background: "none", border: "none", cursor: "pointer", color: C.grayText, display: "grid", placeItems: "center" }}>
+            <button onClick={() => setMenuSearch("")} aria-label="Limpar busca" style={{ background: "none", border: "none", cursor: "pointer", color: C.grayText, display: "grid", placeItems: "center" }}>
               <X size={16} />
             </button>
           )}
@@ -314,6 +316,7 @@ export default function Restaurant() {
                       )}
                       {user && (
                         <button type="button" onClick={(e) => { e.stopPropagation(); toggleFavoriteItem(item.id); }}
+                          aria-label={isFavoriteItem(item.id) ? `Remover ${item.name} dos favoritos` : `Favoritar ${item.name}`}
                           style={{ position: "absolute", top: 6, left: 6, width: 26, height: 26, borderRadius: 999, border: "none",
                                    background: "rgba(255,255,255,.94)", cursor: "pointer", display: "grid", placeItems: "center",
                                    boxShadow: "0 1px 4px rgba(0,0,0,.15)" }}>

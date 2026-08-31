@@ -58,10 +58,18 @@ export default function Cart() {
         <h1 style={{ fontSize: 24, fontWeight: 700, margin: "0 0 20px" }}>Seu carrinho</h1>
 
         {cart.items.length === 0 ? (
-          <div style={{ textAlign: "center", padding: "60px 0", color: C.grayText }}>
-            <ShoppingBag size={40} color={C.gray} style={{ margin: "0 auto 14px" }} />
-            <p style={{ fontSize: 15.5, margin: 0 }}>Seu carrinho está vazio.</p>
-            <Link to="/" style={{ display: "inline-block", marginTop: 16, color: C.orange, fontWeight: 600, textDecoration: "none" }}>
+          <div className="vp-fade-in" style={{ textAlign: "center", padding: "60px 0" }}>
+            <div style={{ width: 72, height: 72, borderRadius: "50%", background: "rgba(238,108,26,.08)",
+                 display: "grid", placeItems: "center", margin: "0 auto 16px" }}>
+              <ShoppingBag size={30} color={C.orange} />
+            </div>
+            <p style={{ fontSize: 15.5, fontWeight: 700, margin: "0 0 4px" }}>Seu carrinho está vazio</p>
+            <p style={{ fontSize: 13.5, color: C.grayText, margin: "0 0 18px" }}>
+              Que tal dar uma olhada nos restaurantes perto de você?
+            </p>
+            <Link to="/" className="flex items-center justify-center gap-1" style={{ display: "inline-flex",
+                 background: C.orange, color: "#fff", fontWeight: 600, textDecoration: "none",
+                 padding: "11px 22px", borderRadius: 10, fontSize: 14 }}>
               Ver restaurantes
             </Link>
           </div>
@@ -100,12 +108,13 @@ export default function Cart() {
                       )}
                       <div className="flex items-center gap-2" style={{ marginTop: 10 }}>
                         <button onClick={() => updateQty(item.lineId, item.qty - 1)}
+                          aria-label={item.qty === 1 ? `Remover ${item.name}` : `Diminuir quantidade de ${item.name}`}
                           style={{ width: 28, height: 28, borderRadius: 8, border: `1px solid ${C.line}`, background: "#fff",
                                    cursor: "pointer", display: "grid", placeItems: "center" }}>
                           {item.qty === 1 ? <Trash2 size={13} color="#B42318" /> : <Minus size={13} />}
                         </button>
                         <span key={item.qty} className="vp-pop" style={{ fontSize: 14, fontWeight: 700, minWidth: 16, textAlign: "center", display: "inline-block" }}>{item.qty}</span>
-                        <button onClick={() => updateQty(item.lineId, item.qty + 1)}
+                        <button onClick={() => updateQty(item.lineId, item.qty + 1)} aria-label={`Aumentar quantidade de ${item.name}`}
                           style={{ width: 28, height: 28, borderRadius: 8, border: "none", background: C.orange, color: "#fff",
                                    cursor: "pointer", display: "grid", placeItems: "center" }}>
                           <Plus size={13} />
@@ -128,7 +137,7 @@ export default function Cart() {
                     <div key={item.id} style={{ flexShrink: 0, width: 118 }}>
                       <div style={{ position: "relative" }}>
                         <FoodPhoto v={item.color_variant} icon={Icon} photoUrl={item.image_url} radius={14} style={{ width: 118, height: 90 }} />
-                        <button onClick={() => handleCrossSellAdd(item)}
+                        <button onClick={() => handleCrossSellAdd(item)} aria-label={`Adicionar ${item.name} ao carrinho`}
                           style={{ position: "absolute", right: 6, bottom: -12, width: 28, height: 28, borderRadius: 999,
                                    border: "none", background: C.orange, color: "#fff", cursor: "pointer",
                                    display: "grid", placeItems: "center", boxShadow: "0 2px 6px rgba(0,0,0,.2)" }}>

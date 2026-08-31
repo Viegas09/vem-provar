@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { MapPin, CreditCard, QrCode, Banknote, Bike, Store, Check, Plus, Pencil, Tag, X, Clock, CalendarClock } from "lucide-react";
 import { C, FONT, formatBRL } from "../theme";
 import { useRestaurant } from "../hooks/useRestaurant";
+import { useAppMode } from "../hooks/useAppMode";
 import { useCart } from "../context/CartContext";
 import { useUserLocation } from "../hooks/useUserLocation";
 import { useAuth } from "../context/AuthContext";
@@ -66,6 +67,7 @@ function computeDiscount(coupon, subtotalValue) {
 
 export default function Checkout() {
   const navigate = useNavigate();
+  const isAppMode = useAppMode();
   const { user } = useAuth();
   const { cart, subtotal, clearCart } = useCart();
   const { restaurant } = useRestaurant(cart.restaurantSlug);
@@ -284,9 +286,11 @@ export default function Checkout() {
     <div style={{ fontFamily: FONT, background: C.white, color: C.black, minHeight: "100vh" }}>
       <Header />
 
-      <form onSubmit={handleConfirm} className="vp-wrap" style={{ padding: "32px 24px 32px", maxWidth: 640 }}>
+      <form onSubmit={handleConfirm} className="vp-wrap" style={{ padding: "32px 24px 32px", maxWidth: isAppMode ? 640 : 980 }}>
         <h1 style={{ fontSize: 24, fontWeight: 700, margin: "0 0 20px" }}>Finalizar pedido</h1>
 
+        <div className={isAppMode ? undefined : "vp-checkout-grid"}>
+        <div>
         <h2 style={{ fontSize: 15, fontWeight: 700, margin: "0 0 10px" }}>Opções de entrega</h2>
         <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 24 }}>
           <button type="button" onClick={() => setDeliveryMode("delivery")} className="flex items-center gap-3"
@@ -414,6 +418,7 @@ export default function Checkout() {
                     </div>
                     {active && <Check size={17} color={C.orange} style={{ flexShrink: 0 }} />}
                     <button type="button" onClick={(e) => { e.stopPropagation(); setAddressModal(a); }}
+                      aria-label={`Editar endereço ${a.label}`}
                       style={{ width: 30, height: 30, borderRadius: 8, border: `1px solid ${C.line}`, background: "#fff",
                                cursor: "pointer", display: "grid", placeItems: "center", flexShrink: 0 }}>
                       <Pencil size={13} />
@@ -481,7 +486,7 @@ export default function Checkout() {
                     : `${formatBRL(appliedCoupon.discount_value)} de desconto aplicado`}
                 </div>
               </div>
-              <button type="button" onClick={handleRemoveCoupon}
+              <button type="button" onClick={handleRemoveCoupon} aria-label="Remover cupom"
                 style={{ background: "none", border: "none", cursor: "pointer", color: C.grayText, display: "grid", placeItems: "center" }}>
                 <X size={16} />
               </button>
@@ -507,7 +512,9 @@ export default function Checkout() {
             </>
           )}
         </div>
+        </div>
 
+        <div className={isAppMode ? undefined : "vp-checkout-summary"}>
         <div style={{ borderTop: `1px solid ${C.line}`, paddingTop: 18, marginBottom: 20 }}>
           <div className="flex items-center justify-between" style={{ fontSize: 14.5, color: C.grayText, marginBottom: 6 }}>
             <span>Subtotal</span>
@@ -549,6 +556,8 @@ export default function Checkout() {
             ? `Agendar para ${SCHEDULE_DAYS.find((d) => d.offset === scheduleDay)?.label.toLowerCase()} às ${scheduledFor.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}`
             : "Confirmar pedido"}
         </button>
+        </div>
+        </div>
       </form>
 
       {addressModal && (

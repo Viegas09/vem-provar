@@ -75,7 +75,8 @@ export default function AppHeader() {
 
         <div className="flex items-center" style={{ gap: 8, flexShrink: 0 }}>
           <NotificationBell />
-          <Link to="/carrinho" style={{ position: "relative", color: C.black, display: "grid", placeItems: "center",
+          <Link to="/carrinho" aria-label={totalItems > 0 ? `Carrinho, ${totalItems} itens` : "Carrinho"}
+                style={{ position: "relative", color: C.black, display: "grid", placeItems: "center",
                 width: 42, height: 42, borderRadius: 10, border: `1px solid ${C.line}`, background: "#fff" }}>
             <ShoppingCart size={19} />
             {totalItems > 0 && (

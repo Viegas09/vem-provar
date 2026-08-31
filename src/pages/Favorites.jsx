@@ -70,10 +70,19 @@ export default function Favorites() {
         {loading ? (
           <LoadingScreen />
         ) : favorites.length === 0 && favoriteItems.length === 0 ? (
-          <div style={{ textAlign: "center", padding: "40px 0" }}>
-            <Heart size={44} color={C.gray} style={{ margin: "0 auto 14px" }} />
-            <p style={{ color: C.grayText, fontSize: 14.5, margin: "0 0 14px" }}>Nenhum favorito ainda.</p>
-            <Link to="/" style={{ color: C.orange, fontWeight: 600, textDecoration: "none" }}>Voltar para a home</Link>
+          <div className="vp-fade-in" style={{ textAlign: "center", padding: "48px 0" }}>
+            <div style={{ width: 72, height: 72, borderRadius: "50%", background: "rgba(238,108,26,.08)",
+                 display: "grid", placeItems: "center", margin: "0 auto 16px" }}>
+              <Heart size={30} color={C.orange} />
+            </div>
+            <p style={{ fontSize: 15.5, fontWeight: 700, margin: "0 0 4px" }}>Nenhum favorito ainda</p>
+            <p style={{ fontSize: 13.5, color: C.grayText, margin: "0 0 18px" }}>
+              Toque no coração de um restaurante ou prato pra guardar aqui.
+            </p>
+            <Link to="/" style={{ display: "inline-flex", background: C.orange, color: "#fff", fontWeight: 600,
+                 textDecoration: "none", padding: "11px 22px", borderRadius: 10, fontSize: 14 }}>
+              Ver restaurantes
+            </Link>
           </div>
         ) : (
           <>
@@ -86,7 +95,7 @@ export default function Favorites() {
                     if (!r) return null;
                     return (
                       <div key={f.id} style={{ position: "relative", background: "#fff", border: `1px solid ${C.line}`, borderRadius: 16, overflow: "hidden" }}>
-                        <button onClick={() => handleRemove(r.id)}
+                        <button onClick={() => handleRemove(r.id)} aria-label={`Remover ${r.name} dos favoritos`}
                           style={{ position: "absolute", top: 10, right: 10, width: 32, height: 32, borderRadius: 999,
                                    background: "rgba(255,255,255,.94)", border: `1px solid ${C.line}`, cursor: "pointer",
                                    display: "grid", placeItems: "center", zIndex: 1 }}>
@@ -133,6 +142,7 @@ export default function Favorites() {
                           <div style={{ fontSize: 13.5, fontWeight: 700, marginTop: 4 }}>{formatBRL(item.price)}</div>
                         </div>
                         <button type="button" onClick={(e) => { e.preventDefault(); handleRemoveItem(item.id); }}
+                          aria-label={`Remover ${item.name} dos favoritos`}
                           style={{ width: 32, height: 32, borderRadius: 999, background: "#fff", border: `1px solid ${C.line}`,
                                    cursor: "pointer", display: "grid", placeItems: "center", flexShrink: 0 }}>
                           <Heart size={15} color={C.orange} fill={C.orange} />
