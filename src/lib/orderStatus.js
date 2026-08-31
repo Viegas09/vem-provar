@@ -9,3 +9,8 @@ export const STATUS_META = {
 };
 export const STATUS_OPTIONS = Object.entries(STATUS_META).map(([value, meta]) => ({ value, label: meta.label }));
 export const OPEN_STATUSES = ["pending", "preparing", "out_for_delivery"];
+export const NEXT_STATUS = {
+  pending: { value: "preparing", label: "Aceitar e iniciar preparo" },
+  preparing: { value: "out_for_delivery", label: "Saiu para entrega" },
+  out_for_delivery: { value: "delivered", label: "Marcar como entregue" },
+};

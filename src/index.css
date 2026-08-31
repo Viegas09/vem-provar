@@ -39,6 +39,13 @@ html{ scroll-behavior:smooth; }
 @keyframes vp-pull-spin{ to{ transform:rotate(360deg); } }
 .vp-pull-indicator{ display:flex; align-items:center; justify-content:center; overflow:hidden; transition:height .15s ease; }
 .vp-pull-indicator svg{ animation:vp-pull-spin .7s linear infinite; }
+.vp-card-grid{ display:flex; flex-direction:column; gap:10px; }
+.vp-form-grid{ display:flex; flex-direction:column; gap:10px; }
+.vp-form-grid-2{ display:contents; }
+@media (min-width:960px){
+  .vp-card-grid{ display:grid; grid-template-columns:repeat(2,1fr); align-items:start; gap:12px; }
+  .vp-form-grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+}
 .vp-wrap{ max-width:1140px; margin:0 auto; padding:0 24px; }
 .vp-navlinks{ display:flex; align-items:center; gap:28px; }
 .vp-hero{ display:grid; grid-template-columns:1.08fr .92fr; gap:48px; align-items:center; }

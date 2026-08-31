@@ -4,7 +4,7 @@ import {
   Plus, Trash2, Pencil, Store, Package, Wallet, CreditCard, CheckCircle2, XCircle, Receipt, TrendingUp,
   Clock3, Coins, Pause, Play, Home as HomeIcon, UtensilsCrossed, LogOut, ChevronLeft, ChevronRight,
   ImagePlus, BarChart3, ListPlus, ChevronDown, ChevronUp, TrendingDown, MessageCircle, X, Tag,
-  Lock, HelpCircle, Bell,
+  Lock, HelpCircle, Bell, Search,
 } from "lucide-react";
 import { C, FONT, formatBRL } from "../../theme";
 import { ICONS } from "../../data/icons";
@@ -19,7 +19,7 @@ import {
 import { getCommissionRate, isInPromoPeriod, promoEndsAt } from "../../lib/commission";
 import { WEEKDAYS as HOURS_WEEKDAYS, defaultBusinessHours } from "../../lib/businessHours";
 import { subscribeToPush } from "../../lib/push";
-import { STATUS_META, STATUS_OPTIONS, OPEN_STATUSES } from "../../lib/orderStatus";
+import { STATUS_META, STATUS_OPTIONS, OPEN_STATUSES, NEXT_STATUS } from "../../lib/orderStatus";
 import { SkeletonPage } from "../../components/Skeleton";
 import OrderChat from "../../components/OrderChat";
 import NotificationBell from "../../components/NotificationBell";
@@ -69,9 +69,10 @@ function StatTile({ icon: Icon, label, value, accent }) {
   );
 }
 
-function MenuItemForm({ restaurantId, item, onSaved, onCancel }) {
+function MenuItemForm({ restaurantId, item, existingCategories, onSaved, onCancel }) {
   const [name, setName] = useState(item?.name || "");
   const [description, setDescription] = useState(item?.description || "");
+  const [category, setCategory] = useState(item?.category || "");
   const [price, setPrice] = useState(item?.price ?? "");
   const [photoFile, setPhotoFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(item?.image_url || null);
@@ -95,12 +96,13 @@ function MenuItemForm({ restaurantId, item, onSaved, onCancel }) {
         imageUrl = await uploadMenuItemPhoto(restaurantId, photoFile);
       }
       if (item) {
-        await updateMenuItem(item.id, { name, description, price: Number(price), image_url: imageUrl });
+        await updateMenuItem(item.id, { name, description, category: category.trim() || null, price: Number(price), image_url: imageUrl });
       } else {
         await createMenuItem({
           restaurant_id: restaurantId,
           name,
           description,
+          category: category.trim() || null,
           price: Number(price),
           color_variant: Math.floor(Math.random() * 5),
           image_url: imageUrl,
@@ -138,10 +140,21 @@ function MenuItemForm({ restaurantId, item, onSaved, onCancel }) {
       <input value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Descrição"
         style={{ border: `1.5px solid ${C.line}`, outline: "none", borderRadius: 10, padding: "10px 12px",
                  fontFamily: FONT, fontSize: 14.5, background: "#fff" }} />
-      <input required type="number" min="0" step="0.01" value={price} onChange={(e) => setPrice(e.target.value)}
-        placeholder="Preço (R$)"
-        style={{ border: `1.5px solid ${C.line}`, outline: "none", borderRadius: 10, padding: "10px 12px",
-                 fontFamily: FONT, fontSize: 14.5, background: "#fff" }} />
+      <div className="vp-form-grid-2">
+        <input value={category} onChange={(e) => setCategory(e.target.value)} placeholder="Categoria (ex: Lanches, Bebidas)"
+          list="vp-menu-categories"
+          style={{ border: `1.5px solid ${C.line}`, outline: "none", borderRadius: 10, padding: "10px 12px",
+                   fontFamily: FONT, fontSize: 14.5, background: "#fff", width: "100%", boxSizing: "border-box" }} />
+        {existingCategories && existingCategories.length > 0 && (
+          <datalist id="vp-menu-categories">
+            {existingCategories.map((c) => <option key={c} value={c} />)}
+          </datalist>
+        )}
+        <input required type="number" min="0" step="0.01" value={price} onChange={(e) => setPrice(e.target.value)}
+          placeholder="Preço (R$)"
+          style={{ border: `1.5px solid ${C.line}`, outline: "none", borderRadius: 10, padding: "10px 12px",
+                   fontFamily: FONT, fontSize: 14.5, background: "#fff", width: "100%", boxSizing: "border-box" }} />
+      </div>
       {error && (
         <div style={{ background: "#FDECEC", color: "#B42318", borderRadius: 10, padding: "10px 12px", fontSize: 13 }}>
           {error}
@@ -1184,10 +1197,17 @@ function OrderCard({ order, onStatusChange, onOpenChat, isNew }) {
           </div>
         )}
       </div>
+      {NEXT_STATUS[order.status] && (
+        <button onClick={() => onStatusChange(order.id, NEXT_STATUS[order.status].value)}
+          style={{ width: "100%", marginTop: 10, background: meta.color, color: "#fff", border: "none", borderRadius: 8,
+                   padding: "10px 0", fontFamily: FONT, fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
+          {NEXT_STATUS[order.status].label}
+        </button>
+      )}
       <select value={order.status} onChange={(e) => onStatusChange(order.id, e.target.value)}
-        style={{ width: "100%", marginTop: 10, border: `1.5px solid ${meta.color}`, outline: "none", borderRadius: 8,
-                 padding: "6px 8px", fontFamily: FONT, fontSize: 12.5, fontWeight: 700, background: meta.bg,
-                 color: meta.color, cursor: "pointer" }}>
+        style={{ width: "100%", marginTop: 8, border: `1.5px solid ${C.line}`, outline: "none", borderRadius: 8,
+                 padding: "5px 8px", fontFamily: FONT, fontSize: 11.5, fontWeight: 600, background: "#fff",
+                 color: C.grayText, cursor: "pointer" }}>
         {STATUS_OPTIONS.map((s) => (
           <option key={s.value} value={s.value}>{s.label}</option>
         ))}
@@ -1390,7 +1410,18 @@ export default function PartnerDashboard() {
   const [chatOrder, setChatOrder] = useState(null);
   const [newOrderIds, setNewOrderIds] = useState(() => new Set());
   const knownOrderIds = useRef(null);
+  const [menuSearch, setMenuSearch] = useState("");
+  const [orderSearch, setOrderSearch] = useState("");
+  const [collapsedCategories, setCollapsedCategories] = useState(() => new Set());
   const mpStatus = searchParams.get("mp");
+
+  function toggleCategoryCollapsed(name) {
+    setCollapsedCategories((prev) => {
+      const next = new Set(prev);
+      if (next.has(name)) next.delete(name); else next.add(name);
+      return next;
+    });
+  }
 
   function toggleCollapsed() {
     setCollapsed((c) => {
@@ -1487,10 +1518,29 @@ export default function PartnerDashboard() {
   const openOrdersCount = orders.filter((o) => OPEN_STATUSES.includes(o.status)).length;
   const totalPayout = orders.reduce((sum, o) => sum + Number(o.restaurant_payout ?? o.total), 0);
   const avgTicket = orders.length > 0 ? orders.reduce((sum, o) => sum + Number(o.total), 0) / orders.length : 0;
+  const orderQuery = orderSearch.trim().toLowerCase();
+  const filteredOrders = !orderQuery ? orders : orders.filter((o) =>
+    o.id.toLowerCase().includes(orderQuery) ||
+    (o.address || "").toLowerCase().includes(orderQuery) ||
+    (o.order_items || []).some((it) => it.name.toLowerCase().includes(orderQuery))
+  );
   const ordersByStatus = KANBAN_STATUSES.reduce((acc, s) => {
-    acc[s] = orders.filter((o) => o.status === s);
+    acc[s] = filteredOrders.filter((o) => o.status === s);
     return acc;
   }, {});
+
+  const menuQuery = menuSearch.trim().toLowerCase();
+  const filteredMenuItems = (restaurant.menu_items || []).filter((item) =>
+    !menuQuery || item.name.toLowerCase().includes(menuQuery) || (item.category || "").toLowerCase().includes(menuQuery)
+  );
+  const menuCategories = [...new Set((restaurant.menu_items || []).map((i) => i.category).filter(Boolean))].sort();
+  const menuGroups = Object.entries(
+    filteredMenuItems.reduce((acc, item) => {
+      const key = item.category || "Sem categoria";
+      (acc[key] = acc[key] || []).push(item);
+      return acc;
+    }, {})
+  ).sort(([a], [b]) => (a === "Sem categoria" ? 1 : b === "Sem categoria" ? -1 : a.localeCompare(b)));
 
   return (
     <div style={{ fontFamily: FONT, background: C.white, color: C.black }}>
@@ -1534,11 +1584,24 @@ export default function PartnerDashboard() {
                   <StatTile icon={Wallet} label="Você recebeu" value={formatBRL(totalPayout)} />
                 </div>
 
-                <h2 style={{ fontSize: 18, fontWeight: 700, margin: "0 0 14px" }}>Pedidos recebidos</h2>
+                <div className="flex items-center justify-between" style={{ marginBottom: 14, flexWrap: "wrap", gap: 10 }}>
+                  <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>Pedidos recebidos</h2>
+                  {orders.length > 0 && (
+                    <div className="flex items-center gap-2" style={{ background: C.surface, borderRadius: 10,
+                         padding: "0 12px", height: 38, width: 240, maxWidth: "100%" }}>
+                      <Search size={14} color={C.grayText} />
+                      <input value={orderSearch} onChange={(e) => setOrderSearch(e.target.value)}
+                        placeholder="Buscar pedido, item ou endereço"
+                        style={{ border: "none", outline: "none", flex: 1, background: "transparent", fontFamily: FONT, fontSize: 13 }} />
+                    </div>
+                  )}
+                </div>
                 {orders.length === 0 ? (
                   <p style={{ color: C.grayText, fontSize: 14 }} className="flex items-center gap-2">
                     <Package size={16} /> Nenhum pedido ainda.
                   </p>
+                ) : filteredOrders.length === 0 ? (
+                  <p style={{ color: C.grayText, fontSize: 14 }}>Nenhum pedido encontrado pra "{orderSearch.trim()}".</p>
                 ) : (
                   <div className="vp-scroll" style={{ display: "flex", gap: 14, alignItems: "flex-start", paddingBottom: 6 }}>
                     {KANBAN_STATUSES.map((status) => {
@@ -1618,7 +1681,7 @@ export default function PartnerDashboard() {
 
             {activeSection === "cardapio" && (
               <>
-                <div className="flex items-center justify-between" style={{ marginBottom: 18 }}>
+                <div className="flex items-center justify-between" style={{ marginBottom: 18, flexWrap: "wrap", gap: 10 }}>
                   <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>Cardápio</h2>
                   {!showAddForm && (
                     <button onClick={() => setShowAddForm(true)} className="flex items-center gap-1"
@@ -1630,86 +1693,122 @@ export default function PartnerDashboard() {
                 </div>
 
                 {showAddForm && (
-                  <MenuItemForm restaurantId={restaurant.id}
+                  <MenuItemForm restaurantId={restaurant.id} existingCategories={menuCategories}
                     onSaved={() => { setShowAddForm(false); reload(); }}
                     onCancel={() => setShowAddForm(false)} />
                 )}
 
-                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {!showAddForm && (restaurant.menu_items || []).length > 0 && (
+                  <div className="flex items-center gap-2" style={{ background: C.surface, borderRadius: 10,
+                       padding: "0 12px", height: 42, marginBottom: 18 }}>
+                    <Search size={15} color={C.grayText} />
+                    <input value={menuSearch} onChange={(e) => setMenuSearch(e.target.value)}
+                      placeholder="Buscar item ou categoria"
+                      style={{ border: "none", outline: "none", flex: 1, background: "transparent", fontFamily: FONT, fontSize: 14 }} />
+                  </div>
+                )}
+
+                <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>
                   {(restaurant.menu_items || []).length === 0 && !showAddForm && (
                     <p style={{ color: C.grayText, fontSize: 14 }}>Nenhum item cadastrado ainda.</p>
                   )}
-                  {(restaurant.menu_items || []).map((item) =>
-                    editingItem === item.id ? (
-                      <MenuItemForm key={item.id} restaurantId={restaurant.id} item={item}
-                        onSaved={() => { setEditingItem(null); reload(); }}
-                        onCancel={() => setEditingItem(null)} />
-                    ) : (
-                      <div key={item.id} style={{ padding: 14, background: "#fff",
-                           border: `1px solid ${C.line}`, borderRadius: 14, opacity: item.available === false ? 0.55 : 1 }}>
-                        <div className="flex items-center" style={{ gap: 12 }}>
-                          <div style={{ width: 52, height: 52, borderRadius: 10, flexShrink: 0, overflow: "hidden",
-                               background: C.surface, display: "grid", placeItems: "center" }}>
-                            {item.image_url ? (
-                              <img src={item.image_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                            ) : (
-                              <ImagePlus size={18} color={C.gray} />
+                  {menuGroups.length === 0 && (restaurant.menu_items || []).length > 0 && (
+                    <p style={{ color: C.grayText, fontSize: 14 }}>Nenhum item encontrado pra "{menuSearch.trim()}".</p>
+                  )}
+                  {menuGroups.map(([categoryName, items]) => {
+                    const isCollapsed = collapsedCategories.has(categoryName);
+                    return (
+                      <div key={categoryName}>
+                        <button type="button" onClick={() => toggleCategoryCollapsed(categoryName)}
+                          className="flex items-center gap-2" style={{ background: "none", border: "none", cursor: "pointer",
+                               padding: 0, marginBottom: 10, width: "100%" }}>
+                          {isCollapsed ? <ChevronRight size={16} color={C.grayText} /> : <ChevronDown size={16} color={C.grayText} />}
+                          <span style={{ fontSize: 13.5, fontWeight: 700, color: C.grayText, textTransform: "uppercase", letterSpacing: .3 }}>
+                            {categoryName}
+                          </span>
+                          <span style={{ fontSize: 12, color: C.grayText, background: C.surface, borderRadius: 999,
+                               minWidth: 20, height: 20, display: "grid", placeItems: "center", padding: "0 6px" }}>
+                            {items.length}
+                          </span>
+                        </button>
+                        {!isCollapsed && (
+                          <div className="vp-card-grid">
+                            {items.map((item) =>
+                              editingItem === item.id ? (
+                                <MenuItemForm key={item.id} restaurantId={restaurant.id} item={item} existingCategories={menuCategories}
+                                  onSaved={() => { setEditingItem(null); reload(); }}
+                                  onCancel={() => setEditingItem(null)} />
+                              ) : (
+                                <div key={item.id} style={{ padding: 14, background: "#fff",
+                                     border: `1px solid ${C.line}`, borderRadius: 14, opacity: item.available === false ? 0.55 : 1 }}>
+                                  <div className="flex items-center" style={{ gap: 12 }}>
+                                    <div style={{ width: 52, height: 52, borderRadius: 10, flexShrink: 0, overflow: "hidden",
+                                         background: C.surface, display: "grid", placeItems: "center" }}>
+                                      {item.image_url ? (
+                                        <img src={item.image_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                                      ) : (
+                                        <ImagePlus size={18} color={C.gray} />
+                                      )}
+                                    </div>
+                                    <div style={{ flex: 1, minWidth: 0 }}>
+                                      <div className="flex items-center gap-2">
+                                        <span style={{ fontSize: 15, fontWeight: 600 }}>{item.name}</span>
+                                        {item.available === false && (
+                                          <span style={{ fontSize: 10.5, fontWeight: 700, color: C.grayText, background: C.surface,
+                                               padding: "2px 7px", borderRadius: 999, flexShrink: 0 }}>
+                                            Pausado
+                                          </span>
+                                        )}
+                                      </div>
+                                      <div style={{ fontSize: 13, color: C.grayText }}>
+                                        {item.description}
+                                      </div>
+                                      <div style={{ fontSize: 14, fontWeight: 700, marginTop: 4 }}>{formatBRL(item.price)}</div>
+                                    </div>
+                                    <button onClick={() => setEditingItem(item.id)}
+                                      style={{ width: 34, height: 34, borderRadius: 8, border: `1px solid ${C.line}`, background: "#fff",
+                                               cursor: "pointer", display: "grid", placeItems: "center", flexShrink: 0 }}>
+                                      <Pencil size={15} />
+                                    </button>
+                                    <button onClick={() => handleDelete(item.id)}
+                                      style={{ width: 34, height: 34, borderRadius: 8, border: `1px solid ${C.line}`, background: "#fff",
+                                               cursor: "pointer", display: "grid", placeItems: "center", flexShrink: 0 }}>
+                                      <Trash2 size={15} color="#B42318" />
+                                    </button>
+                                  </div>
+                                  <div className="flex items-center" style={{ gap: 8, marginTop: 8 }}>
+                                    <button onClick={() => handleToggleAvailable(item)} className="flex items-center justify-center gap-1"
+                                      style={{ flex: 1, background: "none", border: `1px solid ${C.line}`,
+                                               borderRadius: 8, cursor: "pointer", padding: "8px 0", fontFamily: FONT, fontSize: 13,
+                                               fontWeight: 600, color: item.available === false ? C.ok : C.grayText }}>
+                                      {item.available === false ? <><Play size={14} /> Retomar vendas</> : <><Pause size={14} /> Pausar vendas</>}
+                                    </button>
+                                    <button onClick={() => setExpandedComplements(expandedComplements === item.id ? null : item.id)}
+                                      className="flex items-center justify-center gap-1"
+                                      style={{ flex: 1, background: "none", border: `1px solid ${C.line}`,
+                                               borderRadius: 8, cursor: "pointer", padding: "8px 0", fontFamily: FONT, fontSize: 13,
+                                               fontWeight: 600, color: C.grayText }}>
+                                      <ListPlus size={14} /> Complementos
+                                      {(item.complement_groups || []).length > 0 && (
+                                        <span style={{ fontSize: 11, fontWeight: 700, color: C.orange, background: "rgba(238,108,26,.1)",
+                                             borderRadius: 999, minWidth: 16, height: 16, display: "grid", placeItems: "center", padding: "0 4px" }}>
+                                          {item.complement_groups.length}
+                                        </span>
+                                      )}
+                                      {expandedComplements === item.id ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                                    </button>
+                                  </div>
+                                  {expandedComplements === item.id && (
+                                    <ComplementsManager item={item} onChange={reload} />
+                                  )}
+                                </div>
+                              )
                             )}
                           </div>
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <div className="flex items-center gap-2">
-                              <span style={{ fontSize: 15, fontWeight: 600 }}>{item.name}</span>
-                              {item.available === false && (
-                                <span style={{ fontSize: 10.5, fontWeight: 700, color: C.grayText, background: C.surface,
-                                     padding: "2px 7px", borderRadius: 999, flexShrink: 0 }}>
-                                  Pausado
-                                </span>
-                              )}
-                            </div>
-                            <div style={{ fontSize: 13, color: C.grayText }}>
-                              {item.description}
-                            </div>
-                            <div style={{ fontSize: 14, fontWeight: 700, marginTop: 4 }}>{formatBRL(item.price)}</div>
-                          </div>
-                          <button onClick={() => setEditingItem(item.id)}
-                            style={{ width: 34, height: 34, borderRadius: 8, border: `1px solid ${C.line}`, background: "#fff",
-                                     cursor: "pointer", display: "grid", placeItems: "center", flexShrink: 0 }}>
-                            <Pencil size={15} />
-                          </button>
-                          <button onClick={() => handleDelete(item.id)}
-                            style={{ width: 34, height: 34, borderRadius: 8, border: `1px solid ${C.line}`, background: "#fff",
-                                     cursor: "pointer", display: "grid", placeItems: "center", flexShrink: 0 }}>
-                            <Trash2 size={15} color="#B42318" />
-                          </button>
-                        </div>
-                        <div className="flex items-center" style={{ gap: 8, marginTop: 8 }}>
-                          <button onClick={() => handleToggleAvailable(item)} className="flex items-center justify-center gap-1"
-                            style={{ flex: 1, background: "none", border: `1px solid ${C.line}`,
-                                     borderRadius: 8, cursor: "pointer", padding: "8px 0", fontFamily: FONT, fontSize: 13,
-                                     fontWeight: 600, color: item.available === false ? C.ok : C.grayText }}>
-                            {item.available === false ? <><Play size={14} /> Retomar vendas</> : <><Pause size={14} /> Pausar vendas</>}
-                          </button>
-                          <button onClick={() => setExpandedComplements(expandedComplements === item.id ? null : item.id)}
-                            className="flex items-center justify-center gap-1"
-                            style={{ flex: 1, background: "none", border: `1px solid ${C.line}`,
-                                     borderRadius: 8, cursor: "pointer", padding: "8px 0", fontFamily: FONT, fontSize: 13,
-                                     fontWeight: 600, color: C.grayText }}>
-                            <ListPlus size={14} /> Complementos
-                            {(item.complement_groups || []).length > 0 && (
-                              <span style={{ fontSize: 11, fontWeight: 700, color: C.orange, background: "rgba(238,108,26,.1)",
-                                   borderRadius: 999, minWidth: 16, height: 16, display: "grid", placeItems: "center", padding: "0 4px" }}>
-                                {item.complement_groups.length}
-                              </span>
-                            )}
-                            {expandedComplements === item.id ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                          </button>
-                        </div>
-                        {expandedComplements === item.id && (
-                          <ComplementsManager item={item} onChange={reload} />
                         )}
                       </div>
-                    )
-                  )}
+                    );
+                  })}
                 </div>
               </>
             )}
@@ -1738,7 +1837,7 @@ export default function PartnerDashboard() {
                     <Tag size={16} /> Nenhum cupom criado ainda.
                   </p>
                 ) : (
-                  <div style={{ display: "flex", flexDirection: "column", gap: 10, maxWidth: 560 }}>
+                  <div className="vp-card-grid">
                     {coupons.map((c) => (
                       <div key={c.id} className="flex items-center gap-3" style={{ background: "#fff",
                            border: `1px solid ${C.line}`, borderRadius: 12, padding: "12px 14px" }}>
