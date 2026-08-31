@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { X, Download, Share } from "lucide-react";
-import { C, FONT } from "../theme";
+import { C, FONT, RADIUS, SHADOW } from "../theme";
 
 const DISMISS_KEY = "vp-install-dismissed";
 const SHOW_DELAY_MS = 4000;
@@ -76,9 +76,9 @@ export default function InstallPrompt() {
 
   return (
     <div className="vp-fade-in vp-installprompt" style={{ position: "fixed", left: 12, right: 12, zIndex: 45,
-         background: C.black, color: "#fff", borderRadius: 14, padding: "12px 14px", fontFamily: FONT,
-         boxShadow: "0 10px 30px rgba(0,0,0,.25)", display: "flex", alignItems: "center", gap: 12, maxWidth: 420, margin: "0 auto" }}>
-      <div style={{ width: 38, height: 38, borderRadius: 10, background: C.orange, display: "grid", placeItems: "center", flexShrink: 0 }}>
+         background: C.black, color: "#fff", borderRadius: RADIUS.lg, padding: "12px 14px", fontFamily: FONT,
+         boxShadow: SHADOW.lg, display: "flex", alignItems: "center", gap: 12, maxWidth: 420, margin: "0 auto" }}>
+      <div style={{ width: 38, height: 38, borderRadius: RADIUS.sm, background: C.orange, display: "grid", placeItems: "center", flexShrink: 0 }}>
         {deferredPrompt ? <Download size={18} color="#fff" /> : <Share size={18} color="#fff" />}
       </div>
       <div style={{ flex: 1, fontSize: 12.5, lineHeight: 1.4 }}>
@@ -88,7 +88,7 @@ export default function InstallPrompt() {
       </div>
       {deferredPrompt && (
         <button onClick={handleInstallClick}
-          style={{ background: C.orange, color: "#fff", border: "none", cursor: "pointer", borderRadius: 8,
+          style={{ background: C.orange, color: "#fff", border: "none", cursor: "pointer", borderRadius: RADIUS.xs,
                    padding: "8px 12px", fontFamily: FONT, fontSize: 12.5, fontWeight: 700, flexShrink: 0 }}>
           Instalar
         </button>

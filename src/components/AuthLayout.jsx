@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Pizza, Sandwich, Coffee, Fish, Heart, X } from "lucide-react";
-import { C, FONT } from "../theme";
+import { C, FONT, RADIUS, SHADOW } from "../theme";
 import WORDMARK_ONORANGE from "../assets/wordmark-onorange.png";
 
 const FLOAT_ICONS = [
@@ -14,9 +14,9 @@ export default function AuthLayout({ title, subtitle, children }) {
   return (
     <div style={{ fontFamily: FONT, minHeight: "100vh", display: "grid", gridTemplateColumns: "1fr", position: "relative" }} className="vp-auth-grid">
       <Link to="/" aria-label="Fechar" title="Voltar para a home"
-        style={{ position: "fixed", top: 18, right: 18, zIndex: 40, width: 38, height: 38, borderRadius: 999,
+        style={{ position: "fixed", top: 18, right: 18, zIndex: 40, width: 38, height: 38, borderRadius: RADIUS.pill,
                  background: "#fff", border: `1px solid ${C.line}`, display: "grid", placeItems: "center",
-                 boxShadow: "0 2px 8px rgba(0,0,0,.12)" }}>
+                 boxShadow: SHADOW.xs }}>
         <X size={18} color={C.black} />
       </Link>
       <div style={{ background: `linear-gradient(160deg, ${C.orange}, ${C.orangeDark})`, position: "relative",

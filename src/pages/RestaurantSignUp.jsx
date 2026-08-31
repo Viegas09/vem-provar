@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Store, Phone, MapPin, Clock, Bike, Truck, ArrowLeft, ArrowRight, CheckCircle2 } from "lucide-react";
-import { C, FONT, slugify, formatBRL } from "../theme";
+import { C, FONT, slugify, formatBRL, RADIUS } from "../theme";
 import { ICONS } from "../data/icons";
 import { useAuth } from "../context/AuthContext";
 import { createRestaurant, slugExists, fetchRestaurantByOwner } from "../data/queries";
@@ -39,11 +39,11 @@ const PLAN_OPTIONS = [
 ];
 
 const fieldStyle = {
-  border: `1.5px solid ${C.line}`, outline: "none", borderRadius: 12, padding: "0 14px",
+  border: `1.5px solid ${C.line}`, outline: "none", borderRadius: RADIUS.md, padding: "0 14px",
   minHeight: 54, fontFamily: FONT, fontSize: 15, background: "#fff", width: "100%",
 };
 const rowStyle = { display: "flex", alignItems: "center", gap: 8, background: "#fff",
-  border: `1.5px solid ${C.line}`, borderRadius: 12, padding: "0 14px", minHeight: 54 };
+  border: `1.5px solid ${C.line}`, borderRadius: RADIUS.md, padding: "0 14px", minHeight: 54 };
 const inputInRow = { border: "none", outline: "none", flex: 1, fontFamily: FONT, fontSize: 15, background: "transparent" };
 
 export default function RestaurantSignUp() {
@@ -106,7 +106,7 @@ export default function RestaurantSignUp() {
             Antes de cadastrar seu restaurante, você precisa ter uma conta.
           </p>
           <Link to="/criar-conta" style={{ display: "inline-block", background: C.orange, color: "#fff",
-               textDecoration: "none", fontSize: 15, fontWeight: 600, padding: "13px 28px", borderRadius: 12 }}>
+               textDecoration: "none", fontSize: 15, fontWeight: 600, padding: "13px 28px", borderRadius: RADIUS.md }}>
             Criar conta
           </Link>
           <p style={{ marginTop: 16, fontSize: 14 }}>
@@ -241,7 +241,7 @@ export default function RestaurantSignUp() {
                   <button key={opt.key} type="button" onClick={() => setPlan(opt.key)}
                     style={{ display: "flex", alignItems: "flex-start", gap: 12, textAlign: "left",
                              background: active ? "rgba(238,108,26,.08)" : "#fff",
-                             border: `1.5px solid ${active ? C.orange : C.line}`, borderRadius: 14,
+                             border: `1.5px solid ${active ? C.orange : C.line}`, borderRadius: RADIUS.lg,
                              padding: "16px 18px", cursor: "pointer" }}>
                     <Icon size={22} color={active ? C.orange : C.grayText} style={{ flexShrink: 0, marginTop: 2 }} />
                     <div>
@@ -255,7 +255,7 @@ export default function RestaurantSignUp() {
           )}
 
           {step === 4 && (
-            <div style={{ background: C.surface, borderRadius: 14, padding: 18 }}>
+            <div style={{ background: C.surface, borderRadius: RADIUS.lg, padding: 18 }}>
               <div className="flex items-center gap-2" style={{ marginBottom: 14 }}>
                 <CheckCircle2 size={18} color={C.ok} />
                 <span style={{ fontSize: 14, fontWeight: 600 }}>Confira os dados antes de concluir</span>
@@ -275,7 +275,7 @@ export default function RestaurantSignUp() {
         </div>
 
         {error && (
-          <div style={{ background: "#FDECEC", color: "#B42318", borderRadius: 12, padding: 12, fontSize: 13.5, marginTop: 16 }}>
+          <div style={{ background: "#FDECEC", color: "#B42318", borderRadius: RADIUS.md, padding: 12, fontSize: 13.5, marginTop: 16 }}>
             {error}
           </div>
         )}
@@ -292,14 +292,14 @@ export default function RestaurantSignUp() {
           {step < STEPS.length - 1 ? (
             <button type="button" onClick={goNext} disabled={!canAdvance} className="flex items-center gap-2"
               style={{ background: canAdvance ? C.orange : C.gray, color: "#fff", border: "none",
-                       cursor: canAdvance ? "pointer" : "default", borderRadius: 12, padding: "13px 26px",
+                       cursor: canAdvance ? "pointer" : "default", borderRadius: RADIUS.md, padding: "13px 26px",
                        fontFamily: FONT, fontSize: 15, fontWeight: 600 }}>
               Continuar <ArrowRight size={17} />
             </button>
           ) : (
             <button type="button" onClick={handleSubmit} disabled={loading}
               style={{ background: loading ? C.gray : C.orange, color: "#fff", border: "none",
-                       cursor: loading ? "default" : "pointer", borderRadius: 12, padding: "13px 26px",
+                       cursor: loading ? "default" : "pointer", borderRadius: RADIUS.md, padding: "13px 26px",
                        fontFamily: FONT, fontSize: 15, fontWeight: 600 }}>
               {loading ? "Cadastrando…" : "Concluir cadastro"}
             </button>

@@ -1,5 +1,5 @@
 import { HelpCircle, FileText, ShieldCheck } from "lucide-react";
-import { C, FONT } from "../theme";
+import { C, FONT, RADIUS } from "../theme";
 import Header from "../components/Header";
 
 const FAQ = [
@@ -30,7 +30,7 @@ export default function Help() {
 
         <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 28 }}>
           {FAQ.map((item) => (
-            <div key={item.q} style={{ background: "#fff", border: `1.5px solid ${C.line}`, borderRadius: 14, padding: 16 }}>
+            <div key={item.q} style={{ background: "#fff", border: `1.5px solid ${C.line}`, borderRadius: RADIUS.lg, padding: 16 }}>
               <div className="flex items-start gap-2" style={{ marginBottom: 6 }}>
                 <HelpCircle size={16} color={C.orange} style={{ flexShrink: 0, marginTop: 2 }} />
                 <span style={{ fontSize: 14.5, fontWeight: 700 }}>{item.q}</span>
@@ -44,12 +44,12 @@ export default function Help() {
           Legal
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          <div className="flex items-center gap-3" style={{ background: C.surface, borderRadius: 12, padding: 14 }}>
+          <div className="flex items-center gap-3" style={{ background: C.surface, borderRadius: RADIUS.md, padding: 14 }}>
             <FileText size={17} color={C.grayText} />
             <span style={{ flex: 1, fontSize: 14, color: C.grayText }}>Termos de uso</span>
             <span style={{ fontSize: 11.5, fontWeight: 700, color: C.gray }}>Em breve</span>
           </div>
-          <div className="flex items-center gap-3" style={{ background: C.surface, borderRadius: 12, padding: 14 }}>
+          <div className="flex items-center gap-3" style={{ background: C.surface, borderRadius: RADIUS.md, padding: 14 }}>
             <ShieldCheck size={17} color={C.grayText} />
             <span style={{ flex: 1, fontSize: 14, color: C.grayText }}>Política de privacidade</span>
             <span style={{ fontSize: 11.5, fontWeight: 700, color: C.gray }}>Em breve</span>

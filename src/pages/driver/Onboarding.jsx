@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Bike, Car, Phone, MapPin, ArrowLeft, ArrowRight, CheckCircle2 } from "lucide-react";
-import { C, FONT } from "../../theme";
+import { C, FONT, RADIUS } from "../../theme";
 import { useAuth } from "../../context/AuthContext";
 import { createDriver, fetchDriverByUser } from "../../data/queries";
 import LocateButton from "../../components/LocateButton";
@@ -18,9 +18,9 @@ const VEHICLE_OPTIONS = [
 const STEPS = ["Veículo", "Endereço", "Revisar e concluir"];
 
 const rowStyle = { display: "flex", alignItems: "center", gap: 8, background: "#fff",
-  border: `1.5px solid ${C.line}`, borderRadius: 12, padding: "0 14px", minHeight: 54 };
+  border: `1.5px solid ${C.line}`, borderRadius: RADIUS.md, padding: "0 14px", minHeight: 54 };
 const inputInRow = { border: "none", outline: "none", flex: 1, fontFamily: FONT, fontSize: 15, background: "transparent" };
-const fieldStyle = { border: `1.5px solid ${C.line}`, outline: "none", borderRadius: 12, padding: "0 14px",
+const fieldStyle = { border: `1.5px solid ${C.line}`, outline: "none", borderRadius: RADIUS.md, padding: "0 14px",
   minHeight: 54, fontFamily: FONT, fontSize: 15, background: "#fff", width: "100%" };
 
 export default function DriverOnboarding() {
@@ -77,7 +77,7 @@ export default function DriverOnboarding() {
             Antes de continuar, você precisa ter uma conta de entregador.
           </p>
           <Link to="/entregador/criar-conta" style={{ display: "inline-block", background: C.orange, color: "#fff",
-               textDecoration: "none", fontSize: 15, fontWeight: 600, padding: "13px 28px", borderRadius: 12 }}>
+               textDecoration: "none", fontSize: 15, fontWeight: 600, padding: "13px 28px", borderRadius: RADIUS.md }}>
             Criar conta de entregador
           </Link>
           <p style={{ marginTop: 16, fontSize: 14 }}>
@@ -146,7 +146,7 @@ export default function DriverOnboarding() {
                       <button key={opt.key} type="button" onClick={() => setVehicleType(opt.key)}
                         className="flex items-center gap-3"
                         style={{ background: active ? "rgba(238,108,26,.08)" : "#fff",
-                                 border: `1.5px solid ${active ? C.orange : C.line}`, borderRadius: 12,
+                                 border: `1.5px solid ${active ? C.orange : C.line}`, borderRadius: RADIUS.md,
                                  padding: "14px 16px", cursor: "pointer", textAlign: "left" }}>
                         <Icon size={19} color={active ? C.orange : C.grayText} />
                         <span style={{ fontSize: 14.5, fontWeight: active ? 600 : 500 }}>{opt.label}</span>
@@ -179,7 +179,7 @@ export default function DriverOnboarding() {
           )}
 
           {step === 2 && (
-            <div style={{ background: C.surface, borderRadius: 14, padding: 18 }}>
+            <div style={{ background: C.surface, borderRadius: RADIUS.lg, padding: 18 }}>
               <div className="flex items-center gap-2" style={{ marginBottom: 14 }}>
                 <CheckCircle2 size={18} color={C.ok} />
                 <span style={{ fontSize: 14, fontWeight: 600 }}>Confira os dados antes de concluir</span>
@@ -195,7 +195,7 @@ export default function DriverOnboarding() {
         </div>
 
         {error && (
-          <div style={{ background: "#FDECEC", color: "#B42318", borderRadius: 12, padding: 12, fontSize: 13.5, marginTop: 16 }}>
+          <div style={{ background: "#FDECEC", color: "#B42318", borderRadius: RADIUS.md, padding: 12, fontSize: 13.5, marginTop: 16 }}>
             {error}
           </div>
         )}
@@ -212,14 +212,14 @@ export default function DriverOnboarding() {
           {step < STEPS.length - 1 ? (
             <button type="button" onClick={goNext} disabled={!canAdvance} className="flex items-center gap-2"
               style={{ background: canAdvance ? C.orange : C.gray, color: "#fff", border: "none",
-                       cursor: canAdvance ? "pointer" : "default", borderRadius: 12, padding: "13px 26px",
+                       cursor: canAdvance ? "pointer" : "default", borderRadius: RADIUS.md, padding: "13px 26px",
                        fontFamily: FONT, fontSize: 15, fontWeight: 600 }}>
               Continuar <ArrowRight size={17} />
             </button>
           ) : (
             <button type="button" onClick={handleSubmit} disabled={loading}
               style={{ background: loading ? C.gray : C.orange, color: "#fff", border: "none",
-                       cursor: loading ? "default" : "pointer", borderRadius: 12, padding: "13px 26px",
+                       cursor: loading ? "default" : "pointer", borderRadius: RADIUS.md, padding: "13px 26px",
                        fontFamily: FONT, fontSize: 15, fontWeight: 600 }}>
               {loading ? "Cadastrando…" : "Concluir cadastro"}
             </button>

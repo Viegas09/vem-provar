@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Send, MessageCircle } from "lucide-react";
-import { C, FONT } from "../theme";
+import { C, FONT, RADIUS } from "../theme";
 import { fetchOrderMessages, sendOrderMessage } from "../data/queries";
 
 const POLL_MS = 5000;
@@ -59,7 +59,7 @@ export default function OrderChat({ orderId, sender, emptyLabel }) {
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", border: `1px solid ${C.line}`, borderRadius: 16, overflow: "hidden" }}>
+    <div style={{ display: "flex", flexDirection: "column", border: `1px solid ${C.line}`, borderRadius: RADIUS.xl, overflow: "hidden" }}>
       <div ref={listRef} style={{ maxHeight: 280, minHeight: 120, overflowY: "auto", padding: 14,
            display: "flex", flexDirection: "column", gap: 8, background: C.surface }}>
         {!loaded ? (
@@ -77,7 +77,7 @@ export default function OrderChat({ orderId, sender, emptyLabel }) {
             return (
               <div key={m.id} style={{ alignSelf: mine ? "flex-end" : "flex-start", maxWidth: "80%" }}>
                 <div style={{ background: mine ? C.orange : "#fff", color: mine ? "#fff" : C.black,
-                     border: mine ? "none" : `1px solid ${C.line}`, borderRadius: 14,
+                     border: mine ? "none" : `1px solid ${C.line}`, borderRadius: RADIUS.lg,
                      borderBottomRightRadius: mine ? 4 : 14, borderBottomLeftRadius: mine ? 14 : 4,
                      padding: "9px 13px", fontSize: 14, lineHeight: 1.4 }}>
                   {m.body}
@@ -92,10 +92,10 @@ export default function OrderChat({ orderId, sender, emptyLabel }) {
       </div>
       <form onSubmit={handleSend} className="flex items-center gap-2" style={{ padding: 10, background: "#fff", borderTop: `1px solid ${C.line}` }}>
         <input value={text} onChange={(e) => setText(e.target.value)} placeholder="Escreva uma mensagem…"
-          style={{ flex: 1, border: `1.5px solid ${C.line}`, outline: "none", borderRadius: 10, padding: "9px 12px",
+          style={{ flex: 1, border: `1.5px solid ${C.line}`, outline: "none", borderRadius: RADIUS.sm, padding: "9px 12px",
                    fontFamily: FONT, fontSize: 14, background: "transparent" }} />
         <button type="submit" disabled={!text.trim() || sending} aria-label="Enviar mensagem"
-          style={{ width: 38, height: 38, borderRadius: 10, border: "none", flexShrink: 0,
+          style={{ width: 38, height: 38, borderRadius: RADIUS.sm, border: "none", flexShrink: 0,
                    background: text.trim() && !sending ? C.orange : C.gray, color: "#fff",
                    cursor: text.trim() && !sending ? "pointer" : "default", display: "grid", placeItems: "center" }}>
           <Send size={16} />

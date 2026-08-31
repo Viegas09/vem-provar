@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Star, X } from "lucide-react";
-import { C, FONT } from "../theme";
+import { C, FONT, RADIUS } from "../theme";
 import { fetchOrdersForCustomer, fetchReviewsForCustomer } from "../data/queries";
 import ReviewModal from "./ReviewModal";
 
@@ -33,8 +33,8 @@ export default function ReviewNudge({ userId }) {
   return (
     <>
       <div className="flex items-center gap-3" style={{ background: "rgba(238,108,26,.08)",
-           border: "1.5px solid rgba(238,108,26,.25)", borderRadius: 14, padding: "12px 14px" }}>
-        <div style={{ width: 36, height: 36, borderRadius: 999, background: C.orange, display: "grid",
+           border: "1.5px solid rgba(238,108,26,.25)", borderRadius: RADIUS.lg, padding: "12px 14px" }}>
+        <div style={{ width: 36, height: 36, borderRadius: RADIUS.pill, background: C.orange, display: "grid",
              placeItems: "center", flexShrink: 0 }}>
           <Star size={17} color="#fff" fill="#fff" />
         </div>

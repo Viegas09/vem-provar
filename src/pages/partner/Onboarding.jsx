@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Store, Phone, MapPin, Clock, Bike, Truck, ArrowLeft, ArrowRight, CheckCircle2 } from "lucide-react";
-import { C, FONT, slugify, formatBRL } from "../../theme";
+import { C, FONT, slugify, formatBRL, RADIUS } from "../../theme";
 import { ICONS } from "../../data/icons";
 import { useAuth } from "../../context/AuthContext";
 import { createRestaurant, slugExists, fetchRestaurantByOwner } from "../../data/queries";
@@ -44,11 +44,11 @@ const PLAN_OPTIONS = [
 ];
 
 const fieldStyle = {
-  border: `1.5px solid ${C.line}`, outline: "none", borderRadius: 12, padding: "0 14px",
+  border: `1.5px solid ${C.line}`, outline: "none", borderRadius: RADIUS.md, padding: "0 14px",
   minHeight: 54, fontFamily: FONT, fontSize: 15, background: "#fff", width: "100%",
 };
 const rowStyle = { display: "flex", alignItems: "center", gap: 8, background: "#fff",
-  border: `1.5px solid ${C.line}`, borderRadius: 12, padding: "0 14px", minHeight: 54 };
+  border: `1.5px solid ${C.line}`, borderRadius: RADIUS.md, padding: "0 14px", minHeight: 54 };
 const inputInRow = { border: "none", outline: "none", flex: 1, fontFamily: FONT, fontSize: 15, background: "transparent" };
 
 export default function PartnerOnboarding() {
@@ -109,7 +109,7 @@ export default function PartnerOnboarding() {
             Antes de cadastrar seu restaurante, você precisa ter uma conta de parceiro.
           </p>
           <Link to="/parceiro/criar-conta" style={{ display: "inline-block", background: C.orange, color: "#fff",
-               textDecoration: "none", fontSize: 15, fontWeight: 600, padding: "13px 28px", borderRadius: 12 }}>
+               textDecoration: "none", fontSize: 15, fontWeight: 600, padding: "13px 28px", borderRadius: RADIUS.md }}>
             Criar conta de parceiro
           </Link>
           <p style={{ marginTop: 16, fontSize: 14 }}>
@@ -234,7 +234,7 @@ export default function PartnerOnboarding() {
 
           {step === 3 && (
             <>
-              <div style={{ background: "rgba(46,158,91,.08)", color: C.ok, borderRadius: 12, padding: "10px 14px",
+              <div style={{ background: "rgba(46,158,91,.08)", color: C.ok, borderRadius: RADIUS.md, padding: "10px 14px",
                    fontSize: 13, fontWeight: 600, marginBottom: 4 }}>
                 Primeiros {PROMO_DAYS} dias sem nenhuma comissão, em qualquer plano.
               </div>
@@ -249,7 +249,7 @@ export default function PartnerOnboarding() {
                     onClick={() => !opt.comingSoon && setPlan(opt.key)}
                     style={{ display: "flex", alignItems: "flex-start", gap: 12, textAlign: "left",
                              background: opt.comingSoon ? C.surface : active ? "rgba(238,108,26,.08)" : "#fff",
-                             border: `1.5px solid ${active ? C.orange : C.line}`, borderRadius: 14,
+                             border: `1.5px solid ${active ? C.orange : C.line}`, borderRadius: RADIUS.lg,
                              padding: "16px 18px", cursor: opt.comingSoon ? "default" : "pointer",
                              opacity: opt.comingSoon ? 0.65 : 1 }}>
                     <Icon size={22} color={active ? C.orange : C.grayText} style={{ flexShrink: 0, marginTop: 2 }} />
@@ -258,7 +258,7 @@ export default function PartnerOnboarding() {
                         <div style={{ fontSize: 15, fontWeight: 700 }}>{opt.title}</div>
                         {opt.comingSoon ? (
                           <span style={{ fontSize: 12, fontWeight: 700, color: C.grayText, background: "#fff",
-                               border: `1px solid ${C.line}`, padding: "3px 9px", borderRadius: 999 }}>
+                               border: `1px solid ${C.line}`, padding: "3px 9px", borderRadius: RADIUS.pill }}>
                             Em breve
                           </span>
                         ) : (
@@ -274,7 +274,7 @@ export default function PartnerOnboarding() {
           )}
 
           {step === 4 && (
-            <div style={{ background: C.surface, borderRadius: 14, padding: 18 }}>
+            <div style={{ background: C.surface, borderRadius: RADIUS.lg, padding: 18 }}>
               <div className="flex items-center gap-2" style={{ marginBottom: 14 }}>
                 <CheckCircle2 size={18} color={C.ok} />
                 <span style={{ fontSize: 14, fontWeight: 600 }}>Confira os dados antes de concluir</span>
@@ -294,7 +294,7 @@ export default function PartnerOnboarding() {
         </div>
 
         {error && (
-          <div style={{ background: "#FDECEC", color: "#B42318", borderRadius: 12, padding: 12, fontSize: 13.5, marginTop: 16 }}>
+          <div style={{ background: "#FDECEC", color: "#B42318", borderRadius: RADIUS.md, padding: 12, fontSize: 13.5, marginTop: 16 }}>
             {error}
           </div>
         )}
@@ -311,14 +311,14 @@ export default function PartnerOnboarding() {
           {step < STEPS.length - 1 ? (
             <button type="button" onClick={goNext} disabled={!canAdvance} className="flex items-center gap-2"
               style={{ background: canAdvance ? C.orange : C.gray, color: "#fff", border: "none",
-                       cursor: canAdvance ? "pointer" : "default", borderRadius: 12, padding: "13px 26px",
+                       cursor: canAdvance ? "pointer" : "default", borderRadius: RADIUS.md, padding: "13px 26px",
                        fontFamily: FONT, fontSize: 15, fontWeight: 600 }}>
               Continuar <ArrowRight size={17} />
             </button>
           ) : (
             <button type="button" onClick={handleSubmit} disabled={loading}
               style={{ background: loading ? C.gray : C.orange, color: "#fff", border: "none",
-                       cursor: loading ? "default" : "pointer", borderRadius: 12, padding: "13px 26px",
+                       cursor: loading ? "default" : "pointer", borderRadius: RADIUS.md, padding: "13px 26px",
                        fontFamily: FONT, fontSize: 15, fontWeight: 600 }}>
               {loading ? "Cadastrando…" : "Concluir cadastro"}
             </button>

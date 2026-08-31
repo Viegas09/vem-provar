@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { MapPin, Plus, Pencil, Trash2, Star } from "lucide-react";
-import { C, FONT } from "../theme";
+import { C, FONT, RADIUS } from "../theme";
 import { useAuth } from "../context/AuthContext";
 import { fetchAddresses, createAddress, updateAddress, deleteAddress, setDefaultAddress } from "../data/queries";
 import { formatAddress } from "../lib/geolocation";
@@ -71,7 +71,7 @@ export default function Addresses() {
         <div className="flex items-center justify-between" style={{ marginBottom: 20 }}>
           <h1 style={{ fontSize: 22, fontWeight: 700, margin: 0 }}>Meus endereços</h1>
           <button onClick={() => setModal(emptyAddressForm())} className="flex items-center gap-1"
-            style={{ background: C.orange, color: "#fff", border: "none", borderRadius: 10, cursor: "pointer",
+            style={{ background: C.orange, color: "#fff", border: "none", borderRadius: RADIUS.sm, cursor: "pointer",
                      padding: "9px 14px", fontFamily: FONT, fontSize: 13, fontWeight: 600 }}>
             <Plus size={15} /> Adicionar
           </button>
@@ -90,10 +90,10 @@ export default function Addresses() {
               const Icon = iconFor(a.label);
               return (
                 <div key={a.id} style={{ background: "#fff", border: `1.5px solid ${a.is_default ? C.orange : C.line}`,
-                     borderRadius: 14, padding: 16 }}>
+                     borderRadius: RADIUS.lg, padding: 16 }}>
                   <div className="flex items-start justify-between" style={{ gap: 8 }}>
                     <div className="flex items-start gap-3" style={{ minWidth: 0 }}>
-                      <div style={{ width: 36, height: 36, borderRadius: 10, background: C.surface, flexShrink: 0,
+                      <div style={{ width: 36, height: 36, borderRadius: RADIUS.sm, background: C.surface, flexShrink: 0,
                            display: "grid", placeItems: "center" }}>
                         <Icon size={17} color={C.orange} />
                       </div>
@@ -102,7 +102,7 @@ export default function Addresses() {
                           <span style={{ fontSize: 14.5, fontWeight: 700 }}>{a.label}</span>
                           {a.is_default && (
                             <span className="flex items-center gap-1" style={{ fontSize: 11, fontWeight: 700, color: C.orange,
-                                 background: "rgba(238,108,26,.1)", padding: "2px 8px", borderRadius: 999 }}>
+                                 background: "rgba(238,108,26,.1)", padding: "2px 8px", borderRadius: RADIUS.pill }}>
                               <Star size={10} fill={C.orange} /> Padrão
                             </span>
                           )}
@@ -114,12 +114,12 @@ export default function Addresses() {
                     </div>
                     <div className="flex items-center gap-1" style={{ flexShrink: 0 }}>
                       <button onClick={() => setModal(a)} aria-label={`Editar endereço ${a.label}`}
-                        style={{ width: 32, height: 32, borderRadius: 8, border: `1px solid ${C.line}`, background: "#fff",
+                        style={{ width: 32, height: 32, borderRadius: RADIUS.xs, border: `1px solid ${C.line}`, background: "#fff",
                                  cursor: "pointer", display: "grid", placeItems: "center" }}>
                         <Pencil size={14} />
                       </button>
                       <button onClick={() => handleDelete(a.id)} aria-label={`Excluir endereço ${a.label}`}
-                        style={{ width: 32, height: 32, borderRadius: 8, border: `1px solid ${C.line}`, background: "#fff",
+                        style={{ width: 32, height: 32, borderRadius: RADIUS.xs, border: `1px solid ${C.line}`, background: "#fff",
                                  cursor: "pointer", display: "grid", placeItems: "center" }}>
                         <Trash2 size={14} color="#B42318" />
                       </button>

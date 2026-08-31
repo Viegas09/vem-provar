@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { C } from "../theme";
+import { C, RADIUS } from "../theme";
 import { useAuth } from "../context/AuthContext";
 import WORDMARK_DARK from "../assets/wordmark-dark.png";
 
@@ -27,7 +27,7 @@ export default function PortalHeader({ label, homeTo = "/" }) {
         {user && (
           <button onClick={handleSignOut}
             style={{ background: "none", border: `1px solid ${C.line}`, color: C.black,
-                     fontSize: 13.5, fontWeight: 600, padding: "9px 16px", borderRadius: 10, cursor: "pointer" }}>
+                     fontSize: 13.5, fontWeight: 600, padding: "9px 16px", borderRadius: RADIUS.sm, cursor: "pointer" }}>
             Sair
           </button>
         )}

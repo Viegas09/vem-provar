@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Bell, BellOff } from "lucide-react";
-import { C, FONT } from "../theme";
+import { C, FONT, RADIUS, SHADOW } from "../theme";
 import { useAuth } from "../context/AuthContext";
 import { fetchNotifications, markNotificationRead, markAllNotificationsRead } from "../data/queries";
 
@@ -72,12 +72,12 @@ export default function NotificationBell({ variant = "boxed" }) {
         className={boxed ? undefined : "flex items-center gap-1"}
         style={boxed
           ? { position: "relative", color: C.black, display: "grid", placeItems: "center", width: 42, height: 42,
-              borderRadius: 10, border: `1px solid ${C.line}`, background: "#fff", cursor: "pointer", flexShrink: 0 }
+              borderRadius: RADIUS.sm, border: `1px solid ${C.line}`, background: "#fff", cursor: "pointer", flexShrink: 0 }
           : { position: "relative", background: "none", border: "none", cursor: "pointer", color: C.black, padding: 0 }}>
         <Bell size={boxed ? 19 : 20} />
         {unreadCount > 0 && (
           <span style={{ position: "absolute", top: boxed ? -6 : -8, right: boxed ? -6 : -10, background: C.orange, color: "#fff",
-               fontSize: boxed ? 10 : 11, fontWeight: 700, borderRadius: 999, minWidth: boxed ? 16 : 18, height: boxed ? 16 : 18,
+               fontSize: boxed ? 10 : 11, fontWeight: 700, borderRadius: RADIUS.pill, minWidth: boxed ? 16 : 18, height: boxed ? 16 : 18,
                display: "grid", placeItems: "center", padding: "0 3px" }}>
             {unreadCount > 9 ? "9+" : unreadCount}
           </span>
@@ -89,8 +89,8 @@ export default function NotificationBell({ variant = "boxed" }) {
           <div onClick={() => setOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 39 }} />
           <div className="vp-dropdown-in" style={{ position: "absolute", top: "calc(100% + 8px)", right: 0, zIndex: 40,
                width: 320, maxWidth: "calc(100vw - 32px)", maxHeight: 420, display: "flex", flexDirection: "column",
-               background: "#fff", border: `1px solid ${C.line}`, borderRadius: 14,
-               boxShadow: "0 12px 32px rgba(0,0,0,.14)", overflow: "hidden" }}>
+               background: "#fff", border: `1px solid ${C.line}`, borderRadius: RADIUS.lg,
+               boxShadow: SHADOW.md, overflow: "hidden" }}>
             <div className="flex items-center justify-between" style={{ padding: "12px 14px", borderBottom: `1px solid ${C.line}` }}>
               <span style={{ fontSize: 13.5, fontWeight: 700 }}>Notificações</span>
               {unreadCount > 0 && (
@@ -113,7 +113,7 @@ export default function NotificationBell({ variant = "boxed" }) {
                     style={{ width: "100%", textAlign: "left", background: n.read ? "#fff" : "rgba(238,108,26,.06)",
                              border: "none", borderBottom: `1px solid ${C.line}`, cursor: "pointer", padding: "12px 14px",
                              display: "flex", gap: 8, alignItems: "flex-start" }}>
-                    {!n.read && <span style={{ width: 7, height: 7, borderRadius: 999, background: C.orange, marginTop: 5, flexShrink: 0 }} />}
+                    {!n.read && <span style={{ width: 7, height: 7, borderRadius: RADIUS.pill, background: C.orange, marginTop: 5, flexShrink: 0 }} />}
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div className="flex items-center justify-between" style={{ gap: 8 }}>
                         <span style={{ fontSize: 13, fontWeight: n.read ? 600 : 700, color: C.black }}>{n.title}</span>

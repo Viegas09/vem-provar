@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { MapPin, CreditCard, QrCode, Banknote, Bike, Store, Check, Plus, Pencil, Tag, X, Clock, CalendarClock } from "lucide-react";
-import { C, FONT, formatBRL } from "../theme";
+import { C, FONT, formatBRL, RADIUS } from "../theme";
 import { useRestaurant } from "../hooks/useRestaurant";
 import { useAppMode } from "../hooks/useAppMode";
 import { useCart } from "../context/CartContext";
@@ -295,7 +295,7 @@ export default function Checkout() {
         <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 24 }}>
           <button type="button" onClick={() => setDeliveryMode("delivery")} className="flex items-center gap-3"
             style={{ background: !isPickup ? "rgba(238,108,26,.08)" : "#fff",
-                     border: `1.5px solid ${!isPickup ? C.orange : C.line}`, borderRadius: 12,
+                     border: `1.5px solid ${!isPickup ? C.orange : C.line}`, borderRadius: RADIUS.md,
                      padding: "14px 16px", cursor: "pointer", textAlign: "left" }}>
             <Bike size={19} color={!isPickup ? C.orange : C.grayText} style={{ flexShrink: 0 }} />
             <div style={{ flex: 1 }}>
@@ -308,7 +308,7 @@ export default function Checkout() {
           </button>
           <button type="button" onClick={() => setDeliveryMode("pickup")} className="flex items-center gap-3"
             style={{ background: isPickup ? "rgba(238,108,26,.08)" : "#fff",
-                     border: `1.5px solid ${isPickup ? C.orange : C.line}`, borderRadius: 12,
+                     border: `1.5px solid ${isPickup ? C.orange : C.line}`, borderRadius: RADIUS.md,
                      padding: "14px 16px", cursor: "pointer", textAlign: "left" }}>
             <Store size={19} color={isPickup ? C.orange : C.grayText} style={{ flexShrink: 0 }} />
             <div style={{ flex: 1 }}>
@@ -324,7 +324,7 @@ export default function Checkout() {
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             <button type="button" onClick={() => setScheduleMode("now")} className="flex items-center gap-3"
               style={{ background: scheduleMode === "now" ? "rgba(238,108,26,.08)" : "#fff",
-                       border: `1.5px solid ${scheduleMode === "now" ? C.orange : C.line}`, borderRadius: 12,
+                       border: `1.5px solid ${scheduleMode === "now" ? C.orange : C.line}`, borderRadius: RADIUS.md,
                        padding: "14px 16px", cursor: "pointer", textAlign: "left" }}>
               <Clock size={19} color={scheduleMode === "now" ? C.orange : C.grayText} style={{ flexShrink: 0 }} />
               <div style={{ flex: 1 }}>
@@ -334,7 +334,7 @@ export default function Checkout() {
             </button>
             <button type="button" onClick={handleScheduleLater} className="flex items-center gap-3"
               style={{ background: scheduleMode === "later" ? "rgba(238,108,26,.08)" : "#fff",
-                       border: `1.5px solid ${scheduleMode === "later" ? C.orange : C.line}`, borderRadius: 12,
+                       border: `1.5px solid ${scheduleMode === "later" ? C.orange : C.line}`, borderRadius: RADIUS.md,
                        padding: "14px 16px", cursor: "pointer", textAlign: "left" }}>
               <CalendarClock size={19} color={scheduleMode === "later" ? C.orange : C.grayText} style={{ flexShrink: 0 }} />
               <div style={{ flex: 1 }}>
@@ -354,7 +354,7 @@ export default function Checkout() {
                   return (
                     <button key={d.offset} type="button" onClick={() => handleChangeDay(d.offset)}
                       style={{ background: active ? C.black : "#fff", color: active ? "#fff" : C.black,
-                               border: `1.5px solid ${active ? C.black : C.line}`, borderRadius: 999, padding: "7px 16px",
+                               border: `1.5px solid ${active ? C.black : C.line}`, borderRadius: RADIUS.pill, padding: "7px 16px",
                                fontFamily: FONT, fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
                       {d.label}
                     </button>
@@ -370,7 +370,7 @@ export default function Checkout() {
                     return (
                       <button key={slot.getTime()} type="button" onClick={() => setScheduledFor(slot)}
                         style={{ flexShrink: 0, background: active ? C.orange : "#fff", color: active ? "#fff" : C.black,
-                                 border: `1.5px solid ${active ? C.orange : C.line}`, borderRadius: 10, padding: "9px 14px",
+                                 border: `1.5px solid ${active ? C.orange : C.line}`, borderRadius: RADIUS.sm, padding: "9px 14px",
                                  fontFamily: FONT, fontSize: 13.5, fontWeight: 600, cursor: "pointer" }}>
                         {slot.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
                       </button>
@@ -388,7 +388,7 @@ export default function Checkout() {
         {isPickup ? (
           <div style={{ marginBottom: 24 }}>
             <div style={{ fontSize: 13, fontWeight: 700, color: C.grayText, marginBottom: 6 }}>Endereço do restaurante</div>
-            <div className="flex items-center gap-2" style={{ background: C.surface, borderRadius: 12, padding: "12px 14px" }}>
+            <div className="flex items-center gap-2" style={{ background: C.surface, borderRadius: RADIUS.md, padding: "12px 14px" }}>
               <MapPin size={18} color={C.orange} style={{ flexShrink: 0 }} />
               <span style={{ fontSize: 14, color: C.black }}>{restaurant?.address}</span>
             </div>
@@ -409,7 +409,7 @@ export default function Checkout() {
                 return (
                   <div key={a.id} onClick={() => setSelectedAddressId(a.id)} className="flex items-center gap-3"
                     style={{ background: active ? "rgba(238,108,26,.08)" : "#fff",
-                             border: `1.5px solid ${active ? C.orange : C.line}`, borderRadius: 12,
+                             border: `1.5px solid ${active ? C.orange : C.line}`, borderRadius: RADIUS.md,
                              padding: "12px 14px", cursor: "pointer", textAlign: "left" }}>
                     <MapPin size={18} color={active ? C.orange : C.grayText} style={{ flexShrink: 0 }} />
                     <div style={{ flex: 1, minWidth: 0 }}>
@@ -419,7 +419,7 @@ export default function Checkout() {
                     {active && <Check size={17} color={C.orange} style={{ flexShrink: 0 }} />}
                     <button type="button" onClick={(e) => { e.stopPropagation(); setAddressModal(a); }}
                       aria-label={`Editar endereço ${a.label}`}
-                      style={{ width: 30, height: 30, borderRadius: 8, border: `1px solid ${C.line}`, background: "#fff",
+                      style={{ width: 30, height: 30, borderRadius: RADIUS.xs, border: `1px solid ${C.line}`, background: "#fff",
                                cursor: "pointer", display: "grid", placeItems: "center", flexShrink: 0 }}>
                       <Pencil size={13} />
                     </button>
@@ -433,14 +433,14 @@ export default function Checkout() {
             <h2 style={{ fontSize: 15, fontWeight: 700, margin: "0 0 10px" }}>Endereço de entrega</h2>
             {user ? (
               <button type="button" onClick={() => setAddressModal(emptyAddressForm())} className="flex items-center gap-2"
-                style={{ width: "100%", background: C.surface, border: "none", borderRadius: 12, padding: "14px 16px",
+                style={{ width: "100%", background: C.surface, border: "none", borderRadius: RADIUS.md, padding: "14px 16px",
                          cursor: "pointer", fontFamily: FONT, fontSize: 14, fontWeight: 600, color: C.orange, justifyContent: "center" }}>
                 <Plus size={15} /> Adicionar endereço de entrega
               </button>
             ) : (
               <>
                 <div className="flex items-center gap-2" style={{ background: "#fff", border: `1.5px solid ${C.line}`,
-                     borderRadius: 12, padding: "0 14px", minHeight: 54 }}>
+                     borderRadius: RADIUS.md, padding: "0 14px", minHeight: 54 }}>
                   <MapPin size={20} color={C.orange} />
                   <input value={address} onChange={(e) => setAddress(e.target.value)} required={!isPickup}
                     placeholder="Rua, número, bairro"
@@ -463,7 +463,7 @@ export default function Checkout() {
             return (
               <button key={m.id} type="button" onClick={() => setPayment(m.id)} className="flex items-center gap-3"
                 style={{ background: active ? "rgba(238,108,26,.08)" : "#fff",
-                         border: `1.5px solid ${active ? C.orange : C.line}`, borderRadius: 12,
+                         border: `1.5px solid ${active ? C.orange : C.line}`, borderRadius: RADIUS.md,
                          padding: "14px 16px", cursor: "pointer", textAlign: "left" }}>
                 <Icon size={19} color={active ? C.orange : C.grayText} />
                 <span style={{ fontSize: 14.5, fontWeight: active ? 600 : 500 }}>{label}</span>
@@ -476,7 +476,7 @@ export default function Checkout() {
         <div style={{ marginBottom: 24 }}>
           {appliedCoupon ? (
             <div className="flex items-center gap-3" style={{ background: "rgba(46,158,91,.08)", border: `1.5px solid ${C.ok}`,
-                 borderRadius: 12, padding: "12px 14px" }}>
+                 borderRadius: RADIUS.md, padding: "12px 14px" }}>
               <Tag size={18} color={C.ok} style={{ flexShrink: 0 }} />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 14, fontWeight: 700, color: C.ok }}>{appliedCoupon.code}</div>
@@ -495,7 +495,7 @@ export default function Checkout() {
             <>
               <div className="flex items-center gap-2">
                 <div className="flex items-center gap-2" style={{ flex: 1, background: "#fff", border: `1.5px solid ${C.line}`,
-                     borderRadius: 12, padding: "0 14px", minHeight: 50 }}>
+                     borderRadius: RADIUS.md, padding: "0 14px", minHeight: 50 }}>
                   <Tag size={17} color={C.grayText} />
                   <input value={couponInput} onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
                     placeholder="Digite o código do cupom"
@@ -503,7 +503,7 @@ export default function Checkout() {
                 </div>
                 <button type="button" onClick={handleApplyCoupon} disabled={!couponInput.trim() || couponChecking}
                   style={{ background: !couponInput.trim() || couponChecking ? C.gray : C.orange, color: "#fff", border: "none",
-                           cursor: !couponInput.trim() || couponChecking ? "default" : "pointer", borderRadius: 12,
+                           cursor: !couponInput.trim() || couponChecking ? "default" : "pointer", borderRadius: RADIUS.md,
                            padding: "0 18px", height: 50, fontFamily: FONT, fontSize: 13.5, fontWeight: 600, flexShrink: 0 }}>
                   {couponChecking ? "..." : "Aplicar"}
                 </button>
@@ -537,20 +537,20 @@ export default function Checkout() {
         </div>
 
         {restaurant && !isRestaurantOpenNow(restaurant) && (
-          <div style={{ background: "#FDECEC", color: "#B42318", borderRadius: 12, padding: 14, fontSize: 14, marginBottom: 16 }}>
+          <div style={{ background: "#FDECEC", color: "#B42318", borderRadius: RADIUS.md, padding: 14, fontSize: 14, marginBottom: 16 }}>
             Esse restaurante está fechado no momento e não pode receber pedidos agora.
           </div>
         )}
 
         {submitError && (
-          <div style={{ background: "#FDECEC", color: "#B42318", borderRadius: 12, padding: 14, fontSize: 14, marginBottom: 16 }}>
+          <div style={{ background: "#FDECEC", color: "#B42318", borderRadius: RADIUS.md, padding: 14, fontSize: 14, marginBottom: 16 }}>
             {submitError}
           </div>
         )}
 
         <button type="submit" disabled={submitting || (restaurant && !isRestaurantOpenNow(restaurant)) || (scheduleMode === "later" && !scheduledFor)}
           style={{ width: "100%", background: submitting || (restaurant && !isRestaurantOpenNow(restaurant)) || (scheduleMode === "later" && !scheduledFor) ? C.gray : C.orange, color: "#fff", border: "none",
-                   cursor: submitting || (restaurant && !isRestaurantOpenNow(restaurant)) ? "default" : "pointer", borderRadius: 12, padding: "15px 0", fontFamily: FONT,
+                   cursor: submitting || (restaurant && !isRestaurantOpenNow(restaurant)) ? "default" : "pointer", borderRadius: RADIUS.md, padding: "15px 0", fontFamily: FONT,
                    fontSize: 15.5, fontWeight: 600 }}>
           {submitting ? "Confirmando…" : scheduleMode === "later" && scheduledFor
             ? `Agendar para ${SCHEDULE_DAYS.find((d) => d.offset === scheduleDay)?.label.toLowerCase()} às ${scheduledFor.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}`

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { XCircle, Package, MessageCircle } from "lucide-react";
-import { C, FONT, formatBRL } from "../theme";
+import { C, FONT, formatBRL, RADIUS } from "../theme";
 import { fetchOrderById } from "../data/queries";
 import { useAuth } from "../context/AuthContext";
 import { subscribeToPush } from "../lib/push";
@@ -82,28 +82,28 @@ export default function OrderTracking() {
 
         {order.scheduled_for && (
           <div className="flex items-center gap-2" style={{ background: "rgba(238,108,26,.08)", color: C.orange,
-               borderRadius: 12, padding: "12px 16px", fontSize: 13.5, fontWeight: 600, marginBottom: 20 }}>
+               borderRadius: RADIUS.md, padding: "12px 16px", fontSize: 13.5, fontWeight: 600, marginBottom: 20 }}>
             Agendado para {new Date(order.scheduled_for).toLocaleString("pt-BR", { weekday: "short", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
           </div>
         )}
 
         {cancelled ? (
-          <div className="flex items-center gap-2" style={{ background: "#FDECEC", color: "#B42318", borderRadius: 14, padding: 18, marginBottom: 28 }}>
+          <div className="flex items-center gap-2" style={{ background: "#FDECEC", color: "#B42318", borderRadius: RADIUS.lg, padding: 18, marginBottom: 28 }}>
             <XCircle size={20} />
             <span style={{ fontSize: 14.5, fontWeight: 600 }}>Esse pedido foi cancelado.</span>
           </div>
         ) : (
-          <div key={order.status} className="vp-fade-in" style={{ background: C.surface, borderRadius: 16, padding: "22px 20px", marginBottom: 28 }}>
+          <div key={order.status} className="vp-fade-in" style={{ background: C.surface, borderRadius: RADIUS.xl, padding: "22px 20px", marginBottom: 28 }}>
             <StepProgress steps={STEPS} current={current} />
           </div>
         )}
 
-        <div style={{ border: `1px solid ${C.line}`, borderRadius: 16, padding: "18px 20px", marginBottom: 20 }}>
+        <div style={{ border: `1px solid ${C.line}`, borderRadius: RADIUS.xl, padding: "18px 20px", marginBottom: 20 }}>
           <h2 style={{ fontSize: 14.5, fontWeight: 700, margin: "0 0 10px" }}>Endereço de entrega</h2>
           <p style={{ fontSize: 14, color: C.grayText, margin: 0 }}>{order.address}</p>
         </div>
 
-        <div style={{ border: `1px solid ${C.line}`, borderRadius: 16, padding: "18px 20px" }}>
+        <div style={{ border: `1px solid ${C.line}`, borderRadius: RADIUS.xl, padding: "18px 20px" }}>
           <h2 style={{ fontSize: 14.5, fontWeight: 700, margin: "0 0 10px" }}>Itens</h2>
           {(order.order_items || []).map((item) => (
             <div key={item.id} style={{ marginBottom: 8 }}>

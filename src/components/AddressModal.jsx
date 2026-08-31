@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Home as HomeIcon, Briefcase, MapPin, X, LocateFixed, Loader2, Check } from "lucide-react";
-import { C, FONT } from "../theme";
+import { C, FONT, RADIUS } from "../theme";
 import { getCurrentCoords, reverseGeocodeStructured, lookupCep } from "../lib/geolocation";
 
 export const LABEL_PRESETS = [
@@ -10,7 +10,7 @@ export const LABEL_PRESETS = [
 ];
 
 const fieldStyle = {
-  border: `1.5px solid ${C.line}`, outline: "none", borderRadius: 12, padding: "0 14px",
+  border: `1.5px solid ${C.line}`, outline: "none", borderRadius: RADIUS.md, padding: "0 14px",
   minHeight: 50, fontFamily: FONT, fontSize: 15, background: "#fff", width: "100%", boxSizing: "border-box",
 };
 
@@ -116,7 +116,7 @@ export default function AddressModal({ initial, onClose, onSave }) {
               return (
                 <button key={p.label} type="button" onClick={() => set("label", p.label)} className="flex items-center gap-1"
                   style={{ background: active ? "rgba(238,108,26,.08)" : "#fff",
-                           border: `1.5px solid ${active ? C.orange : C.line}`, borderRadius: 999, padding: "7px 14px",
+                           border: `1.5px solid ${active ? C.orange : C.line}`, borderRadius: RADIUS.pill, padding: "7px 14px",
                            cursor: "pointer", fontFamily: FONT, fontSize: 13, fontWeight: 600, color: active ? C.orange : C.black }}>
                   <Icon size={14} /> {p.label}
                 </button>
@@ -125,7 +125,7 @@ export default function AddressModal({ initial, onClose, onSave }) {
           </div>
 
           <button type="button" onClick={handleLocate} disabled={locating} className="flex items-center gap-2"
-            style={{ background: C.surface, border: "none", borderRadius: 12, padding: "12px 14px", cursor: locating ? "default" : "pointer",
+            style={{ background: C.surface, border: "none", borderRadius: RADIUS.md, padding: "12px 14px", cursor: locating ? "default" : "pointer",
                      fontFamily: FONT, fontSize: 13.5, fontWeight: 600, color: C.orange, justifyContent: "center" }}>
             {locating ? <Loader2 size={15} className="vp-spin" /> : <LocateFixed size={15} />}
             {locating ? "Localizando…" : "Preencher com minha localização"}
@@ -171,14 +171,14 @@ export default function AddressModal({ initial, onClose, onSave }) {
           </div>
 
           {saveError && (
-            <div style={{ background: "#FDECEC", color: "#B42318", borderRadius: 10, padding: 12, fontSize: 13 }}>
+            <div style={{ background: "#FDECEC", color: "#B42318", borderRadius: RADIUS.sm, padding: 12, fontSize: 13 }}>
               {saveError}
             </div>
           )}
 
           <button type="button" onClick={handleSave} disabled={!canSave || saving}
             style={{ marginTop: 6, width: "100%", background: !canSave || saving ? C.gray : C.orange, color: "#fff", border: "none",
-                     cursor: !canSave || saving ? "default" : "pointer", borderRadius: 12, padding: "14px 0",
+                     cursor: !canSave || saving ? "default" : "pointer", borderRadius: RADIUS.md, padding: "14px 0",
                      fontFamily: FONT, fontSize: 15, fontWeight: 600 }}>
             {saving ? "Salvando…" : "Salvar endereço"}
           </button>

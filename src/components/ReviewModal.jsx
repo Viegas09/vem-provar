@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Star, X } from "lucide-react";
-import { C, FONT } from "../theme";
+import { C, FONT, RADIUS } from "../theme";
 import { useAuth } from "../context/AuthContext";
 import { createReview } from "../data/queries";
 
@@ -74,19 +74,19 @@ export default function ReviewModal({ order, onClose, onSaved }) {
             <textarea value={comment} onChange={(e) => setComment(e.target.value)}
               placeholder="Conte como foi a comida, a embalagem, o tempo de entrega..."
               rows={4}
-              style={{ border: `1.5px solid ${C.line}`, outline: "none", borderRadius: 12, padding: 12,
+              style={{ border: `1.5px solid ${C.line}`, outline: "none", borderRadius: RADIUS.md, padding: 12,
                        fontFamily: FONT, fontSize: 14, width: "100%", boxSizing: "border-box", resize: "none" }} />
           </div>
 
           {error && (
-            <div style={{ background: "#FDECEC", color: "#B42318", borderRadius: 10, padding: 12, fontSize: 13 }}>
+            <div style={{ background: "#FDECEC", color: "#B42318", borderRadius: RADIUS.sm, padding: 12, fontSize: 13 }}>
               {error}
             </div>
           )}
 
           <button type="button" onClick={handleSubmit} disabled={rating === 0 || saving}
             style={{ width: "100%", background: rating === 0 || saving ? C.gray : C.orange, color: "#fff", border: "none",
-                     cursor: rating === 0 || saving ? "default" : "pointer", borderRadius: 12, padding: "14px 0",
+                     cursor: rating === 0 || saving ? "default" : "pointer", borderRadius: RADIUS.md, padding: "14px 0",
                      fontFamily: FONT, fontSize: 15, fontWeight: 600 }}>
             {saving ? "Enviando…" : "Enviar avaliação"}
           </button>

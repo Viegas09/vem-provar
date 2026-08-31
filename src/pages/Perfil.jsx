@@ -1,6 +1,6 @@
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import { User, MapPinned, Heart, CreditCard, Settings, HelpCircle, LogOut, ChevronRight, Store, Bike } from "lucide-react";
-import { C, FONT } from "../theme";
+import { C, FONT, RADIUS } from "../theme";
 import { useAuth } from "../context/AuthContext";
 import Header from "../components/Header";
 import { SkeletonPage } from "../components/Skeleton";
@@ -49,7 +49,7 @@ export default function Perfil() {
       <Header />
       <section className="vp-wrap" style={{ padding: "32px 24px 32px", maxWidth: 480 }}>
         <div className="flex items-center gap-3" style={{ marginBottom: 28 }}>
-          <div style={{ width: 56, height: 56, borderRadius: 999, background: C.orange, color: "#fff",
+          <div style={{ width: 56, height: 56, borderRadius: RADIUS.pill, background: C.orange, color: "#fff",
                display: "grid", placeItems: "center", fontSize: 22, fontWeight: 700, flexShrink: 0 }}>
             {initial}
           </div>
@@ -91,7 +91,7 @@ export default function Perfil() {
 
         <button onClick={handleSignOut} className="flex items-center gap-3"
           style={{ width: "100%", background: "#fff", border: `1.5px solid ${C.line}`, cursor: "pointer",
-                   borderRadius: 12, padding: 14, fontFamily: FONT, textAlign: "left" }}>
+                   borderRadius: RADIUS.md, padding: 14, fontFamily: FONT, textAlign: "left" }}>
           <LogOut size={18} color="#B42318" />
           <span style={{ flex: 1, fontSize: 14.5, fontWeight: 600, color: "#B42318" }}>Sair</span>
         </button>

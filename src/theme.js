@@ -13,6 +13,24 @@ export const C = {
 
 export const FONT = "'Poppins', ui-sans-serif, system-ui, sans-serif";
 
+export const RADIUS = {
+  xs: 8,
+  sm: 10,
+  md: 12,
+  lg: 14,
+  xl: 16,
+  xxl: 18,
+  xxxl: 20,
+  pill: 999,
+};
+
+export const SHADOW = {
+  xs: "0 1px 4px rgba(20,20,20,.14)",
+  sm: "0 4px 16px rgba(20,20,20,.10)",
+  md: "0 12px 32px rgba(20,20,20,.14)",
+  lg: "0 16px 40px rgba(20,20,20,.20)",
+};
+
 export const WARM = [
   "linear-gradient(140deg,#F2A24E,#D65E12)",
   "linear-gradient(140deg,#E8B04B,#C77A1E)",

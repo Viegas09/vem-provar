@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { Bell, BellOff, CheckCircle2 } from "lucide-react";
-import { C, FONT } from "../theme";
+import { C, FONT, RADIUS } from "../theme";
 import { useAuth } from "../context/AuthContext";
 import { subscribeToPush } from "../lib/push";
 import Header from "../components/Header";
@@ -59,7 +59,7 @@ export default function Settings() {
           Notificações
         </div>
 
-        <div style={{ background: "#fff", border: `1.5px solid ${C.line}`, borderRadius: 14, padding: 16 }}>
+        <div style={{ background: "#fff", border: `1.5px solid ${C.line}`, borderRadius: RADIUS.lg, padding: 16 }}>
           {status === "on" && (
             <div className="flex items-center gap-3">
               <CheckCircle2 size={20} color={C.ok} style={{ flexShrink: 0 }} />
@@ -81,7 +81,7 @@ export default function Settings() {
                   Ative pra saber na hora quando seu pedido for aceito, sair pra entrega ou chegar.
                 </div>
                 <button onClick={handleEnable} disabled={enabling}
-                  style={{ background: enabling ? C.gray : C.orange, color: "#fff", border: "none", borderRadius: 10,
+                  style={{ background: enabling ? C.gray : C.orange, color: "#fff", border: "none", borderRadius: RADIUS.sm,
                            cursor: enabling ? "default" : "pointer", padding: "10px 18px", fontFamily: FONT,
                            fontSize: 13.5, fontWeight: 600 }}>
                   {enabling ? "Ativando…" : "Ativar notificações"}

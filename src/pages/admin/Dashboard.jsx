@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { Store, Package, Bike, Wallet, TrendingUp } from "lucide-react";
-import { C, FONT, formatBRL } from "../../theme";
+import { C, FONT, formatBRL, RADIUS } from "../../theme";
 import { useAuth } from "../../context/AuthContext";
 import { fetchProfile, fetchRestaurants, fetchAllOrdersAdmin, fetchAllDriversAdmin } from "../../data/queries";
 import { getCommissionRate, isInPromoPeriod } from "../../lib/commission";
@@ -15,7 +15,7 @@ function LoadingScreen() {
 
 function StatTile({ icon: Icon, label, value, accent }) {
   return (
-    <div style={{ background: "#fff", border: `1px solid ${C.line}`, borderRadius: 16, padding: 16 }}>
+    <div style={{ background: "#fff", border: `1px solid ${C.line}`, borderRadius: RADIUS.xl, padding: 16 }}>
       <div className="flex items-center gap-2" style={{ marginBottom: 8 }}>
         <div style={{ width: 30, height: 30, borderRadius: 9, background: accent ? "rgba(238,108,26,.1)" : C.surface,
              display: "grid", placeItems: "center" }}>
@@ -102,7 +102,7 @@ export default function AdminDashboard() {
                   const meta = STATUS_META[o.status] || STATUS_META.pending;
                   return (
                     <div key={o.id} style={{ padding: 14, background: "#fff", border: `1px solid ${C.line}`,
-                         borderLeft: `4px solid ${meta.color}`, borderRadius: 14 }}>
+                         borderLeft: `4px solid ${meta.color}`, borderRadius: RADIUS.lg }}>
                       <div className="flex items-center justify-between">
                         <span style={{ fontSize: 14, fontWeight: 700 }}>#{o.id.slice(0, 8)} · {o.restaurants?.name}</span>
                         <span style={{ fontSize: 13, color: C.grayText }}>{new Date(o.created_at).toLocaleString("pt-BR")}</span>
@@ -117,7 +117,7 @@ export default function AdminDashboard() {
                           )}
                         </div>
                         <span style={{ fontSize: 12, fontWeight: 700, color: meta.color, background: meta.bg,
-                             padding: "5px 11px", borderRadius: 999 }}>
+                             padding: "5px 11px", borderRadius: RADIUS.pill }}>
                           {meta.label}
                         </span>
                       </div>
@@ -140,7 +140,7 @@ export default function AdminDashboard() {
                     const rate = getCommissionRate(r);
                     return (
                       <div key={r.id} className="flex items-center justify-between" style={{ padding: "12px 14px",
-                           background: "#fff", border: `1px solid ${C.line}`, borderRadius: 12, gap: 8 }}>
+                           background: "#fff", border: `1px solid ${C.line}`, borderRadius: RADIUS.md, gap: 8 }}>
                         <div style={{ minWidth: 0 }}>
                           <div style={{ fontSize: 14, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                             {r.name}
@@ -149,11 +149,11 @@ export default function AdminDashboard() {
                         </div>
                         <div className="flex items-center gap-1" style={{ flexShrink: 0 }}>
                           <span style={{ fontSize: 11, fontWeight: 600, color: C.orange, background: "rgba(238,108,26,.1)",
-                               padding: "3px 8px", borderRadius: 999 }}>
+                               padding: "3px 8px", borderRadius: RADIUS.pill }}>
                             {r.plan ? (r.plan === "entrega" ? "Entrega" : "Básico") : "Sem plano"}
                           </span>
                           <span style={{ fontSize: 11, fontWeight: 600, color: inPromo ? C.ok : C.grayText,
-                               background: inPromo ? "rgba(46,158,91,.1)" : C.surface, padding: "3px 8px", borderRadius: 999 }}>
+                               background: inPromo ? "rgba(46,158,91,.1)" : C.surface, padding: "3px 8px", borderRadius: RADIUS.pill }}>
                             {inPromo ? "0% promo" : `${rate}%`}
                           </span>
                         </div>
@@ -172,7 +172,7 @@ export default function AdminDashboard() {
                 <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                   {drivers.map((d) => (
                     <div key={d.id} className="flex items-center justify-between" style={{ padding: "12px 14px",
-                         background: "#fff", border: `1px solid ${C.line}`, borderRadius: 12 }}>
+                         background: "#fff", border: `1px solid ${C.line}`, borderRadius: RADIUS.md }}>
                       <div style={{ fontSize: 14, fontWeight: 600 }}>{d.full_name}</div>
                       <div style={{ fontSize: 12, color: C.grayText }}>{d.vehicle_type}{d.plate ? ` · ${d.plate}` : ""}</div>
                     </div>

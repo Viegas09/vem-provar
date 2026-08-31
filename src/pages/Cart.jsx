@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Plus, Minus, Trash2, ShoppingBag, ArrowRight, Store } from "lucide-react";
-import { C, FONT, WARM, formatBRL } from "../theme";
+import { C, FONT, WARM, formatBRL, RADIUS, SHADOW } from "../theme";
 import { ICONS } from "../data/icons";
 import { useRestaurant } from "../hooks/useRestaurant";
 import { useCart } from "../context/CartContext";
@@ -69,7 +69,7 @@ export default function Cart() {
             </p>
             <Link to="/" className="flex items-center justify-center gap-1" style={{ display: "inline-flex",
                  background: C.orange, color: "#fff", fontWeight: 600, textDecoration: "none",
-                 padding: "11px 22px", borderRadius: 10, fontSize: 14 }}>
+                 padding: "11px 22px", borderRadius: RADIUS.sm, fontSize: 14 }}>
               Ver restaurantes
             </Link>
           </div>
@@ -92,7 +92,7 @@ export default function Cart() {
                 const menuItem = menuById[item.id];
                 return (
                   <div key={item.lineId} className="flex items-center" style={{ gap: 12, padding: 14, background: "#fff",
-                       border: `1px solid ${C.line}`, borderRadius: 16 }}>
+                       border: `1px solid ${C.line}`, borderRadius: RADIUS.xl }}>
                     <FoodPhoto v={menuItem?.color_variant} icon={Icon} photoUrl={menuItem?.image_url}
                       style={{ width: 56, height: 56, flexShrink: 0 }} />
                     <div style={{ flex: 1, minWidth: 0 }}>
@@ -109,13 +109,13 @@ export default function Cart() {
                       <div className="flex items-center gap-2" style={{ marginTop: 10 }}>
                         <button onClick={() => updateQty(item.lineId, item.qty - 1)}
                           aria-label={item.qty === 1 ? `Remover ${item.name}` : `Diminuir quantidade de ${item.name}`}
-                          style={{ width: 28, height: 28, borderRadius: 8, border: `1px solid ${C.line}`, background: "#fff",
+                          style={{ width: 28, height: 28, borderRadius: RADIUS.xs, border: `1px solid ${C.line}`, background: "#fff",
                                    cursor: "pointer", display: "grid", placeItems: "center" }}>
                           {item.qty === 1 ? <Trash2 size={13} color="#B42318" /> : <Minus size={13} />}
                         </button>
                         <span key={item.qty} className="vp-pop" style={{ fontSize: 14, fontWeight: 700, minWidth: 16, textAlign: "center", display: "inline-block" }}>{item.qty}</span>
                         <button onClick={() => updateQty(item.lineId, item.qty + 1)} aria-label={`Aumentar quantidade de ${item.name}`}
-                          style={{ width: 28, height: 28, borderRadius: 8, border: "none", background: C.orange, color: "#fff",
+                          style={{ width: 28, height: 28, borderRadius: RADIUS.xs, border: "none", background: C.orange, color: "#fff",
                                    cursor: "pointer", display: "grid", placeItems: "center" }}>
                           <Plus size={13} />
                         </button>
@@ -138,9 +138,9 @@ export default function Cart() {
                       <div style={{ position: "relative" }}>
                         <FoodPhoto v={item.color_variant} icon={Icon} photoUrl={item.image_url} radius={14} style={{ width: 118, height: 90 }} />
                         <button onClick={() => handleCrossSellAdd(item)} aria-label={`Adicionar ${item.name} ao carrinho`}
-                          style={{ position: "absolute", right: 6, bottom: -12, width: 28, height: 28, borderRadius: 999,
+                          style={{ position: "absolute", right: 6, bottom: -12, width: 28, height: 28, borderRadius: RADIUS.pill,
                                    border: "none", background: C.orange, color: "#fff", cursor: "pointer",
-                                   display: "grid", placeItems: "center", boxShadow: "0 2px 6px rgba(0,0,0,.2)" }}>
+                                   display: "grid", placeItems: "center", boxShadow: SHADOW.xs }}>
                           <Plus size={15} />
                         </button>
                       </div>
@@ -172,7 +172,7 @@ export default function Cart() {
 
             <button onClick={() => navigate("/checkout")} className="flex items-center justify-center gap-2"
               style={{ marginTop: 20, width: "100%", background: C.orange, color: "#fff", border: "none", cursor: "pointer",
-                       borderRadius: 12, padding: "15px 0", fontFamily: FONT, fontSize: 15.5, fontWeight: 600 }}>
+                       borderRadius: RADIUS.md, padding: "15px 0", fontFamily: FONT, fontSize: 15.5, fontWeight: 600 }}>
               Ir para pagamento <ArrowRight size={18} />
             </button>
           </>

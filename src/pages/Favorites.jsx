@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { Heart, Star, Clock, Bike, Store, Package } from "lucide-react";
-import { C, FONT, WARM, formatBRL } from "../theme";
+import { C, FONT, WARM, formatBRL, RADIUS } from "../theme";
 import { ICONS } from "../data/icons";
 import { useAuth } from "../context/AuthContext";
 import { fetchFavorites, removeFavorite, fetchFavoriteItems, removeFavoriteItem } from "../data/queries";
@@ -19,7 +19,7 @@ function SectionTitle({ children }) {
 
 function FoodPhoto({ v = 0, icon: Icon, style }) {
   return (
-    <div className="vp-photo" style={{ position: "relative", background: WARM[v % WARM.length], borderRadius: 16, overflow: "hidden", ...style }}>
+    <div className="vp-photo" style={{ position: "relative", background: WARM[v % WARM.length], borderRadius: RADIUS.xl, overflow: "hidden", ...style }}>
       <div style={{ position: "absolute", inset: 0, background: "radial-gradient(120% 80% at 25% 12%, rgba(255,255,255,.28), transparent 60%)" }} />
       {Icon && <Icon size={30} color="rgba(255,255,255,.5)" style={{ position: "absolute", right: 12, bottom: 12 }} />}
     </div>
@@ -80,7 +80,7 @@ export default function Favorites() {
               Toque no coração de um restaurante ou prato pra guardar aqui.
             </p>
             <Link to="/" style={{ display: "inline-flex", background: C.orange, color: "#fff", fontWeight: 600,
-                 textDecoration: "none", padding: "11px 22px", borderRadius: 10, fontSize: 14 }}>
+                 textDecoration: "none", padding: "11px 22px", borderRadius: RADIUS.sm, fontSize: 14 }}>
               Ver restaurantes
             </Link>
           </div>
@@ -94,9 +94,9 @@ export default function Favorites() {
                     const r = f.restaurants;
                     if (!r) return null;
                     return (
-                      <div key={f.id} style={{ position: "relative", background: "#fff", border: `1px solid ${C.line}`, borderRadius: 16, overflow: "hidden" }}>
+                      <div key={f.id} style={{ position: "relative", background: "#fff", border: `1px solid ${C.line}`, borderRadius: RADIUS.xl, overflow: "hidden" }}>
                         <button onClick={() => handleRemove(r.id)} aria-label={`Remover ${r.name} dos favoritos`}
-                          style={{ position: "absolute", top: 10, right: 10, width: 32, height: 32, borderRadius: 999,
+                          style={{ position: "absolute", top: 10, right: 10, width: 32, height: 32, borderRadius: RADIUS.pill,
                                    background: "rgba(255,255,255,.94)", border: `1px solid ${C.line}`, cursor: "pointer",
                                    display: "grid", placeItems: "center", zIndex: 1 }}>
                           <Heart size={15} color={C.orange} fill={C.orange} />
@@ -133,9 +133,9 @@ export default function Favorites() {
                     if (!item) return null;
                     return (
                       <Link key={f.id} to={r ? `/restaurante/${r.slug}` : "#"} className="flex items-center gap-3"
-                        style={{ background: "#fff", border: `1px solid ${C.line}`, borderRadius: 14, padding: 12,
+                        style={{ background: "#fff", border: `1px solid ${C.line}`, borderRadius: RADIUS.lg, padding: 12,
                                  textDecoration: "none", color: "inherit" }}>
-                        <FoodPhoto v={item.color_variant} icon={Package} style={{ width: 56, height: 56, flexShrink: 0, borderRadius: 12 }} />
+                        <FoodPhoto v={item.color_variant} icon={Package} style={{ width: 56, height: 56, flexShrink: 0, borderRadius: RADIUS.md }} />
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ fontSize: 14.5, fontWeight: 600 }}>{item.name}</div>
                           {r && <div style={{ fontSize: 12.5, color: C.grayText, marginTop: 1 }}>{r.name}</div>}
@@ -143,7 +143,7 @@ export default function Favorites() {
                         </div>
                         <button type="button" onClick={(e) => { e.preventDefault(); handleRemoveItem(item.id); }}
                           aria-label={`Remover ${item.name} dos favoritos`}
-                          style={{ width: 32, height: 32, borderRadius: 999, background: "#fff", border: `1px solid ${C.line}`,
+                          style={{ width: 32, height: 32, borderRadius: RADIUS.pill, background: "#fff", border: `1px solid ${C.line}`,
                                    cursor: "pointer", display: "grid", placeItems: "center", flexShrink: 0 }}>
                           <Heart size={15} color={C.orange} fill={C.orange} />
                         </button>

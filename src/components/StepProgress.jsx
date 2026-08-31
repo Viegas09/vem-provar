@@ -1,11 +1,11 @@
-import { C, FONT } from "../theme";
+import { C, FONT, RADIUS } from "../theme";
 
 export default function StepProgress({ steps, current }) {
   return (
     <div style={{ marginBottom: 28 }}>
       <div className="flex items-center" style={{ gap: 6, marginBottom: 10 }}>
         {steps.map((_, i) => (
-          <div key={i} style={{ flex: 1, height: 5, borderRadius: 999,
+          <div key={i} style={{ flex: 1, height: 5, borderRadius: RADIUS.pill,
                background: i <= current ? C.orange : C.line, transition: "background .2s" }} />
         ))}
       </div>

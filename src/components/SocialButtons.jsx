@@ -1,4 +1,4 @@
-import { C, FONT } from "../theme";
+import { C, FONT, RADIUS } from "../theme";
 
 function GoogleIcon() {
   return (
@@ -23,13 +23,13 @@ function SocialButton({ icon, label }) {
   return (
     <button type="button" disabled title="Em breve"
       className="flex items-center justify-center gap-2"
-      style={{ width: "100%", border: `1.5px solid ${C.line}`, background: "#fff", borderRadius: 12,
+      style={{ width: "100%", border: `1.5px solid ${C.line}`, background: "#fff", borderRadius: RADIUS.md,
                padding: "13px 0", fontFamily: FONT, fontSize: 14.5, fontWeight: 600, color: C.grayText,
                cursor: "not-allowed", position: "relative" }}>
       {icon}
       {label}
       <span style={{ position: "absolute", right: 10, fontSize: 10.5, fontWeight: 700, color: C.gray,
-                     background: C.surface, padding: "2px 7px", borderRadius: 999 }}>
+                     background: C.surface, padding: "2px 7px", borderRadius: RADIUS.pill }}>
         Em breve
       </span>
     </button>

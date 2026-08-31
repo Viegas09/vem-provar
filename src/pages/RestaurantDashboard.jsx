@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { Plus, Trash2, Pencil, Store, Package } from "lucide-react";
-import { C, FONT, formatBRL } from "../theme";
+import { C, FONT, formatBRL, RADIUS } from "../theme";
 import { ICONS } from "../data/icons";
 import { useAuth } from "../context/AuthContext";
 import {
@@ -38,25 +38,25 @@ function MenuItemForm({ restaurantId, item, onSaved, onCancel }) {
 
   return (
     <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 10, background: C.surface,
-         borderRadius: 14, padding: 16, marginBottom: 14 }}>
+         borderRadius: RADIUS.lg, padding: 16, marginBottom: 14 }}>
       <input required value={name} onChange={(e) => setName(e.target.value)} placeholder="Nome do item"
-        style={{ border: `1.5px solid ${C.line}`, outline: "none", borderRadius: 10, padding: "10px 12px",
+        style={{ border: `1.5px solid ${C.line}`, outline: "none", borderRadius: RADIUS.sm, padding: "10px 12px",
                  fontFamily: FONT, fontSize: 14.5, background: "#fff" }} />
       <input value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Descrição"
-        style={{ border: `1.5px solid ${C.line}`, outline: "none", borderRadius: 10, padding: "10px 12px",
+        style={{ border: `1.5px solid ${C.line}`, outline: "none", borderRadius: RADIUS.sm, padding: "10px 12px",
                  fontFamily: FONT, fontSize: 14.5, background: "#fff" }} />
       <input required type="number" min="0" step="0.01" value={price} onChange={(e) => setPrice(e.target.value)}
         placeholder="Preço (R$)"
-        style={{ border: `1.5px solid ${C.line}`, outline: "none", borderRadius: 10, padding: "10px 12px",
+        style={{ border: `1.5px solid ${C.line}`, outline: "none", borderRadius: RADIUS.sm, padding: "10px 12px",
                  fontFamily: FONT, fontSize: 14.5, background: "#fff" }} />
       <div className="flex" style={{ gap: 10 }}>
         <button type="submit" disabled={saving}
-          style={{ background: C.orange, color: "#fff", border: "none", cursor: "pointer", borderRadius: 10,
+          style={{ background: C.orange, color: "#fff", border: "none", cursor: "pointer", borderRadius: RADIUS.sm,
                    padding: "10px 18px", fontFamily: FONT, fontSize: 14, fontWeight: 600 }}>
           {saving ? "Salvando…" : "Salvar"}
         </button>
         <button type="button" onClick={onCancel}
-          style={{ background: "none", border: `1px solid ${C.line}`, cursor: "pointer", borderRadius: 10,
+          style={{ background: "none", border: `1px solid ${C.line}`, cursor: "pointer", borderRadius: RADIUS.sm,
                    padding: "10px 18px", fontFamily: FONT, fontSize: 14, fontWeight: 600, color: C.grayText }}>
           Cancelar
         </button>
@@ -112,7 +112,7 @@ export default function RestaurantDashboard() {
       <Header />
       <section className="vp-wrap" style={{ padding: "32px 24px 120px", maxWidth: 720 }}>
         <div className="flex items-center gap-3" style={{ marginBottom: 8 }}>
-          <div style={{ width: 48, height: 48, borderRadius: 12, background: C.orange, display: "grid", placeItems: "center" }}>
+          <div style={{ width: 48, height: 48, borderRadius: RADIUS.md, background: C.orange, display: "grid", placeItems: "center" }}>
             <Icon size={22} color="#fff" />
           </div>
           <div>
@@ -126,7 +126,7 @@ export default function RestaurantDashboard() {
           <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>Cardápio</h2>
           {!showAddForm && (
             <button onClick={() => setShowAddForm(true)} className="flex items-center gap-1"
-              style={{ background: C.orange, color: "#fff", border: "none", cursor: "pointer", borderRadius: 10,
+              style={{ background: C.orange, color: "#fff", border: "none", cursor: "pointer", borderRadius: RADIUS.sm,
                        padding: "9px 16px", fontFamily: FONT, fontSize: 13.5, fontWeight: 600 }}>
               <Plus size={15} /> Adicionar item
             </button>
@@ -150,19 +150,19 @@ export default function RestaurantDashboard() {
                 onCancel={() => setEditingItem(null)} />
             ) : (
               <div key={item.id} className="flex items-center" style={{ gap: 12, padding: 14, background: "#fff",
-                   border: `1px solid ${C.line}`, borderRadius: 14 }}>
+                   border: `1px solid ${C.line}`, borderRadius: RADIUS.lg }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 15, fontWeight: 600 }}>{item.name}</div>
                   <div style={{ fontSize: 13, color: C.grayText }}>{item.description}</div>
                   <div style={{ fontSize: 14, fontWeight: 700, marginTop: 4 }}>{formatBRL(item.price)}</div>
                 </div>
                 <button onClick={() => setEditingItem(item.id)}
-                  style={{ width: 34, height: 34, borderRadius: 8, border: `1px solid ${C.line}`, background: "#fff",
+                  style={{ width: 34, height: 34, borderRadius: RADIUS.xs, border: `1px solid ${C.line}`, background: "#fff",
                            cursor: "pointer", display: "grid", placeItems: "center" }}>
                   <Pencil size={15} />
                 </button>
                 <button onClick={() => handleDelete(item.id)}
-                  style={{ width: 34, height: 34, borderRadius: 8, border: `1px solid ${C.line}`, background: "#fff",
+                  style={{ width: 34, height: 34, borderRadius: RADIUS.xs, border: `1px solid ${C.line}`, background: "#fff",
                            cursor: "pointer", display: "grid", placeItems: "center" }}>
                   <Trash2 size={15} color="#B42318" />
                 </button>
@@ -179,7 +179,7 @@ export default function RestaurantDashboard() {
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {orders.map((order) => (
-              <div key={order.id} style={{ padding: 14, background: "#fff", border: `1px solid ${C.line}`, borderRadius: 14 }}>
+              <div key={order.id} style={{ padding: 14, background: "#fff", border: `1px solid ${C.line}`, borderRadius: RADIUS.lg }}>
                 <div className="flex items-center justify-between">
                   <span style={{ fontSize: 14, fontWeight: 700 }}>Pedido #{order.id.slice(0, 8)}</span>
                   <span style={{ fontSize: 13, color: C.grayText }}>

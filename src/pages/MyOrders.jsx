@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { Package, CheckCircle2, Star } from "lucide-react";
-import { C, FONT, WARM, formatBRL } from "../theme";
+import { C, FONT, WARM, formatBRL, RADIUS } from "../theme";
 import { ICONS } from "../data/icons";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
@@ -123,7 +123,7 @@ export default function MyOrders() {
               Seus pedidos vão aparecer aqui assim que você fizer o primeiro.
             </p>
             <Link to="/" style={{ display: "inline-flex", background: C.orange, color: "#fff", fontWeight: 600,
-                 textDecoration: "none", padding: "11px 22px", borderRadius: 10, fontSize: 14 }}>
+                 textDecoration: "none", padding: "11px 22px", borderRadius: RADIUS.sm, fontSize: 14 }}>
               Ver restaurantes
             </Link>
           </div>
@@ -141,7 +141,7 @@ export default function MyOrders() {
                     const items = order.order_items || [];
                     const uniqueItemNames = [...new Set(items.map((i) => i.name))].slice(0, 3);
                     return (
-                      <div key={order.id} style={{ padding: 16, background: "#fff", border: `1px solid ${C.line}`, borderRadius: 16 }}>
+                      <div key={order.id} style={{ padding: 16, background: "#fff", border: `1px solid ${C.line}`, borderRadius: RADIUS.xl }}>
                         <Link to={`/pedido/${order.id}`} className="flex items-start" style={{ gap: 12, textDecoration: "none", color: "inherit" }}>
                           <RestaurantAvatar iconKey={order.restaurants?.icon_key} colorVariant={order.restaurants?.color_variant} />
                           <div style={{ flex: 1, minWidth: 0 }}>
@@ -161,7 +161,7 @@ export default function MyOrders() {
                             </div>
                             <div className="flex items-center gap-1" style={{ marginTop: 2 }}>
                               {delivered ? <CheckCircle2 size={13} color={meta.color} /> :
-                                <span style={{ width: 7, height: 7, borderRadius: 999, background: meta.color, flexShrink: 0 }} />}
+                                <span style={{ width: 7, height: 7, borderRadius: RADIUS.pill, background: meta.color, flexShrink: 0 }} />}
                               <span style={{ fontSize: 12.5, fontWeight: 600, color: meta.color }}>{meta.label}</span>
                               <span style={{ fontSize: 12, color: C.grayText }}>· #{order.id.slice(0, 8)}</span>
                             </div>

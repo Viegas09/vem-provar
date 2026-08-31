@@ -1,6 +1,6 @@
 import { Link, useLocation, Navigate } from "react-router-dom";
 import { CheckCircle2 } from "lucide-react";
-import { C, FONT, formatBRL } from "../theme";
+import { C, FONT, formatBRL, RADIUS } from "../theme";
 import Header from "../components/Header";
 import ConfettiBurst from "../components/ConfettiBurst";
 
@@ -26,7 +26,7 @@ export default function OrderConfirmation() {
         <p style={{ fontSize: 15, color: C.grayText, margin: "0 0 28px" }}>
           Pedido #{orderNumber} · {formatBRL(total)} · {paymentLabel}
         </p>
-        <div style={{ background: C.surface, borderRadius: 16, padding: "20px 24px", marginBottom: 28 }}>
+        <div style={{ background: C.surface, borderRadius: RADIUS.xl, padding: "20px 24px", marginBottom: 28 }}>
           <p style={{ fontSize: 14.5, margin: 0, lineHeight: 1.6 }}>
             {scheduledLabel
               ? <>Seu pedido foi agendado para <b>{scheduledLabel}</b>. O restaurante vai começar o preparo perto desse horário.</>
@@ -36,12 +36,12 @@ export default function OrderConfirmation() {
         <div className="flex items-center justify-center gap-3" style={{ flexWrap: "wrap" }}>
           {orderId && (
             <Link to={`/pedido/${orderId}`} style={{ display: "inline-block", background: C.orange, color: "#fff", textDecoration: "none",
-                 fontSize: 15, fontWeight: 600, padding: "13px 28px", borderRadius: 12 }}>
+                 fontSize: 15, fontWeight: 600, padding: "13px 28px", borderRadius: RADIUS.md }}>
               Acompanhar pedido
             </Link>
           )}
           <Link to="/" style={{ display: "inline-block", background: "none", border: `1px solid ${C.line}`, color: C.black, textDecoration: "none",
-               fontSize: 15, fontWeight: 600, padding: "13px 28px", borderRadius: 12 }}>
+               fontSize: 15, fontWeight: 600, padding: "13px 28px", borderRadius: RADIUS.md }}>
             Voltar para o início
           </Link>
         </div>

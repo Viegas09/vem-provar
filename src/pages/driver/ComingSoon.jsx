@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Bike, ArrowLeft } from "lucide-react";
-import { C, FONT } from "../../theme";
+import { C, FONT, RADIUS } from "../../theme";
 import Header from "../../components/Header";
 
 export default function DriverComingSoon() {
@@ -8,7 +8,7 @@ export default function DriverComingSoon() {
     <div style={{ fontFamily: FONT, background: C.white, color: C.black, minHeight: "100vh" }}>
       <Header />
       <section className="vp-wrap" style={{ padding: "60px 24px 100px", maxWidth: 480, textAlign: "center" }}>
-        <div style={{ width: 64, height: 64, borderRadius: 18, background: C.orange, display: "grid",
+        <div style={{ width: 64, height: 64, borderRadius: RADIUS.xxl, background: C.orange, display: "grid",
              placeItems: "center", margin: "0 auto 20px" }}>
           <Bike size={28} color="#fff" />
         </div>

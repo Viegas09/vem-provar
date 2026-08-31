@@ -4,7 +4,7 @@ import {
   MapPin, Star, Clock, Bike, Store, ArrowRight,
   Flame, Heart, ChevronRight, AtSign, Smartphone, X,
 } from "lucide-react";
-import { C, FONT, WARM } from "../theme";
+import { C, FONT, WARM, RADIUS } from "../theme";
 import { CATS, ICONS } from "../data/icons";
 import { useRestaurants } from "../hooks/useRestaurants";
 import { useRecentOrders } from "../hooks/useRecentOrders";
@@ -143,7 +143,7 @@ export default function Home() {
               )}
               <div className="flex items-center gap-2" style={{ marginBottom: 18 }}>
                 <span style={{ background: "rgba(238,108,26,.1)", color: C.orange, fontSize: 12.5, fontWeight: 600,
-                               padding: "5px 12px", borderRadius: 999 }}>Itapecerica da Serra</span>
+                               padding: "5px 12px", borderRadius: RADIUS.pill }}>Itapecerica da Serra</span>
               </div>
               <h1 style={{ fontSize: 44, lineHeight: 1.08, fontWeight: 700, letterSpacing: -1, margin: 0 }}>
                 O maior portal de gastronomia da sua cidade
@@ -155,14 +155,14 @@ export default function Home() {
               {/* entrada por endereço (a gramática do delivery) */}
               <div style={{ marginTop: 26, display: "flex", gap: 10, maxWidth: 480, flexWrap: "wrap" }}>
                 <div className="flex items-center gap-2" style={{ flex: "1 1 260px", background: "#fff", border: `1.5px solid ${C.line}`,
-                         borderRadius: 12, padding: "0 14px", minHeight: 54 }}>
+                         borderRadius: RADIUS.md, padding: "0 14px", minHeight: 54 }}>
                   <MapPin size={20} color={C.orange} />
                   <input value={location.address} onChange={(e) => setLocation({ ...location, address: e.target.value })}
                     placeholder="Digite seu endereço"
                     style={{ border: "none", outline: "none", flex: 1, fontFamily: FONT, fontSize: 15, background: "transparent", color: C.black }} />
                 </div>
                 <a href="#restaurantes" className="flex items-center justify-center gap-2"
-                  style={{ background: C.orange, color: "#fff", border: "none", cursor: "pointer", borderRadius: 12,
+                  style={{ background: C.orange, color: "#fff", border: "none", cursor: "pointer", borderRadius: RADIUS.md,
                            padding: "0 26px", minHeight: 54, fontFamily: FONT, fontSize: 15.5, fontWeight: 600, textDecoration: "none" }}>
                   Ver restaurantes <ArrowRight size={18} />
                 </a>
@@ -194,7 +194,7 @@ export default function Home() {
               <button key={c.key} className="vp-tap" onClick={() => navigate(`/busca?cat=${c.key}`)}
                 style={{ background: "none", border: "none", cursor: "pointer", display: "flex", flexDirection: "column",
                          alignItems: "center", gap: 8, flexShrink: 0 }}>
-                <div style={{ width: 66, height: 66, borderRadius: 20, background: C.surface, display: "grid", placeItems: "center" }}>
+                <div style={{ width: 66, height: 66, borderRadius: RADIUS.xxxl, background: C.surface, display: "grid", placeItems: "center" }}>
                   <Icon size={27} color={C.black} />
                 </div>
                 <span style={{ fontSize: 12.5, fontWeight: 500, color: C.grayText }}>{c.label}</span>
@@ -221,7 +221,7 @@ export default function Home() {
               const justReordered = reorderedId === order.id;
               return (
                 <div key={order.id} style={{ width: 208, flexShrink: 0, background: "#fff", border: `1px solid ${C.line}`,
-                     borderRadius: 16, overflow: "hidden" }}>
+                     borderRadius: RADIUS.xl, overflow: "hidden" }}>
                   <Link to={`/restaurante/${r.slug}`} style={{ textDecoration: "none", color: "inherit" }}>
                     <FoodPhoto v={r.color_variant} icon={ICONS[r.icon_key] || Store} radius={0} style={{ height: 88 }} />
                     <div style={{ padding: "10px 12px 0" }}>
@@ -239,7 +239,7 @@ export default function Home() {
                   <div style={{ padding: "10px 12px 12px" }}>
                     <button onClick={() => handleReorder(order)}
                       style={{ width: "100%", background: justReordered ? C.ok : "rgba(238,108,26,.1)",
-                               color: justReordered ? "#fff" : C.orange, border: "none", borderRadius: 10,
+                               color: justReordered ? "#fff" : C.orange, border: "none", borderRadius: RADIUS.sm,
                                padding: "9px 0", fontFamily: FONT, fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
                       {justReordered ? "Adicionado ao carrinho!" : "Pedir de novo"}
                     </button>
@@ -253,7 +253,7 @@ export default function Home() {
 
       {error && (
         <section className="vp-wrap" style={{ padding: "24px" }}>
-          <div style={{ background: "#FDECEC", color: "#B42318", borderRadius: 12, padding: 16, fontSize: 14 }}>
+          <div style={{ background: "#FDECEC", color: "#B42318", borderRadius: RADIUS.md, padding: 16, fontSize: 14 }}>
             Não foi possível carregar os restaurantes agora. Tente atualizar a página.
           </div>
         </section>
@@ -265,7 +265,7 @@ export default function Home() {
             <div className="flex items-center gap-2">
               <Flame size={20} color={C.orange} fill={C.orange} />
               <h2 style={{ fontSize: 22, fontWeight: 700, margin: 0, letterSpacing: -.4 }}>Tá bombando na vizinhança</h2>
-              <span style={{ width: 8, height: 8, borderRadius: 999, background: C.orange, animation: "vp-pulse 1.4s ease-in-out infinite" }} />
+              <span style={{ width: 8, height: 8, borderRadius: RADIUS.pill, background: C.orange, animation: "vp-pulse 1.4s ease-in-out infinite" }} />
             </div>
             <a href="#restaurantes" className="flex items-center" style={{ color: C.orange, textDecoration: "none", fontSize: 14, fontWeight: 600 }}>
               Ver tudo <ChevronRight size={17} />
@@ -274,14 +274,14 @@ export default function Home() {
           <div className="vp-scroll" style={{ display: "flex", gap: 18 }}>
             {highlights.map((h, i) => (
               <Link key={i} to={`/restaurante/${h.slug}`} className="vp-tap" style={{ width: 220, flexShrink: 0,
-                   background: "#fff", border: `1px solid ${C.line}`, borderRadius: 18, overflow: "hidden",
+                   background: "#fff", border: `1px solid ${C.line}`, borderRadius: RADIUS.xxl, overflow: "hidden",
                    textDecoration: "none", color: "inherit", display: "block" }}>
                 <div style={{ position: "relative" }}>
                   <FoodPhoto v={h.v} icon={h.icon} radius={0} style={{ height: 130 }} />
                   {user && (
                     <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleFavorite(h.restaurantId); }}
                       aria-label={isFavorite(h.restaurantId) ? `Remover ${h.rest} dos favoritos` : `Favoritar ${h.rest}`}
-                      style={{ position: "absolute", top: 10, right: 10, width: 34, height: 34, borderRadius: 999,
+                      style={{ position: "absolute", top: 10, right: 10, width: 34, height: 34, borderRadius: RADIUS.pill,
                                background: "rgba(255,255,255,.94)", border: "none", cursor: "pointer", display: "grid", placeItems: "center" }}>
                       <Heart key={String(isFavorite(h.restaurantId))} className="vp-pop" size={17} color={isFavorite(h.restaurantId) ? C.orange : C.grayText} fill={isFavorite(h.restaurantId) ? C.orange : "none"} />
                     </button>
@@ -291,7 +291,7 @@ export default function Home() {
                   <div style={{ fontSize: 15, fontWeight: 600 }}>{h.dish}</div>
                   <div style={{ fontSize: 12.5, color: C.grayText, marginTop: 1 }}>{h.rest}</div>
                   <span style={{ display: "inline-block", marginTop: 10, fontSize: 11.5, fontWeight: 600, color: C.orange,
-                                 background: "rgba(238,108,26,.1)", padding: "4px 9px", borderRadius: 8 }}>{h.tag}</span>
+                                 background: "rgba(238,108,26,.1)", padding: "4px 9px", borderRadius: RADIUS.xs }}>{h.tag}</span>
                 </div>
               </Link>
             ))}
@@ -324,7 +324,7 @@ export default function Home() {
               return (
                 <button key={opt.value} onClick={() => setSortBy(opt.value)}
                   style={{ flexShrink: 0, background: active ? C.black : "#fff", color: active ? "#fff" : C.grayText,
-                           border: `1.5px solid ${active ? C.black : C.line}`, borderRadius: 999, cursor: "pointer",
+                           border: `1.5px solid ${active ? C.black : C.line}`, borderRadius: RADIUS.pill, cursor: "pointer",
                            padding: "7px 14px", fontFamily: FONT, fontSize: 13, fontWeight: 600 }}>
                   {opt.label}
                 </button>
@@ -345,11 +345,11 @@ export default function Home() {
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 16 }}>
             {sortedRestaurants.map((r) => (
               <Link key={r.slug} to={`/restaurante/${r.slug}`} className="vp-tap flex" style={{ gap: 14, padding: 14, background: "#fff",
-                   border: `1px solid ${C.line}`, borderRadius: 16, cursor: "pointer", textDecoration: "none", color: "inherit", position: "relative" }}>
+                   border: `1px solid ${C.line}`, borderRadius: RADIUS.xl, cursor: "pointer", textDecoration: "none", color: "inherit", position: "relative" }}>
                 {user && (
                   <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleFavorite(r.id); }}
                     aria-label={isFavorite(r.id) ? `Remover ${r.name} dos favoritos` : `Favoritar ${r.name}`}
-                    style={{ position: "absolute", top: 10, right: 10, width: 32, height: 32, borderRadius: 999,
+                    style={{ position: "absolute", top: 10, right: 10, width: 32, height: 32, borderRadius: RADIUS.pill,
                              background: "rgba(255,255,255,.94)", border: `1px solid ${C.line}`, cursor: "pointer",
                              display: "grid", placeItems: "center", zIndex: 1 }}>
                     <Heart key={String(isFavorite(r.id))} className="vp-pop" size={15} color={isFavorite(r.id) ? C.orange : C.grayText} fill={isFavorite(r.id) ? C.orange : "none"} />
@@ -388,8 +388,8 @@ export default function Home() {
           <section style={{ background: C.black, marginTop: 30 }}>
             <div className="vp-wrap" style={{ padding: "48px 24px" }}>
               <div className="vp-roles">
-                <div id="restaurante" style={{ background: "rgba(255,255,255,.04)", borderRadius: 20, padding: "30px 28px" }}>
-                  <div style={{ width: 52, height: 52, borderRadius: 14, background: C.orange, display: "grid", placeItems: "center", marginBottom: 16 }}>
+                <div id="restaurante" style={{ background: "rgba(255,255,255,.04)", borderRadius: RADIUS.xxxl, padding: "30px 28px" }}>
+                  <div style={{ width: 52, height: 52, borderRadius: RADIUS.lg, background: C.orange, display: "grid", placeItems: "center", marginBottom: 16 }}>
                     <Store size={24} color="#fff" />
                   </div>
                   <h3 style={{ color: C.white, fontSize: 21, fontWeight: 700, margin: 0 }}>Tem um restaurante?</h3>
@@ -400,12 +400,12 @@ export default function Home() {
                     Cadastre seu restaurante <ArrowRight size={17} />
                   </Link>
                 </div>
-                <div id="entregador" style={{ background: "rgba(255,255,255,.04)", borderRadius: 20, padding: "30px 28px", position: "relative" }}>
+                <div id="entregador" style={{ background: "rgba(255,255,255,.04)", borderRadius: RADIUS.xxxl, padding: "30px 28px", position: "relative" }}>
                   <span style={{ position: "absolute", top: 24, right: 28, fontSize: 11, fontWeight: 700, color: C.gray,
-                       background: "rgba(255,255,255,.08)", padding: "3px 10px", borderRadius: 999 }}>
+                       background: "rgba(255,255,255,.08)", padding: "3px 10px", borderRadius: RADIUS.pill }}>
                     Em breve
                   </span>
-                  <div style={{ width: 52, height: 52, borderRadius: 14, background: C.orange, display: "grid", placeItems: "center", marginBottom: 16 }}>
+                  <div style={{ width: 52, height: 52, borderRadius: RADIUS.lg, background: C.orange, display: "grid", placeItems: "center", marginBottom: 16 }}>
                     <Bike size={24} color="#fff" />
                   </div>
                   <h3 style={{ color: C.white, fontSize: 21, fontWeight: 700, margin: 0 }}>Quer entregar com a gente?</h3>

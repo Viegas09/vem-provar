@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Mail, Lock } from "lucide-react";
-import { C, FONT } from "../../theme";
+import { C, FONT, RADIUS } from "../../theme";
 import { useAuth } from "../../context/AuthContext";
 import { supabase } from "../../lib/supabase";
 import { fetchDriverByUser } from "../../data/queries";
@@ -36,14 +36,14 @@ export default function DriverLogin() {
       <h2 style={{ fontSize: 22, fontWeight: 700, margin: "0 0 22px" }}>Entrar como entregador</h2>
       <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
         <div className="flex items-center gap-2" style={{ background: "#fff", border: `1.5px solid ${C.line}`,
-             borderRadius: 12, padding: "0 14px", minHeight: 54 }}>
+             borderRadius: RADIUS.md, padding: "0 14px", minHeight: 54 }}>
           <Mail size={18} color={C.orange} />
           <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
             placeholder="Seu e-mail"
             style={{ border: "none", outline: "none", flex: 1, fontFamily: FONT, fontSize: 15, background: "transparent" }} />
         </div>
         <div className="flex items-center gap-2" style={{ background: "#fff", border: `1.5px solid ${C.line}`,
-             borderRadius: 12, padding: "0 14px", minHeight: 54 }}>
+             borderRadius: RADIUS.md, padding: "0 14px", minHeight: 54 }}>
           <Lock size={18} color={C.orange} />
           <input type="password" required value={password} onChange={(e) => setPassword(e.target.value)}
             placeholder="Sua senha"
@@ -51,14 +51,14 @@ export default function DriverLogin() {
         </div>
 
         {error && (
-          <div style={{ background: "#FDECEC", color: "#B42318", borderRadius: 12, padding: 12, fontSize: 13.5 }}>
+          <div style={{ background: "#FDECEC", color: "#B42318", borderRadius: RADIUS.md, padding: 12, fontSize: 13.5 }}>
             {error}
           </div>
         )}
 
         <button type="submit" disabled={loading}
           style={{ background: loading ? C.gray : C.orange, color: "#fff", border: "none",
-                   cursor: loading ? "default" : "pointer", borderRadius: 12, padding: "15px 0",
+                   cursor: loading ? "default" : "pointer", borderRadius: RADIUS.md, padding: "15px 0",
                    fontFamily: FONT, fontSize: 15.5, fontWeight: 600, marginTop: 6 }}>
           {loading ? "Entrando…" : "Entrar"}
         </button>

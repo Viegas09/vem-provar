@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { X, Minus, Plus, Check, Share2, ShoppingCart } from "lucide-react";
-import { C, FONT, WARM, formatBRL } from "../theme";
+import { C, FONT, WARM, formatBRL, RADIUS } from "../theme";
 import { useShare } from "../hooks/useShare";
 import { useToast } from "../context/ToastContext";
 
@@ -68,12 +68,12 @@ export default function ItemModal({ item, icon: Icon, restaurantName, onClose, o
           <div style={{ position: "absolute", top: 12, right: 12, display: "flex", gap: 8 }}>
             <button onClick={() => share({ title: item.name, text: `Dá uma olhada em ${item.name}${restaurantName ? ` no ${restaurantName}` : ""} pelo Vem Provar!` })}
               aria-label="Compartilhar"
-              style={{ width: 34, height: 34, borderRadius: 999,
+              style={{ width: 34, height: 34, borderRadius: RADIUS.pill,
                        background: "rgba(255,255,255,.94)", border: "none", cursor: "pointer", display: "grid", placeItems: "center" }}>
               {shareCopied ? <Check size={16} color={C.ok} /> : <Share2 size={16} />}
             </button>
             <button onClick={onClose} aria-label="Fechar"
-              style={{ width: 34, height: 34, borderRadius: 999,
+              style={{ width: 34, height: 34, borderRadius: RADIUS.pill,
                        background: "rgba(255,255,255,.94)", border: "none", cursor: "pointer", display: "grid", placeItems: "center" }}>
               <X size={17} />
             </button>
@@ -97,12 +97,12 @@ export default function ItemModal({ item, icon: Icon, restaurantName, onClose, o
                   <span style={{ fontSize: 14.5, fontWeight: 700 }}>{group.name}</span>
                   {group.min_qty > 0 ? (
                     <span style={{ fontSize: 11, fontWeight: 700, color: invalid ? "#B42318" : C.ok,
-                         background: invalid ? "#FDECEC" : "rgba(46,158,91,.1)", padding: "2px 8px", borderRadius: 999 }}>
+                         background: invalid ? "#FDECEC" : "rgba(46,158,91,.1)", padding: "2px 8px", borderRadius: RADIUS.pill }}>
                       Obrigatório
                     </span>
                   ) : (
                     <span style={{ fontSize: 11, fontWeight: 700, color: C.grayText, background: C.surface,
-                         padding: "2px 8px", borderRadius: 999 }}>
+                         padding: "2px 8px", borderRadius: RADIUS.pill }}>
                       Opcional
                     </span>
                   )}
@@ -119,7 +119,7 @@ export default function ItemModal({ item, icon: Icon, restaurantName, onClose, o
                       <button key={ci.id} type="button" disabled={disabled} onClick={() => toggleComplement(group, ci.id)}
                         className="flex items-center justify-between"
                         style={{ width: "100%", textAlign: "left", background: isSel ? "rgba(238,108,26,.08)" : "#fff",
-                                 border: `1.5px solid ${isSel ? C.orange : C.line}`, borderRadius: 10, padding: "10px 12px",
+                                 border: `1.5px solid ${isSel ? C.orange : C.line}`, borderRadius: RADIUS.sm, padding: "10px 12px",
                                  cursor: disabled ? "default" : "pointer", opacity: disabled ? 0.5 : 1 }}>
                         <span style={{ fontSize: 13.5, fontWeight: isSel ? 600 : 500 }}>{ci.name}</span>
                         <span className="flex items-center gap-2">
@@ -149,7 +149,7 @@ export default function ItemModal({ item, icon: Icon, restaurantName, onClose, o
             <div style={{ fontSize: 13.5, fontWeight: 700, marginBottom: 8 }}>Alguma observação?</div>
             <textarea value={notes} onChange={(e) => setNotes(e.target.value)} maxLength={200}
               placeholder="Ex: sem cebola, ponto da carne, sem gelo…"
-              style={{ width: "100%", minHeight: 70, border: `1.5px solid ${C.line}`, borderRadius: 12, padding: 12,
+              style={{ width: "100%", minHeight: 70, border: `1.5px solid ${C.line}`, borderRadius: RADIUS.md, padding: 12,
                        fontFamily: FONT, fontSize: 14, outline: "none", resize: "vertical", boxSizing: "border-box" }} />
           </div>
         </div>
@@ -158,7 +158,7 @@ export default function ItemModal({ item, icon: Icon, restaurantName, onClose, o
              position: "sticky", bottom: 0, background: "#fff" }}>
           <div className="flex items-center gap-2" style={{ flexShrink: 0 }}>
             <button onClick={() => setQty((q) => Math.max(1, q - 1))} aria-label="Diminuir quantidade"
-              style={{ width: 34, height: 34, borderRadius: 8, border: `1px solid ${C.line}`, background: "#fff",
+              style={{ width: 34, height: 34, borderRadius: RADIUS.xs, border: `1px solid ${C.line}`, background: "#fff",
                        cursor: "pointer", display: "grid", placeItems: "center" }}>
               <Minus size={15} />
             </button>
@@ -166,7 +166,7 @@ export default function ItemModal({ item, icon: Icon, restaurantName, onClose, o
               {qty}
             </span>
             <button onClick={() => setQty((q) => q + 1)} aria-label="Aumentar quantidade"
-              style={{ width: 34, height: 34, borderRadius: 8, border: "none", background: C.orange, color: "#fff",
+              style={{ width: 34, height: 34, borderRadius: RADIUS.xs, border: "none", background: C.orange, color: "#fff",
                        cursor: "pointer", display: "grid", placeItems: "center" }}>
               <Plus size={15} />
             </button>
@@ -174,7 +174,7 @@ export default function ItemModal({ item, icon: Icon, restaurantName, onClose, o
           <button onClick={handleAdd} disabled={invalidGroups.length > 0}
             style={{ flex: 1, background: invalidGroups.length > 0 ? C.gray : C.orange, color: "#fff", border: "none",
                      cursor: invalidGroups.length > 0 ? "default" : "pointer",
-                     borderRadius: 12, padding: "13px 0", fontFamily: FONT, fontSize: 15, fontWeight: 600 }}>
+                     borderRadius: RADIUS.md, padding: "13px 0", fontFamily: FONT, fontSize: 15, fontWeight: 600 }}>
             Adicionar · {formatBRL(unitPrice * qty)}
           </button>
         </div>

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { C, FONT } from "../theme";
+import { C, FONT, RADIUS } from "../theme";
 
 let sdkPromise = null;
 function loadMpSdk() {
@@ -81,7 +81,7 @@ export default function CardPaymentBrick({ orderId, total, onPaid, onCancel }) {
   }, [orderId, total]);
 
   return (
-    <div className="vp-fade-in" style={{ background: "#fff", border: `1px solid ${C.line}`, borderRadius: 16, padding: 16 }}>
+    <div className="vp-fade-in" style={{ background: "#fff", border: `1px solid ${C.line}`, borderRadius: RADIUS.xl, padding: 16 }}>
       {loading && <p style={{ fontSize: 13.5, color: C.grayText, textAlign: "center", margin: "20px 0" }}>Carregando pagamento…</p>}
       {failMsg && <div style={{ color: "#B42318", fontSize: 13, marginBottom: 10, textAlign: "center" }}>{failMsg}</div>}
       <div id="vp-card-brick" ref={containerRef} />

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { User, Phone, Mail } from "lucide-react";
-import { C, FONT } from "../theme";
+import { C, FONT, RADIUS } from "../theme";
 import { useAuth } from "../context/AuthContext";
 import { fetchProfile, updateProfile } from "../data/queries";
 import Header from "../components/Header";
@@ -55,7 +55,7 @@ export default function MyData() {
           <div>
             <div style={{ fontSize: 12.5, fontWeight: 700, color: C.grayText, marginBottom: 6 }}>Nome completo</div>
             <div className="flex items-center gap-2" style={{ background: "#fff", border: `1.5px solid ${C.line}`,
-                 borderRadius: 12, padding: "0 14px", minHeight: 54 }}>
+                 borderRadius: RADIUS.md, padding: "0 14px", minHeight: 54 }}>
               <User size={18} color={C.orange} />
               <input value={fullName} onChange={(e) => setFullName(e.target.value)}
                 style={{ border: "none", outline: "none", flex: 1, fontFamily: FONT, fontSize: 15, background: "transparent" }} />
@@ -65,7 +65,7 @@ export default function MyData() {
           <div>
             <div style={{ fontSize: 12.5, fontWeight: 700, color: C.grayText, marginBottom: 6 }}>Telefone</div>
             <div className="flex items-center gap-2" style={{ background: "#fff", border: `1.5px solid ${C.line}`,
-                 borderRadius: 12, padding: "0 14px", minHeight: 54 }}>
+                 borderRadius: RADIUS.md, padding: "0 14px", minHeight: 54 }}>
               <Phone size={18} color={C.orange} />
               <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="(11) 90000-0000"
                 style={{ border: "none", outline: "none", flex: 1, fontFamily: FONT, fontSize: 15, background: "transparent" }} />
@@ -74,7 +74,7 @@ export default function MyData() {
 
           <div>
             <div style={{ fontSize: 12.5, fontWeight: 700, color: C.grayText, marginBottom: 6 }}>E-mail e senha</div>
-            <div className="flex items-center gap-2" style={{ background: C.surface, borderRadius: 12, padding: "0 14px", minHeight: 54 }}>
+            <div className="flex items-center gap-2" style={{ background: C.surface, borderRadius: RADIUS.md, padding: "0 14px", minHeight: 54 }}>
               <Mail size={18} color={C.grayText} />
               <span style={{ flex: 1, fontSize: 15, color: C.grayText }}>{user.email}</span>
               <span style={{ fontSize: 11.5, fontWeight: 700, color: C.gray }}>Em breve</span>
@@ -82,14 +82,14 @@ export default function MyData() {
           </div>
 
           {saved && (
-            <div style={{ background: "rgba(46,158,91,.1)", color: C.ok, borderRadius: 12, padding: 12, fontSize: 13.5, fontWeight: 600 }}>
+            <div style={{ background: "rgba(46,158,91,.1)", color: C.ok, borderRadius: RADIUS.md, padding: 12, fontSize: 13.5, fontWeight: 600 }}>
               Dados salvos!
             </div>
           )}
 
           <button type="submit" disabled={saving}
             style={{ background: saving ? C.gray : C.orange, color: "#fff", border: "none",
-                     cursor: saving ? "default" : "pointer", borderRadius: 12, padding: "15px 0",
+                     cursor: saving ? "default" : "pointer", borderRadius: RADIUS.md, padding: "15px 0",
                      fontFamily: FONT, fontSize: 15.5, fontWeight: 600, marginTop: 6 }}>
             {saving ? "Salvando…" : "Salvar alterações"}
           </button>

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { Bike, Car, Package } from "lucide-react";
-import { C, FONT } from "../../theme";
+import { C, FONT, RADIUS } from "../../theme";
 import { useAuth } from "../../context/AuthContext";
 import { fetchDriverByUser } from "../../data/queries";
 import PortalHeader from "../../components/PortalHeader";
@@ -46,7 +46,7 @@ export default function DriverDashboard() {
       <PortalHeader label="Portal do Entregador" />
       <section className="vp-wrap" style={{ padding: "32px 24px 120px", maxWidth: 640 }}>
         <div className="flex items-center gap-3" style={{ marginBottom: 8 }}>
-          <div style={{ width: 48, height: 48, borderRadius: 12, background: C.orange, display: "grid", placeItems: "center" }}>
+          <div style={{ width: 48, height: 48, borderRadius: RADIUS.md, background: C.orange, display: "grid", placeItems: "center" }}>
             <VehicleIcon size={22} color="#fff" />
           </div>
           <div>
@@ -59,7 +59,7 @@ export default function DriverDashboard() {
         <p style={{ fontSize: 13.5, color: C.grayText, marginBottom: 32 }}>{driver.address}</p>
 
         <h2 style={{ fontSize: 18, fontWeight: 700, margin: "0 0 14px" }}>Entregas disponíveis</h2>
-        <div style={{ background: C.surface, borderRadius: 14, padding: 24, textAlign: "center" }}>
+        <div style={{ background: C.surface, borderRadius: RADIUS.lg, padding: 24, textAlign: "center" }}>
           <Package size={28} color={C.gray} style={{ margin: "0 auto 10px" }} />
           <p style={{ color: C.grayText, fontSize: 14, margin: 0 }}>
             Nenhuma entrega disponível no momento. Essa parte ainda está sendo construída —

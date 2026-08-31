@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Star, Clock, Bike, Store, Heart, XCircle, Search, X, Share2, Check } from "lucide-react";
-import { C, FONT, WARM, formatBRL } from "../theme";
+import { C, FONT, WARM, formatBRL, RADIUS, SHADOW } from "../theme";
 import { ICONS } from "../data/icons";
 import { useRestaurant } from "../hooks/useRestaurant";
 import { fetchReviewsForRestaurant } from "../data/queries";
@@ -36,9 +36,9 @@ function FoodPhoto({ v = 0, icon: Icon, radius = 16, style, photoUrl, iconSize =
 function RoundIconButton({ onClick, children, style, ariaLabel }) {
   return (
     <button onClick={onClick} aria-label={ariaLabel}
-      style={{ width: 38, height: 38, borderRadius: 999, border: "none", cursor: "pointer",
+      style={{ width: 38, height: 38, borderRadius: RADIUS.pill, border: "none", cursor: "pointer",
                background: "rgba(255,255,255,.94)", display: "grid", placeItems: "center",
-               boxShadow: "0 2px 8px rgba(0,0,0,.15)", flexShrink: 0, ...style }}>
+               boxShadow: SHADOW.xs, flexShrink: 0, ...style }}>
       {children}
     </button>
   );
@@ -192,7 +192,7 @@ export default function Restaurant() {
             <span style={{ fontSize: 14.5, fontWeight: 700 }}>{formatBRL(item.price)}</span>
             {qty > 0 && (
               <span key={qty} className="vp-pop" style={{ fontSize: 12, fontWeight: 700, color: C.orange,
-                   background: "rgba(238,108,26,.1)", padding: "2px 8px", borderRadius: 999 }}>
+                   background: "rgba(238,108,26,.1)", padding: "2px 8px", borderRadius: RADIUS.pill }}>
                 {qty} no carrinho
               </span>
             )}
@@ -203,9 +203,9 @@ export default function Restaurant() {
           {user && (
             <button type="button" onClick={(e) => { e.stopPropagation(); toggleFavoriteItem(item.id); }}
               aria-label={isFavoriteItem(item.id) ? `Remover ${item.name} dos favoritos` : `Favoritar ${item.name}`}
-              style={{ position: "absolute", top: 5, right: 5, width: 26, height: 26, borderRadius: 999, border: "none",
+              style={{ position: "absolute", top: 5, right: 5, width: 26, height: 26, borderRadius: RADIUS.pill, border: "none",
                        background: "rgba(255,255,255,.94)", cursor: "pointer", display: "grid", placeItems: "center",
-                       boxShadow: "0 1px 4px rgba(0,0,0,.15)" }}>
+                       boxShadow: SHADOW.xs }}>
               <Heart key={String(isFavoriteItem(item.id))} className="vp-pop" size={13} color={isFavoriteItem(item.id) ? C.orange : C.grayText} fill={isFavoriteItem(item.id) ? C.orange : "none"} />
             </button>
           )}
@@ -239,8 +239,8 @@ export default function Restaurant() {
       </div>
 
       <section className="vp-wrap" style={{ padding: "0 16px", maxWidth: 640 }}>
-        <div style={{ position: "relative", marginTop: -40, background: "#fff", borderRadius: 18, padding: "18px 18px 14px",
-             boxShadow: "0 4px 20px rgba(20,20,20,.08)", border: `1px solid ${C.line}` }}>
+        <div style={{ position: "relative", marginTop: -40, background: "#fff", borderRadius: RADIUS.xxl, padding: "18px 18px 14px",
+             boxShadow: SHADOW.sm, border: `1px solid ${C.line}` }}>
           <div className="flex items-start gap-3">
             <FoodPhoto v={restaurant.color_variant} icon={Icon} radius={14} style={{ width: 58, height: 58, flexShrink: 0,
                  marginTop: -36, border: "3px solid #fff" }} />
@@ -276,13 +276,13 @@ export default function Restaurant() {
 
       <section className="vp-wrap" style={{ padding: "18px 16px 0", maxWidth: 640 }}>
         {isClosed && (
-          <div className="flex items-center gap-2" style={{ background: "#FDECEC", color: "#B42318", borderRadius: 12,
+          <div className="flex items-center gap-2" style={{ background: "#FDECEC", color: "#B42318", borderRadius: RADIUS.md,
                padding: "12px 16px", fontSize: 13.5, fontWeight: 600, marginBottom: 18 }}>
             <XCircle size={17} style={{ flexShrink: 0 }} /> Este restaurante está fechado no momento — não é possível fazer pedidos.
           </div>
         )}
 
-        <div className="flex items-center gap-2" style={{ background: C.surface, borderRadius: 10, padding: "0 12px", height: 44, marginBottom: 20 }}>
+        <div className="flex items-center gap-2" style={{ background: C.surface, borderRadius: RADIUS.sm, padding: "0 12px", height: 44, marginBottom: 20 }}>
           <Search size={16} color={C.grayText} />
           <input value={menuSearch} onChange={(e) => setMenuSearch(e.target.value)}
             placeholder={`Buscar em ${restaurant.name}`}
@@ -309,7 +309,7 @@ export default function Restaurant() {
                       <FoodPhoto v={item.color_variant} radius={14} style={{ width: 132, height: 100 }} photoUrl={item.image_url} />
                       {qty > 0 && (
                         <span key={qty} className="vp-pop" style={{ position: "absolute", top: 6, right: 6, background: C.orange, color: "#fff",
-                             fontSize: 11, fontWeight: 700, borderRadius: 999, minWidth: 18, height: 18,
+                             fontSize: 11, fontWeight: 700, borderRadius: RADIUS.pill, minWidth: 18, height: 18,
                              display: "grid", placeItems: "center", padding: "0 4px" }}>
                           {qty}
                         </span>
@@ -317,9 +317,9 @@ export default function Restaurant() {
                       {user && (
                         <button type="button" onClick={(e) => { e.stopPropagation(); toggleFavoriteItem(item.id); }}
                           aria-label={isFavoriteItem(item.id) ? `Remover ${item.name} dos favoritos` : `Favoritar ${item.name}`}
-                          style={{ position: "absolute", top: 6, left: 6, width: 26, height: 26, borderRadius: 999, border: "none",
+                          style={{ position: "absolute", top: 6, left: 6, width: 26, height: 26, borderRadius: RADIUS.pill, border: "none",
                                    background: "rgba(255,255,255,.94)", cursor: "pointer", display: "grid", placeItems: "center",
-                                   boxShadow: "0 1px 4px rgba(0,0,0,.15)" }}>
+                                   boxShadow: SHADOW.xs }}>
                           <Heart key={String(isFavoriteItem(item.id))} className="vp-pop" size={13} color={isFavoriteItem(item.id) ? C.orange : C.grayText} fill={isFavoriteItem(item.id) ? C.orange : "none"} />
                         </button>
                       )}
@@ -358,9 +358,9 @@ export default function Restaurant() {
         <Link to="/carrinho" className="vp-minicart flex items-center justify-between vp-tap"
           style={{ position: "fixed", left: "50%", transform: "translateX(-50%)", width: "calc(100% - 32px)", maxWidth: 608,
                    zIndex: 41, background: C.black, color: "#fff",
-                   borderRadius: 14, padding: "14px 18px", textDecoration: "none", boxShadow: "0 8px 24px rgba(0,0,0,.25)" }}>
+                   borderRadius: RADIUS.lg, padding: "14px 18px", textDecoration: "none", boxShadow: SHADOW.lg }}>
           <span style={{ fontSize: 14.5, fontWeight: 700 }}>{formatBRL(subtotal)} · Ver carrinho</span>
-          <span style={{ background: C.orange, color: "#fff", fontSize: 12.5, fontWeight: 700, borderRadius: 999,
+          <span style={{ background: C.orange, color: "#fff", fontSize: 12.5, fontWeight: 700, borderRadius: RADIUS.pill,
                minWidth: 22, height: 22, display: "grid", placeItems: "center", padding: "0 6px" }}>
             {cart.items.reduce((sum, i) => sum + i.qty, 0)}
           </span>

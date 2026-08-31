@@ -1,4 +1,4 @@
-import { C } from "../theme";
+import { C, RADIUS } from "../theme";
 
 export function Skeleton({ width = "100%", height = 16, radius = 8, style }) {
   return <div className="vp-skel" style={{ width, height, borderRadius: radius, ...style }} />;
@@ -18,7 +18,7 @@ export function SkeletonPage() {
 
 export function SkeletonCard() {
   return (
-    <div className="flex" style={{ gap: 14, padding: 14, background: "#fff", border: `1px solid ${C.line}`, borderRadius: 16 }}>
+    <div className="flex" style={{ gap: 14, padding: 14, background: "#fff", border: `1px solid ${C.line}`, borderRadius: RADIUS.xl }}>
       <Skeleton width={88} height={88} radius={16} style={{ flexShrink: 0 }} />
       <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 8, justifyContent: "center", minWidth: 0 }}>
         <Skeleton width="55%" height={16} />
@@ -32,7 +32,7 @@ export function SkeletonCard() {
 export function SkeletonMenuItem() {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 10, padding: 14, background: "#fff",
-         border: `1px solid ${C.line}`, borderRadius: 16 }}>
+         border: `1px solid ${C.line}`, borderRadius: RADIUS.xl }}>
       <div className="flex items-start" style={{ gap: 14 }}>
         <Skeleton width={72} height={72} radius={12} style={{ flexShrink: 0 }} />
         <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 8, paddingTop: 2 }}>
@@ -47,7 +47,7 @@ export function SkeletonMenuItem() {
 
 export function SkeletonRow() {
   return (
-    <div style={{ padding: "12px 16px", background: "#fff", border: `1px solid ${C.line}`, borderRadius: 12 }}>
+    <div style={{ padding: "12px 16px", background: "#fff", border: `1px solid ${C.line}`, borderRadius: RADIUS.md }}>
       <div className="flex items-center justify-between">
         <Skeleton width="45%" height={14} />
         <Skeleton width={70} height={12} />

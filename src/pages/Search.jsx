@@ -1,14 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowLeft, Search as SearchIcon, Store, UtensilsCrossed, X } from "lucide-react";
-import { C, FONT, WARM, formatBRL } from "../theme";
+import { C, FONT, WARM, formatBRL, RADIUS } from "../theme";
 import { ICONS, CATS } from "../data/icons";
 import { useRestaurants } from "../hooks/useRestaurants";
 import { SkeletonCard } from "../components/Skeleton";
 
 function FoodPhoto({ v = 0, icon: Icon, style }) {
   return (
-    <div className="vp-photo" style={{ position: "relative", background: WARM[v % WARM.length], borderRadius: 14, overflow: "hidden", ...style }}>
+    <div className="vp-photo" style={{ position: "relative", background: WARM[v % WARM.length], borderRadius: RADIUS.lg, overflow: "hidden", ...style }}>
       <div style={{ position: "absolute", inset: 0, background: "radial-gradient(120% 80% at 25% 12%, rgba(255,255,255,.28), transparent 60%)" }} />
       {Icon && <Icon size={26} color="rgba(255,255,255,.5)" style={{ position: "absolute", right: 10, bottom: 10 }} />}
     </div>
@@ -84,11 +84,11 @@ export default function Search() {
            padding: "14px 16px", paddingTop: "calc(14px + env(safe-area-inset-top))" }}>
         <div className="flex items-center gap-2" style={{ maxWidth: 640, margin: "0 auto" }}>
           <button onClick={() => navigate(-1)} aria-label="Voltar"
-            style={{ width: 38, height: 38, borderRadius: 10, border: `1px solid ${C.line}`, background: "#fff",
+            style={{ width: 38, height: 38, borderRadius: RADIUS.sm, border: `1px solid ${C.line}`, background: "#fff",
                      display: "grid", placeItems: "center", cursor: "pointer", flexShrink: 0 }}>
             <ArrowLeft size={18} />
           </button>
-          <div className="flex items-center gap-2" style={{ flex: 1, background: C.surface, borderRadius: 10, padding: "0 12px", height: 42 }}>
+          <div className="flex items-center gap-2" style={{ flex: 1, background: C.surface, borderRadius: RADIUS.sm, padding: "0 12px", height: 42 }}>
             <SearchIcon size={16} color={C.grayText} />
             <input ref={inputRef} value={term} onChange={(e) => { setTerm(e.target.value); if (catKey) setSearchParams({}); }}
               placeholder="Busque por restaurante ou prato"
@@ -111,7 +111,7 @@ export default function Search() {
                 const Icon = c.icon;
                 return (
                   <button key={c.key} onClick={() => openCategory(c.key)} className="vp-tap"
-                    style={{ position: "relative", height: 92, borderRadius: 16, border: "none", cursor: "pointer",
+                    style={{ position: "relative", height: 92, borderRadius: RADIUS.xl, border: "none", cursor: "pointer",
                              background: c.bg, overflow: "hidden", padding: "14px 16px", textAlign: "left" }}>
                     <span style={{ position: "relative", zIndex: 1, color: "#fff", fontSize: 16, fontWeight: 700 }}>{c.label}</span>
                     <Icon size={30} color="rgba(255,255,255,.9)" style={{ position: "absolute", right: 14, bottom: 12 }} />
@@ -149,7 +149,7 @@ export default function Search() {
                   {SORT_OPTIONS.map((opt) => (
                     <button key={opt.key} onClick={() => setSortBy(opt.key)}
                       style={{ flexShrink: 0, background: sortBy === opt.key ? C.black : "#fff", color: sortBy === opt.key ? "#fff" : C.black,
-                               border: `1.5px solid ${sortBy === opt.key ? C.black : C.line}`, borderRadius: 999, padding: "7px 14px",
+                               border: `1.5px solid ${sortBy === opt.key ? C.black : C.line}`, borderRadius: RADIUS.pill, padding: "7px 14px",
                                fontFamily: FONT, fontSize: 13, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap" }}>
                       {opt.label}
                     </button>
@@ -157,7 +157,7 @@ export default function Search() {
                   <span style={{ width: 1, height: 20, background: C.line, flexShrink: 0 }} />
                   <button onClick={() => setFreeDeliveryOnly((v) => !v)}
                     style={{ flexShrink: 0, background: freeDeliveryOnly ? C.ok : "#fff", color: freeDeliveryOnly ? "#fff" : C.black,
-                             border: `1.5px solid ${freeDeliveryOnly ? C.ok : C.line}`, borderRadius: 999, padding: "7px 14px",
+                             border: `1.5px solid ${freeDeliveryOnly ? C.ok : C.line}`, borderRadius: RADIUS.pill, padding: "7px 14px",
                              fontFamily: FONT, fontSize: 13, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap" }}>
                     Entrega grátis
                   </button>
@@ -173,14 +173,14 @@ export default function Search() {
                       const dish = hasQuery ? matchedDish(r, query) : null;
                       return (
                         <Link key={r.slug} to={`/restaurante/${r.slug}`} className="flex" style={{ gap: 12, padding: 12, background: "#fff",
-                             border: `1px solid ${C.line}`, borderRadius: 14, textDecoration: "none", color: "inherit" }}>
+                             border: `1px solid ${C.line}`, borderRadius: RADIUS.lg, textDecoration: "none", color: "inherit" }}>
                           <FoodPhoto v={r.color_variant} icon={ICONS[r.icon_key] || Store} style={{ width: 64, height: 64, flexShrink: 0 }} />
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <div style={{ fontSize: 15, fontWeight: 600 }}>{r.name}</div>
                             <div style={{ fontSize: 12.5, color: C.grayText, marginTop: 2 }}>{r.category}</div>
                             {dish && (
                               <div className="flex items-center gap-1" style={{ marginTop: 6, background: "rgba(238,108,26,.08)",
-                                   borderRadius: 8, padding: "4px 8px", display: "inline-flex" }}>
+                                   borderRadius: RADIUS.xs, padding: "4px 8px", display: "inline-flex" }}>
                                 <UtensilsCrossed size={12} color={C.orange} style={{ flexShrink: 0 }} />
                                 <span style={{ fontSize: 12, fontWeight: 600, color: C.orange, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                                   {dish.name} · {formatBRL(dish.price)}

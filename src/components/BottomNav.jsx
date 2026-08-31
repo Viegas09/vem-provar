@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Home, Package, Search, ShoppingCart, User } from "lucide-react";
-import { C, FONT } from "../theme";
+import { C, FONT, RADIUS } from "../theme";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import { useAppMode } from "../hooks/useAppMode";
@@ -45,7 +45,7 @@ export default function BottomNav() {
               <Icon size={22} strokeWidth={tab.active ? 2.4 : 2} fill={tab.active && tab.label === "Início" ? "rgba(238,108,26,.12)" : "none"} />
               {!!tab.badge && (
                 <span style={{ position: "absolute", top: -4, right: -8, background: C.orange, color: "#fff", fontSize: 9,
-                     fontWeight: 700, borderRadius: 999, minWidth: 14, height: 14, display: "grid", placeItems: "center", padding: "0 3px" }}>
+                     fontWeight: 700, borderRadius: RADIUS.pill, minWidth: 14, height: 14, display: "grid", placeItems: "center", padding: "0 3px" }}>
                   {tab.badge}
                 </span>
               )}

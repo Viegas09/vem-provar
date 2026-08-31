@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { C, FONT } from "../theme";
+import { C, FONT, RADIUS } from "../theme";
 import WORDMARK_DARK from "../assets/wordmark-dark.png";
 import LOGO_MARK_HEART from "../assets/logo-mark-heart.png";
 
@@ -26,7 +26,7 @@ export default function AppGate() {
       <div style={{ padding: "0 24px calc(28px + env(safe-area-inset-bottom))", display: "flex",
            flexDirection: "column", gap: 14, alignItems: "center" }}>
         <Link to="/criar-conta" style={{ background: C.orange, color: "#fff", textDecoration: "none",
-             borderRadius: 12, padding: "16px 0", fontSize: 15.5, fontWeight: 600, textAlign: "center",
+             borderRadius: RADIUS.md, padding: "16px 0", fontSize: 15.5, fontWeight: 600, textAlign: "center",
              width: "100%", maxWidth: 340 }}>
           Criar conta
         </Link>

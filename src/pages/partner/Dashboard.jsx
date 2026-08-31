@@ -6,7 +6,7 @@ import {
   ImagePlus, BarChart3, ListPlus, ChevronDown, ChevronUp, TrendingDown, MessageCircle, X, Tag,
   Lock, HelpCircle, Bell, Search, Volume2, VolumeX, GripVertical,
 } from "lucide-react";
-import { C, FONT, formatBRL } from "../../theme";
+import { C, FONT, formatBRL, RADIUS } from "../../theme";
 import { ICONS } from "../../data/icons";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
@@ -85,13 +85,13 @@ function ProfileChecklist({ restaurant }) {
   if (doneCount === items.length) return null;
   const pct = Math.round((doneCount / items.length) * 100);
   return (
-    <div style={{ background: "#fff", border: `1.5px solid ${C.orange}`, borderRadius: 16, padding: 16, marginBottom: 24 }}>
+    <div style={{ background: "#fff", border: `1.5px solid ${C.orange}`, borderRadius: RADIUS.xl, padding: 16, marginBottom: 24 }}>
       <div className="flex items-center justify-between" style={{ marginBottom: 10 }}>
         <span style={{ fontSize: 14, fontWeight: 700 }}>Complete seu perfil pra vender mais</span>
         <span style={{ fontSize: 12.5, fontWeight: 700, color: C.orange }}>{doneCount}/{items.length}</span>
       </div>
-      <div style={{ height: 6, borderRadius: 999, background: C.surface, overflow: "hidden", marginBottom: 12 }}>
-        <div style={{ height: "100%", width: `${pct}%`, background: C.orange, borderRadius: 999, transition: "width .3s ease" }} />
+      <div style={{ height: 6, borderRadius: RADIUS.pill, background: C.surface, overflow: "hidden", marginBottom: 12 }}>
+        <div style={{ height: "100%", width: `${pct}%`, background: C.orange, borderRadius: RADIUS.pill, transition: "width .3s ease" }} />
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
         {items.map((item) => (
@@ -108,7 +108,7 @@ function ProfileChecklist({ restaurant }) {
 
 function StatTile({ icon: Icon, label, value, accent }) {
   return (
-    <div style={{ background: "#fff", border: `1px solid ${C.line}`, borderRadius: 16, padding: 16 }}>
+    <div style={{ background: "#fff", border: `1px solid ${C.line}`, borderRadius: RADIUS.xl, padding: 16 }}>
       <div className="flex items-center gap-2" style={{ marginBottom: 8 }}>
         <div style={{ width: 30, height: 30, borderRadius: 9, background: accent ? "rgba(238,108,26,.1)" : C.surface,
              display: "grid", placeItems: "center" }}>
@@ -171,10 +171,10 @@ function MenuItemForm({ restaurantId, item, existingCategories, nextSortOrder, o
 
   return (
     <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 10, background: C.surface,
-         borderRadius: 14, padding: 16, marginBottom: 14 }}>
+         borderRadius: RADIUS.lg, padding: 16, marginBottom: 14 }}>
       <label style={{ display: "flex", alignItems: "center", gap: 12, cursor: "pointer" }}>
         <input type="file" accept="image/*" onChange={handlePhotoChange} style={{ display: "none" }} />
-        <div style={{ width: 64, height: 64, borderRadius: 12, flexShrink: 0, overflow: "hidden",
+        <div style={{ width: 64, height: 64, borderRadius: RADIUS.md, flexShrink: 0, overflow: "hidden",
              border: `1.5px dashed ${C.line}`, background: "#fff", display: "grid", placeItems: "center" }}>
           {photoPreview ? (
             <img src={photoPreview} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
@@ -188,15 +188,15 @@ function MenuItemForm({ restaurantId, item, existingCategories, nextSortOrder, o
         </div>
       </label>
       <input required value={name} onChange={(e) => setName(e.target.value)} placeholder="Nome do item"
-        style={{ border: `1.5px solid ${C.line}`, outline: "none", borderRadius: 10, padding: "10px 12px",
+        style={{ border: `1.5px solid ${C.line}`, outline: "none", borderRadius: RADIUS.sm, padding: "10px 12px",
                  fontFamily: FONT, fontSize: 14.5, background: "#fff" }} />
       <input value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Descrição"
-        style={{ border: `1.5px solid ${C.line}`, outline: "none", borderRadius: 10, padding: "10px 12px",
+        style={{ border: `1.5px solid ${C.line}`, outline: "none", borderRadius: RADIUS.sm, padding: "10px 12px",
                  fontFamily: FONT, fontSize: 14.5, background: "#fff" }} />
       <div className="vp-form-grid-2">
         <input value={category} onChange={(e) => setCategory(e.target.value)} placeholder="Categoria (ex: Lanches, Bebidas)"
           list="vp-menu-categories"
-          style={{ border: `1.5px solid ${C.line}`, outline: "none", borderRadius: 10, padding: "10px 12px",
+          style={{ border: `1.5px solid ${C.line}`, outline: "none", borderRadius: RADIUS.sm, padding: "10px 12px",
                    fontFamily: FONT, fontSize: 14.5, background: "#fff", width: "100%", boxSizing: "border-box" }} />
         {existingCategories && existingCategories.length > 0 && (
           <datalist id="vp-menu-categories">
@@ -205,22 +205,22 @@ function MenuItemForm({ restaurantId, item, existingCategories, nextSortOrder, o
         )}
         <input required type="number" min="0" step="0.01" value={price} onChange={(e) => setPrice(e.target.value)}
           placeholder="Preço (R$)"
-          style={{ border: `1.5px solid ${C.line}`, outline: "none", borderRadius: 10, padding: "10px 12px",
+          style={{ border: `1.5px solid ${C.line}`, outline: "none", borderRadius: RADIUS.sm, padding: "10px 12px",
                    fontFamily: FONT, fontSize: 14.5, background: "#fff", width: "100%", boxSizing: "border-box" }} />
       </div>
       {error && (
-        <div style={{ background: "#FDECEC", color: "#B42318", borderRadius: 10, padding: "10px 12px", fontSize: 13 }}>
+        <div style={{ background: "#FDECEC", color: "#B42318", borderRadius: RADIUS.sm, padding: "10px 12px", fontSize: 13 }}>
           {error}
         </div>
       )}
       <div className="flex" style={{ gap: 10 }}>
         <button type="submit" disabled={saving}
-          style={{ background: C.orange, color: "#fff", border: "none", cursor: "pointer", borderRadius: 10,
+          style={{ background: C.orange, color: "#fff", border: "none", cursor: "pointer", borderRadius: RADIUS.sm,
                    padding: "10px 18px", fontFamily: FONT, fontSize: 14, fontWeight: 600 }}>
           {saving ? "Salvando…" : "Salvar"}
         </button>
         <button type="button" onClick={onCancel}
-          style={{ background: "none", border: `1px solid ${C.line}`, cursor: "pointer", borderRadius: 10,
+          style={{ background: "none", border: `1px solid ${C.line}`, cursor: "pointer", borderRadius: RADIUS.sm,
                    padding: "10px 18px", fontFamily: FONT, fontSize: 14, fontWeight: 600, color: C.grayText }}>
           Cancelar
         </button>
@@ -242,7 +242,7 @@ const STORE_ICON_OPTIONS = [
 ];
 
 const profileFieldStyle = {
-  border: `1.5px solid ${C.line}`, outline: "none", borderRadius: 10, padding: "10px 12px",
+  border: `1.5px solid ${C.line}`, outline: "none", borderRadius: RADIUS.sm, padding: "10px 12px",
   fontFamily: FONT, fontSize: 14.5, background: "#fff", width: "100%", boxSizing: "border-box",
 };
 const profileLabelStyle = { fontSize: 12.5, fontWeight: 700, color: C.grayText, display: "block", marginBottom: 6 };
@@ -313,7 +313,7 @@ function RestaurantProfileForm({ restaurant, onSaved }) {
     <form onSubmit={handleSubmit} style={{ maxWidth: 560, display: "flex", flexDirection: "column", gap: 16 }}>
       <label style={{ cursor: "pointer" }}>
         <input type="file" accept="image/*" onChange={handleBannerChange} style={{ display: "none" }} />
-        <div style={{ position: "relative", height: 140, borderRadius: 14, overflow: "hidden",
+        <div style={{ position: "relative", height: 140, borderRadius: RADIUS.lg, overflow: "hidden",
              border: `1.5px dashed ${C.line}`, background: C.surface, display: "grid", placeItems: "center" }}>
           {bannerPreview ? (
             <img src={bannerPreview} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
@@ -324,7 +324,7 @@ function RestaurantProfileForm({ restaurant, onSaved }) {
             </div>
           )}
           <div style={{ position: "absolute", bottom: 8, right: 8, background: "rgba(0,0,0,.6)", color: "#fff",
-               fontSize: 11.5, fontWeight: 600, padding: "4px 10px", borderRadius: 999 }}>
+               fontSize: 11.5, fontWeight: 600, padding: "4px 10px", borderRadius: RADIUS.pill }}>
             {bannerPreview ? "Trocar foto" : "Adicionar foto"}
           </div>
         </div>
@@ -381,17 +381,17 @@ function RestaurantProfileForm({ restaurant, onSaved }) {
       </div>
 
       {error && (
-        <div style={{ background: "#FDECEC", color: "#B42318", borderRadius: 10, padding: 12, fontSize: 13 }}>{error}</div>
+        <div style={{ background: "#FDECEC", color: "#B42318", borderRadius: RADIUS.sm, padding: 12, fontSize: 13 }}>{error}</div>
       )}
       {saved && (
-        <div style={{ background: "rgba(46,158,91,.1)", color: C.ok, borderRadius: 10, padding: 12, fontSize: 13, fontWeight: 600 }}>
+        <div style={{ background: "rgba(46,158,91,.1)", color: C.ok, borderRadius: RADIUS.sm, padding: 12, fontSize: 13, fontWeight: 600 }}>
           Dados salvos!
         </div>
       )}
 
       <button type="submit" disabled={saving}
         style={{ background: saving ? C.gray : C.orange, color: "#fff", border: "none", cursor: saving ? "default" : "pointer",
-                 borderRadius: 12, padding: "13px 0", fontFamily: FONT, fontSize: 15, fontWeight: 600, alignSelf: "flex-start", minWidth: 200 }}>
+                 borderRadius: RADIUS.md, padding: "13px 0", fontFamily: FONT, fontSize: 15, fontWeight: 600, alignSelf: "flex-start", minWidth: 200 }}>
         {saving ? "Salvando…" : "Salvar alterações"}
       </button>
     </form>
@@ -433,7 +433,7 @@ function BusinessHoursForm({ restaurant, onSaved }) {
           const day = hours.find((h) => h.day === d.key) || { day: d.key, closed: false, open: "11:00", close: "22:00" };
           return (
             <div key={d.key} className="flex items-center gap-3"
-              style={{ background: "#fff", border: `1px solid ${C.line}`, borderRadius: 10, padding: "10px 12px" }}>
+              style={{ background: "#fff", border: `1px solid ${C.line}`, borderRadius: RADIUS.sm, padding: "10px 12px" }}>
               <span style={{ fontSize: 13.5, fontWeight: 700, width: 76, flexShrink: 0 }}>{d.short}</span>
               <label className="flex items-center gap-2" style={{ fontSize: 12.5, color: C.grayText, cursor: "pointer", flexShrink: 0 }}>
                 <input type="checkbox" checked={!day.closed} onChange={(e) => updateDay(d.key, { closed: !e.target.checked })} />
@@ -442,11 +442,11 @@ function BusinessHoursForm({ restaurant, onSaved }) {
               {!day.closed && (
                 <>
                   <input type="time" value={day.open} onChange={(e) => updateDay(d.key, { open: e.target.value })}
-                    style={{ border: `1.5px solid ${C.line}`, outline: "none", borderRadius: 8, padding: "6px 8px",
+                    style={{ border: `1.5px solid ${C.line}`, outline: "none", borderRadius: RADIUS.xs, padding: "6px 8px",
                              fontFamily: FONT, fontSize: 13.5 }} />
                   <span style={{ color: C.grayText, fontSize: 13 }}>até</span>
                   <input type="time" value={day.close} onChange={(e) => updateDay(d.key, { close: e.target.value })}
-                    style={{ border: `1.5px solid ${C.line}`, outline: "none", borderRadius: 8, padding: "6px 8px",
+                    style={{ border: `1.5px solid ${C.line}`, outline: "none", borderRadius: RADIUS.xs, padding: "6px 8px",
                              fontFamily: FONT, fontSize: 13.5 }} />
                 </>
               )}
@@ -456,14 +456,14 @@ function BusinessHoursForm({ restaurant, onSaved }) {
       </div>
 
       {saved && (
-        <div style={{ background: "rgba(46,158,91,.1)", color: C.ok, borderRadius: 10, padding: 12, fontSize: 13, fontWeight: 600, marginTop: 14 }}>
+        <div style={{ background: "rgba(46,158,91,.1)", color: C.ok, borderRadius: RADIUS.sm, padding: 12, fontSize: 13, fontWeight: 600, marginTop: 14 }}>
           Horário salvo!
         </div>
       )}
 
       <button type="submit" disabled={saving}
         style={{ marginTop: 14, background: saving ? C.gray : C.orange, color: "#fff", border: "none", cursor: saving ? "default" : "pointer",
-                 borderRadius: 12, padding: "13px 0", fontFamily: FONT, fontSize: 15, fontWeight: 600, minWidth: 200 }}>
+                 borderRadius: RADIUS.md, padding: "13px 0", fontFamily: FONT, fontSize: 15, fontWeight: 600, minWidth: 200 }}>
         {saving ? "Salvando…" : "Salvar horário"}
       </button>
     </form>
@@ -509,30 +509,30 @@ function CouponForm({ restaurantId, onSaved, onCancel }) {
 
   return (
     <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 10, background: C.surface,
-         borderRadius: 14, padding: 16, marginBottom: 14, maxWidth: 480 }}>
+         borderRadius: RADIUS.lg, padding: 16, marginBottom: 14, maxWidth: 480 }}>
       <input required value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} placeholder="Código (ex: BEMVINDO10)"
-        style={{ border: `1.5px solid ${C.line}`, outline: "none", borderRadius: 10, padding: "10px 12px",
+        style={{ border: `1.5px solid ${C.line}`, outline: "none", borderRadius: RADIUS.sm, padding: "10px 12px",
                  fontFamily: FONT, fontSize: 14.5, background: "#fff" }} />
       <div className="flex" style={{ gap: 10 }}>
         <select value={discountType} onChange={(e) => setDiscountType(e.target.value)}
-          style={{ flex: 1, border: `1.5px solid ${C.line}`, outline: "none", borderRadius: 10, padding: "10px 12px",
+          style={{ flex: 1, border: `1.5px solid ${C.line}`, outline: "none", borderRadius: RADIUS.sm, padding: "10px 12px",
                    fontFamily: FONT, fontSize: 14.5, background: "#fff" }}>
           <option value="percent">% de desconto</option>
           <option value="fixed">R$ fixo</option>
         </select>
         <input required type="number" min="0" step="0.01" value={discountValue} onChange={(e) => setDiscountValue(e.target.value)}
           placeholder={discountType === "percent" ? "Ex: 10" : "Ex: 5,00"}
-          style={{ flex: 1, border: `1.5px solid ${C.line}`, outline: "none", borderRadius: 10, padding: "10px 12px",
+          style={{ flex: 1, border: `1.5px solid ${C.line}`, outline: "none", borderRadius: RADIUS.sm, padding: "10px 12px",
                    fontFamily: FONT, fontSize: 14.5, background: "#fff" }} />
       </div>
       <div className="flex" style={{ gap: 10 }}>
         <input type="number" min="0" step="0.01" value={minOrderValue} onChange={(e) => setMinOrderValue(e.target.value)}
           placeholder="Pedido mínimo (R$, opcional)"
-          style={{ flex: 1, border: `1.5px solid ${C.line}`, outline: "none", borderRadius: 10, padding: "10px 12px",
+          style={{ flex: 1, border: `1.5px solid ${C.line}`, outline: "none", borderRadius: RADIUS.sm, padding: "10px 12px",
                    fontFamily: FONT, fontSize: 14.5, background: "#fff" }} />
         <input type="number" min="1" value={maxUses} onChange={(e) => setMaxUses(e.target.value)}
           placeholder="Limite de usos (opcional)"
-          style={{ flex: 1, border: `1.5px solid ${C.line}`, outline: "none", borderRadius: 10, padding: "10px 12px",
+          style={{ flex: 1, border: `1.5px solid ${C.line}`, outline: "none", borderRadius: RADIUS.sm, padding: "10px 12px",
                    fontFamily: FONT, fontSize: 14.5, background: "#fff" }} />
       </div>
       <div>
@@ -540,20 +540,20 @@ function CouponForm({ restaurantId, onSaved, onCancel }) {
           Expira em (opcional)
         </label>
         <input type="date" value={expiresAt} onChange={(e) => setExpiresAt(e.target.value)}
-          style={{ border: `1.5px solid ${C.line}`, outline: "none", borderRadius: 10, padding: "10px 12px",
+          style={{ border: `1.5px solid ${C.line}`, outline: "none", borderRadius: RADIUS.sm, padding: "10px 12px",
                    fontFamily: FONT, fontSize: 14.5, background: "#fff" }} />
       </div>
       {error && (
-        <div style={{ background: "#FDECEC", color: "#B42318", borderRadius: 10, padding: "10px 12px", fontSize: 13 }}>{error}</div>
+        <div style={{ background: "#FDECEC", color: "#B42318", borderRadius: RADIUS.sm, padding: "10px 12px", fontSize: 13 }}>{error}</div>
       )}
       <div className="flex" style={{ gap: 10 }}>
         <button type="submit" disabled={saving}
-          style={{ background: C.orange, color: "#fff", border: "none", cursor: "pointer", borderRadius: 10,
+          style={{ background: C.orange, color: "#fff", border: "none", cursor: "pointer", borderRadius: RADIUS.sm,
                    padding: "10px 18px", fontFamily: FONT, fontSize: 14, fontWeight: 600 }}>
           {saving ? "Salvando…" : "Criar cupom"}
         </button>
         <button type="button" onClick={onCancel}
-          style={{ background: "none", border: `1px solid ${C.line}`, cursor: "pointer", borderRadius: 10,
+          style={{ background: "none", border: `1px solid ${C.line}`, cursor: "pointer", borderRadius: RADIUS.sm,
                    padding: "10px 18px", fontFamily: FONT, fontSize: 14, fontWeight: 600, color: C.grayText }}>
           Cancelar
         </button>
@@ -626,16 +626,16 @@ function PartnerAccountForm({ user }) {
           <div style={{ ...profileFieldStyle, background: C.surface, color: C.grayText }}>{user.email}</div>
         </div>
         {nameError && (
-          <div style={{ background: "#FDECEC", color: "#B42318", borderRadius: 10, padding: 10, fontSize: 13 }}>{nameError}</div>
+          <div style={{ background: "#FDECEC", color: "#B42318", borderRadius: RADIUS.sm, padding: 10, fontSize: 13 }}>{nameError}</div>
         )}
         {nameSaved && (
-          <div style={{ background: "rgba(46,158,91,.1)", color: C.ok, borderRadius: 10, padding: 10, fontSize: 13, fontWeight: 600 }}>
+          <div style={{ background: "rgba(46,158,91,.1)", color: C.ok, borderRadius: RADIUS.sm, padding: 10, fontSize: 13, fontWeight: 600 }}>
             Dados salvos!
           </div>
         )}
         <button type="submit" disabled={savingName}
           style={{ alignSelf: "flex-start", background: savingName ? C.gray : C.orange, color: "#fff", border: "none",
-                   cursor: savingName ? "default" : "pointer", borderRadius: 10, padding: "10px 20px",
+                   cursor: savingName ? "default" : "pointer", borderRadius: RADIUS.sm, padding: "10px 20px",
                    fontFamily: FONT, fontSize: 14, fontWeight: 600 }}>
           {savingName ? "Salvando…" : "Salvar dados"}
         </button>
@@ -649,16 +649,16 @@ function PartnerAccountForm({ user }) {
         <input type="password" required minLength={6} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)}
           placeholder="Confirmar nova senha" style={profileFieldStyle} />
         {passwordError && (
-          <div style={{ background: "#FDECEC", color: "#B42318", borderRadius: 10, padding: 10, fontSize: 13 }}>{passwordError}</div>
+          <div style={{ background: "#FDECEC", color: "#B42318", borderRadius: RADIUS.sm, padding: 10, fontSize: 13 }}>{passwordError}</div>
         )}
         {passwordSaved && (
-          <div style={{ background: "rgba(46,158,91,.1)", color: C.ok, borderRadius: 10, padding: 10, fontSize: 13, fontWeight: 600 }}>
+          <div style={{ background: "rgba(46,158,91,.1)", color: C.ok, borderRadius: RADIUS.sm, padding: 10, fontSize: 13, fontWeight: 600 }}>
             Senha alterada!
           </div>
         )}
         <button type="submit" disabled={savingPassword}
           style={{ alignSelf: "flex-start", background: savingPassword ? C.gray : C.orange, color: "#fff", border: "none",
-                   cursor: savingPassword ? "default" : "pointer", borderRadius: 10, padding: "10px 20px",
+                   cursor: savingPassword ? "default" : "pointer", borderRadius: RADIUS.sm, padding: "10px 20px",
                    fontFamily: FONT, fontSize: 14, fontWeight: 600 }}>
           {savingPassword ? "Salvando…" : "Trocar senha"}
         </button>
@@ -670,7 +670,7 @@ function PartnerAccountForm({ user }) {
         </h3>
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {PARTNER_FAQ.map((item) => (
-            <div key={item.q} style={{ background: "#fff", border: `1px solid ${C.line}`, borderRadius: 12, padding: 14 }}>
+            <div key={item.q} style={{ background: "#fff", border: `1px solid ${C.line}`, borderRadius: RADIUS.md, padding: 14 }}>
               <div style={{ fontSize: 13.5, fontWeight: 700, marginBottom: 4 }}>{item.q}</div>
               <p style={{ fontSize: 13, color: C.grayText, margin: 0, lineHeight: 1.5 }}>{item.a}</p>
             </div>
@@ -688,18 +688,18 @@ function CommissionCard({ restaurant, orders }) {
   const totalCommission = orders.reduce((sum, o) => sum + Number(o.commission_amount ?? 0), 0);
 
   return (
-    <div style={{ background: C.surface, border: `1px solid ${C.line}`, borderRadius: 16, padding: 18, marginBottom: 8 }}>
+    <div style={{ background: C.surface, border: `1px solid ${C.line}`, borderRadius: RADIUS.xl, padding: 18, marginBottom: 8 }}>
       <div className="flex items-center gap-2" style={{ marginBottom: 12 }}>
         <Wallet size={17} color={C.orange} />
         <span style={{ fontSize: 14.5, fontWeight: 700 }}>Sua comissão</span>
         {inPromo ? (
           <span style={{ fontSize: 11.5, fontWeight: 700, color: C.ok, background: "rgba(46,158,91,.12)",
-               padding: "3px 9px", borderRadius: 999 }}>
+               padding: "3px 9px", borderRadius: RADIUS.pill }}>
             0% até {promoEndsAt(restaurant.promo_started_at).toLocaleDateString("pt-BR")}
           </span>
         ) : (
           <span style={{ fontSize: 11.5, fontWeight: 700, color: C.orange, background: "rgba(238,108,26,.1)",
-               padding: "3px 9px", borderRadius: 999 }}>
+               padding: "3px 9px", borderRadius: RADIUS.pill }}>
             {rate}% por pedido
           </span>
         )}
@@ -724,7 +724,7 @@ function CommissionCard({ restaurant, orders }) {
 function FinanceStat({ icon: Icon, label, value, tone }) {
   const color = tone === "up" ? C.ok : tone === "down" ? "#B42318" : C.black;
   return (
-    <div style={{ flex: "1 1 170px", background: "#fff", border: `1px solid ${C.line}`, borderRadius: 16, padding: 16 }}>
+    <div style={{ flex: "1 1 170px", background: "#fff", border: `1px solid ${C.line}`, borderRadius: RADIUS.xl, padding: 16 }}>
       <div className="flex items-center gap-2" style={{ marginBottom: 8 }}>
         <Icon size={15} color={color} />
         <span style={{ fontSize: 12, color: C.grayText, fontWeight: 600 }}>{label}</span>
@@ -751,7 +751,7 @@ function RepasseDetail({ restaurant, orders }) {
     <div>
       <div style={{ marginBottom: 18 }}>
         <select value={month} onChange={(e) => setMonth(e.target.value)}
-          style={{ border: `1.5px solid ${C.line}`, outline: "none", borderRadius: 10, padding: "9px 14px",
+          style={{ border: `1.5px solid ${C.line}`, outline: "none", borderRadius: RADIUS.sm, padding: "9px 14px",
                    fontFamily: FONT, fontSize: 13.5, fontWeight: 600, background: "#fff", cursor: "pointer" }}>
           {availableMonths.map((key) => (
             <option key={key} value={key}>{monthLabel(key)}</option>
@@ -765,7 +765,7 @@ function RepasseDetail({ restaurant, orders }) {
         <FinanceStat icon={Wallet} label="Valor líquido" value={formatBRL(totalPayout)} tone="neutral" />
       </div>
 
-      <div style={{ background: C.surface, border: `1px solid ${C.line}`, borderRadius: 16, padding: 22, marginBottom: 28 }}>
+      <div style={{ background: C.surface, border: `1px solid ${C.line}`, borderRadius: RADIUS.xl, padding: 22, marginBottom: 28 }}>
         <div style={{ fontSize: 13, color: C.grayText, fontWeight: 600 }}>Valor líquido de {monthLabel(month).toLowerCase()}</div>
         <div style={{ fontSize: 32, fontWeight: 700, marginTop: 6 }}>{formatBRL(totalPayout)}</div>
         <div style={{ fontSize: 12.5, color: C.grayText, marginTop: 10 }}>
@@ -780,7 +780,7 @@ function RepasseDetail({ restaurant, orders }) {
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {filtered.map((o) => (
             <div key={o.id} className="flex items-center justify-between" style={{ padding: "10px 14px", background: "#fff",
-                 border: `1px solid ${C.line}`, borderRadius: 12, flexWrap: "wrap", gap: 8 }}>
+                 border: `1px solid ${C.line}`, borderRadius: RADIUS.md, flexWrap: "wrap", gap: 8 }}>
               <div>
                 <span style={{ fontSize: 13.5, fontWeight: 600 }}>#{o.id.slice(0, 8)}</span>
                 <span style={{ fontSize: 12.5, color: C.grayText, marginLeft: 8 }}>
@@ -821,7 +821,7 @@ function RevenueBarChart({ orders }) {
   const viewW = data.length * unitW;
 
   return (
-    <div style={{ background: "#fff", border: `1px solid ${C.line}`, borderRadius: 16, padding: 20 }}>
+    <div style={{ background: "#fff", border: `1px solid ${C.line}`, borderRadius: RADIUS.xl, padding: 20 }}>
       <div style={{ fontSize: 14, fontWeight: 700 }}>Faturamento — últimos 7 dias</div>
       <div style={{ fontSize: 12, color: C.grayText, marginTop: 2, marginBottom: 18 }}>
         Total no período: {formatBRL(periodTotal)}
@@ -830,7 +830,7 @@ function RevenueBarChart({ orders }) {
         {hover !== null && (
           <div style={{ position: "absolute", top: 0, left: `${((hover * unitW + unitW / 2) / viewW) * 100}%`,
                transform: "translate(-50%, -100%)", background: C.black, color: "#fff", padding: "6px 10px",
-               borderRadius: 8, fontSize: 11.5, fontWeight: 600, whiteSpace: "nowrap", pointerEvents: "none", zIndex: 1 }}>
+               borderRadius: RADIUS.xs, fontSize: 11.5, fontWeight: 600, whiteSpace: "nowrap", pointerEvents: "none", zIndex: 1 }}>
             {formatBRL(data[hover].total)} · {data[hover].count} pedido{data[hover].count === 1 ? "" : "s"}
           </div>
         )}
@@ -866,7 +866,7 @@ function TopItemsChart({ orders }) {
   const max = Math.max(1, ...top.map(([, q]) => q));
 
   return (
-    <div style={{ background: "#fff", border: `1px solid ${C.line}`, borderRadius: 16, padding: 20 }}>
+    <div style={{ background: "#fff", border: `1px solid ${C.line}`, borderRadius: RADIUS.xl, padding: 20 }}>
       <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 16 }}>Itens mais vendidos</div>
       {top.length === 0 ? (
         <p style={{ color: C.grayText, fontSize: 13.5, margin: 0 }}>Sem dados suficientes ainda.</p>
@@ -878,8 +878,8 @@ function TopItemsChart({ orders }) {
                 <span style={{ fontSize: 13, fontWeight: 600 }}>{name}</span>
                 <span style={{ fontSize: 12.5, color: C.grayText, fontWeight: 600, flexShrink: 0 }}>{qty}x</span>
               </div>
-              <div style={{ height: 8, borderRadius: 999, background: C.surface, overflow: "hidden" }}>
-                <div style={{ height: "100%", width: `${(qty / max) * 100}%`, background: C.orange, borderRadius: 999 }} />
+              <div style={{ height: 8, borderRadius: RADIUS.pill, background: C.surface, overflow: "hidden" }}>
+                <div style={{ height: "100%", width: `${(qty / max) * 100}%`, background: C.orange, borderRadius: RADIUS.pill }} />
               </div>
             </div>
           ))}
@@ -908,7 +908,7 @@ function BestHourChart({ orders }) {
   const best = buckets.reduce((a, b) => (b.count > a.count ? b : a), buckets[0]);
 
   return (
-    <div style={{ background: "#fff", border: `1px solid ${C.line}`, borderRadius: 16, padding: 20 }}>
+    <div style={{ background: "#fff", border: `1px solid ${C.line}`, borderRadius: RADIUS.xl, padding: 20 }}>
       <div style={{ fontSize: 14, fontWeight: 700 }}>Melhor horário</div>
       {best.count > 0 ? (
         <>
@@ -923,10 +923,10 @@ function BestHourChart({ orders }) {
           <div key={b.start} className="flex items-center gap-2"
             onMouseEnter={() => setHover(b.start)} onMouseLeave={() => setHover(null)}>
             <span style={{ fontSize: 11, color: C.grayText, width: 82, flexShrink: 0 }}>{fmtHour(b.start)} - {fmtHour(b.end)}</span>
-            <div style={{ flex: 1, height: 14, background: C.surface, borderRadius: 999, overflow: "hidden" }}>
+            <div style={{ flex: 1, height: 14, background: C.surface, borderRadius: RADIUS.pill, overflow: "hidden" }}>
               <div style={{ height: "100%", width: `${(b.count / max) * 100}%`,
                    background: b.start === best.start || hover === b.start ? C.orange : "rgba(238,108,26,.4)",
-                   borderRadius: 999, transition: "background .12s" }} />
+                   borderRadius: RADIUS.pill, transition: "background .12s" }} />
             </div>
             <span style={{ fontSize: 11.5, fontWeight: 600, width: 16, textAlign: "right", flexShrink: 0 }}>{b.count}</span>
           </div>
@@ -961,7 +961,7 @@ function BestDayChart({ orders }) {
   const viewW = counts.length * unitW;
 
   return (
-    <div style={{ background: "#fff", border: `1px solid ${C.line}`, borderRadius: 16, padding: 20 }}>
+    <div style={{ background: "#fff", border: `1px solid ${C.line}`, borderRadius: RADIUS.xl, padding: 20 }}>
       <div style={{ fontSize: 14, fontWeight: 700 }}>Melhor dia</div>
       {best.count > 0 ? (
         <>
@@ -975,7 +975,7 @@ function BestDayChart({ orders }) {
         {hover !== null && (
           <div style={{ position: "absolute", top: 0, left: `${((hover * unitW + unitW / 2) / viewW) * 100}%`,
                transform: "translate(-50%, -100%)", background: C.black, color: "#fff", padding: "6px 10px",
-               borderRadius: 8, fontSize: 11.5, fontWeight: 600, whiteSpace: "nowrap", pointerEvents: "none", zIndex: 1 }}>
+               borderRadius: RADIUS.xs, fontSize: 11.5, fontWeight: 600, whiteSpace: "nowrap", pointerEvents: "none", zIndex: 1 }}>
             {counts[hover].count} venda{counts[hover].count === 1 ? "" : "s"}
           </div>
         )}
@@ -1014,7 +1014,7 @@ function PaymentMethodsChart({ orders }) {
   const max = Math.max(1, ...rows.map(([, c]) => c));
 
   return (
-    <div style={{ background: "#fff", border: `1px solid ${C.line}`, borderRadius: 16, padding: 20 }}>
+    <div style={{ background: "#fff", border: `1px solid ${C.line}`, borderRadius: RADIUS.xl, padding: 20 }}>
       <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 16 }}>Formas de pagamento mais usadas</div>
       {rows.length === 0 ? (
         <p style={{ color: C.grayText, fontSize: 13.5, margin: 0 }}>Sem dados suficientes ainda.</p>
@@ -1028,8 +1028,8 @@ function PaymentMethodsChart({ orders }) {
                   {count} pedido{count === 1 ? "" : "s"}
                 </span>
               </div>
-              <div style={{ height: 8, borderRadius: 999, background: C.surface, overflow: "hidden" }}>
-                <div style={{ height: "100%", width: `${(count / max) * 100}%`, background: C.orange, borderRadius: 999 }} />
+              <div style={{ height: 8, borderRadius: RADIUS.pill, background: C.surface, overflow: "hidden" }}>
+                <div style={{ height: "100%", width: `${(count / max) * 100}%`, background: C.orange, borderRadius: RADIUS.pill }} />
               </div>
             </div>
           ))}
@@ -1093,14 +1093,14 @@ function ComplementsManager({ item, onChange }) {
   }
 
   return (
-    <div style={{ marginTop: 12, padding: 14, background: C.surface, border: `1px solid ${C.line}`, borderRadius: 12 }}>
+    <div style={{ marginTop: 12, padding: 14, background: C.surface, border: `1px solid ${C.line}`, borderRadius: RADIUS.md }}>
       <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 10 }}>Complementos</div>
       {groups.length === 0 && (
         <p style={{ fontSize: 12.5, color: C.grayText, margin: "0 0 10px" }}>Nenhum grupo de complementos ainda.</p>
       )}
       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
         {groups.map((group) => (
-          <div key={group.id} style={{ border: `1px solid ${C.line}`, borderRadius: 10, padding: 10, background: "#fff" }}>
+          <div key={group.id} style={{ border: `1px solid ${C.line}`, borderRadius: RADIUS.sm, padding: 10, background: "#fff" }}>
             <div className="flex items-center justify-between">
               <div>
                 <span style={{ fontSize: 13, fontWeight: 700 }}>{group.name}</span>
@@ -1132,19 +1132,19 @@ function ComplementsManager({ item, onChange }) {
             {addingItemFor === group.id ? (
               <form onSubmit={(e) => handleAddItem(e, group.id)} className="flex items-center gap-2" style={{ marginTop: 8 }}>
                 <input required value={itemName} onChange={(e) => setItemName(e.target.value)} placeholder="Nome"
-                  style={{ flex: 1, minWidth: 0, border: `1.5px solid ${C.line}`, borderRadius: 8, padding: "6px 8px",
+                  style={{ flex: 1, minWidth: 0, border: `1.5px solid ${C.line}`, borderRadius: RADIUS.xs, padding: "6px 8px",
                            fontFamily: FONT, fontSize: 12.5 }} />
                 <input type="number" min="0" step="0.01" value={itemPrice} onChange={(e) => setItemPrice(e.target.value)}
                   placeholder="R$"
-                  style={{ width: 64, flexShrink: 0, border: `1.5px solid ${C.line}`, borderRadius: 8, padding: "6px 8px",
+                  style={{ width: 64, flexShrink: 0, border: `1.5px solid ${C.line}`, borderRadius: RADIUS.xs, padding: "6px 8px",
                            fontFamily: FONT, fontSize: 12.5 }} />
                 <button type="submit" disabled={saving}
-                  style={{ background: C.orange, color: "#fff", border: "none", borderRadius: 8, padding: "6px 10px",
+                  style={{ background: C.orange, color: "#fff", border: "none", borderRadius: RADIUS.xs, padding: "6px 10px",
                            cursor: "pointer", fontSize: 12.5, fontWeight: 600, flexShrink: 0 }}>
                   OK
                 </button>
                 <button type="button" onClick={() => setAddingItemFor(null)}
-                  style={{ background: "none", border: `1px solid ${C.line}`, borderRadius: 8, padding: "6px 10px",
+                  style={{ background: "none", border: `1px solid ${C.line}`, borderRadius: RADIUS.xs, padding: "6px 10px",
                            cursor: "pointer", fontSize: 12.5, flexShrink: 0 }}>
                   ×
                 </button>
@@ -1162,10 +1162,10 @@ function ComplementsManager({ item, onChange }) {
 
       {addingGroup ? (
         <form onSubmit={handleAddGroup} style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 8,
-             background: "#fff", border: `1px solid ${C.line}`, borderRadius: 10, padding: 10 }}>
+             background: "#fff", border: `1px solid ${C.line}`, borderRadius: RADIUS.sm, padding: 10 }}>
           <input required value={groupName} onChange={(e) => setGroupName(e.target.value)}
             placeholder="Nome do grupo (ex: Turbine seu lanche)"
-            style={{ border: `1.5px solid ${C.line}`, borderRadius: 8, padding: "7px 9px", fontFamily: FONT, fontSize: 12.5 }} />
+            style={{ border: `1.5px solid ${C.line}`, borderRadius: RADIUS.xs, padding: "7px 9px", fontFamily: FONT, fontSize: 12.5 }} />
           <label className="flex items-center gap-2" style={{ fontSize: 12.5 }}>
             <input type="checkbox" checked={groupRequired} onChange={(e) => setGroupRequired(e.target.checked)} />
             Obrigatório
@@ -1174,24 +1174,24 @@ function ComplementsManager({ item, onChange }) {
             <label className="flex items-center gap-2" style={{ fontSize: 11.5, color: C.grayText }}>
               Mín
               <input type="number" min="0" value={groupMin} onChange={(e) => setGroupMin(e.target.value)}
-                style={{ width: 50, border: `1.5px solid ${C.line}`, borderRadius: 8, padding: "5px 7px",
+                style={{ width: 50, border: `1.5px solid ${C.line}`, borderRadius: RADIUS.xs, padding: "5px 7px",
                          fontFamily: FONT, fontSize: 12.5 }} />
             </label>
             <label className="flex items-center gap-2" style={{ fontSize: 11.5, color: C.grayText }}>
               Máx
               <input type="number" min="1" value={groupMax} onChange={(e) => setGroupMax(e.target.value)}
-                style={{ width: 50, border: `1.5px solid ${C.line}`, borderRadius: 8, padding: "5px 7px",
+                style={{ width: 50, border: `1.5px solid ${C.line}`, borderRadius: RADIUS.xs, padding: "5px 7px",
                          fontFamily: FONT, fontSize: 12.5 }} />
             </label>
           </div>
           <div className="flex" style={{ gap: 8 }}>
             <button type="submit" disabled={saving}
-              style={{ background: C.orange, color: "#fff", border: "none", borderRadius: 8, padding: "7px 14px",
+              style={{ background: C.orange, color: "#fff", border: "none", borderRadius: RADIUS.xs, padding: "7px 14px",
                        cursor: "pointer", fontSize: 12.5, fontWeight: 600 }}>
               Salvar grupo
             </button>
             <button type="button" onClick={() => setAddingGroup(false)}
-              style={{ background: "none", border: `1px solid ${C.line}`, borderRadius: 8, padding: "7px 14px",
+              style={{ background: "none", border: `1px solid ${C.line}`, borderRadius: RADIUS.xs, padding: "7px 14px",
                        cursor: "pointer", fontSize: 12.5, color: C.grayText }}>
               Cancelar
             </button>
@@ -1199,7 +1199,7 @@ function ComplementsManager({ item, onChange }) {
         </form>
       ) : (
         <button onClick={() => setAddingGroup(true)} className="flex items-center gap-1"
-          style={{ marginTop: 12, background: "#fff", border: `1px solid ${C.line}`, borderRadius: 8, cursor: "pointer",
+          style={{ marginTop: 12, background: "#fff", border: `1px solid ${C.line}`, borderRadius: RADIUS.xs, cursor: "pointer",
                    padding: "7px 12px", fontFamily: FONT, fontSize: 12.5, fontWeight: 600, color: C.black }}>
           <Plus size={13} /> Adicionar grupo
         </button>
@@ -1220,7 +1220,7 @@ function OrderCard({ order, onStatusChange, onOpenChat, isNew }) {
   const urgencyColor = elapsedMin >= 20 ? "#B42318" : elapsedMin >= 10 ? "#A06A00" : C.grayText;
   return (
     <div className={isNew ? "vp-order-new" : undefined} style={{ padding: 14, background: "#fff", border: `1px solid ${C.line}`,
-         borderLeft: `4px solid ${meta.color}`, borderRadius: 14 }}>
+         borderLeft: `4px solid ${meta.color}`, borderRadius: RADIUS.lg }}>
       <div className="flex items-center justify-between">
         <span style={{ fontSize: 14, fontWeight: 700 }}>#{order.id.slice(0, 8)}</span>
         <span style={{ fontSize: 12, color: C.grayText }}>
@@ -1265,13 +1265,13 @@ function OrderCard({ order, onStatusChange, onOpenChat, isNew }) {
       </div>
       {NEXT_STATUS[order.status] && (
         <button onClick={() => onStatusChange(order.id, NEXT_STATUS[order.status].value)}
-          style={{ width: "100%", marginTop: 10, background: meta.color, color: "#fff", border: "none", borderRadius: 8,
+          style={{ width: "100%", marginTop: 10, background: meta.color, color: "#fff", border: "none", borderRadius: RADIUS.xs,
                    padding: "10px 0", fontFamily: FONT, fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
           {NEXT_STATUS[order.status].label}
         </button>
       )}
       <select value={order.status} onChange={(e) => onStatusChange(order.id, e.target.value)}
-        style={{ width: "100%", marginTop: 8, border: `1.5px solid ${C.line}`, outline: "none", borderRadius: 8,
+        style={{ width: "100%", marginTop: 8, border: `1.5px solid ${C.line}`, outline: "none", borderRadius: RADIUS.xs,
                  padding: "5px 8px", fontFamily: FONT, fontSize: 11.5, fontWeight: 600, background: "#fff",
                  color: C.grayText, cursor: "pointer" }}>
         {STATUS_OPTIONS.map((s) => (
@@ -1280,7 +1280,7 @@ function OrderCard({ order, onStatusChange, onOpenChat, isNew }) {
       </select>
       {order.customer_id && (
         <button onClick={() => onOpenChat(order)} className="flex items-center justify-center gap-1"
-          style={{ width: "100%", marginTop: 8, background: "none", border: `1px solid ${C.line}`, borderRadius: 8,
+          style={{ width: "100%", marginTop: 8, background: "none", border: `1px solid ${C.line}`, borderRadius: RADIUS.xs,
                    cursor: "pointer", padding: "7px 0", fontFamily: FONT, fontSize: 12.5, fontWeight: 600, color: C.grayText }}>
           <MessageCircle size={13} /> Conversa
         </button>
@@ -1294,10 +1294,10 @@ function OrderChatModal({ order, onClose }) {
     <div style={{ position: "fixed", inset: 0, zIndex: 60, background: "rgba(20,20,20,.5)", display: "flex",
          alignItems: "center", justifyContent: "center", padding: 20 }} onClick={onClose}>
       <div onClick={(e) => e.stopPropagation()} style={{ width: "100%", maxWidth: 420, background: "#fff",
-           borderRadius: 18, padding: 18 }}>
+           borderRadius: RADIUS.xxl, padding: 18 }}>
         <div className="flex items-center justify-between" style={{ marginBottom: 12 }}>
           <span style={{ fontSize: 15, fontWeight: 700 }}>Pedido #{order.id.slice(0, 8)}</span>
-          <button onClick={onClose} aria-label="Fechar conversa" style={{ width: 30, height: 30, borderRadius: 999, border: `1px solid ${C.line}`,
+          <button onClick={onClose} aria-label="Fechar conversa" style={{ width: 30, height: 30, borderRadius: RADIUS.pill, border: `1px solid ${C.line}`,
                background: "#fff", cursor: "pointer", display: "grid", placeItems: "center" }}>
             <X size={15} />
           </button>
@@ -1330,13 +1330,13 @@ function MercadoPagoCard({ restaurant, onDisconnected }) {
   if (restaurant.mp_connected) {
     return (
       <div className="flex items-center justify-between gap-2" style={{ background: "rgba(46,158,91,.08)", border: `1px solid ${C.line}`,
-           borderRadius: 14, padding: "12px 16px", marginBottom: 14, flexWrap: "wrap" }}>
+           borderRadius: RADIUS.lg, padding: "12px 16px", marginBottom: 14, flexWrap: "wrap" }}>
         <div className="flex items-center gap-2">
           <CheckCircle2 size={17} color={C.ok} />
           <span style={{ fontSize: 13.5, fontWeight: 600 }}>Mercado Pago conectado — você já pode receber pagamentos online.</span>
         </div>
         <button onClick={handleDisconnect} disabled={disconnecting}
-          style={{ background: "none", border: `1px solid ${C.line}`, borderRadius: 8, cursor: disconnecting ? "default" : "pointer",
+          style={{ background: "none", border: `1px solid ${C.line}`, borderRadius: RADIUS.xs, cursor: disconnecting ? "default" : "pointer",
                    padding: "6px 12px", fontFamily: FONT, fontSize: 12.5, fontWeight: 600, color: "#B42318", flexShrink: 0 }}>
           {disconnecting ? "Desconectando…" : "Desconectar"}
         </button>
@@ -1349,7 +1349,7 @@ function MercadoPagoCard({ restaurant, onDisconnected }) {
     : null;
 
   return (
-    <div style={{ background: "#fff", border: `1.5px solid ${C.orange}`, borderRadius: 14, padding: 16, marginBottom: 14 }}>
+    <div style={{ background: "#fff", border: `1.5px solid ${C.orange}`, borderRadius: RADIUS.lg, padding: 16, marginBottom: 14 }}>
       <div className="flex items-center gap-2" style={{ marginBottom: 6 }}>
         <CreditCard size={17} color={C.orange} />
         <span style={{ fontSize: 14, fontWeight: 700 }}>Conecte o Mercado Pago pra receber pagamentos online</span>
@@ -1359,7 +1359,7 @@ function MercadoPagoCard({ restaurant, onDisconnected }) {
       </p>
       <a href={authorizeUrl || "#"} aria-disabled={!authorizeUrl}
         style={{ display: "inline-block", background: authorizeUrl ? C.orange : C.gray, color: "#fff", textDecoration: "none",
-                 borderRadius: 10, padding: "9px 18px", fontFamily: FONT, fontSize: 13.5, fontWeight: 600,
+                 borderRadius: RADIUS.sm, padding: "9px 18px", fontFamily: FONT, fontSize: 13.5, fontWeight: 600,
                  pointerEvents: authorizeUrl ? "auto" : "none" }}>
         Conectar Mercado Pago
       </a>
@@ -1391,13 +1391,13 @@ function PartnerSidebar({ restaurant, activeSection, onSectionChange, onToggleOp
         <button onClick={onToggleSound}
           title={soundEnabled ? "Desativar som de alerta de pedido novo" : "Ativar som de alerta de pedido novo"}
           aria-label={soundEnabled ? "Desativar som de alerta de pedido novo" : "Ativar som de alerta de pedido novo"}
-          style={{ width: 34, height: 34, borderRadius: 8, border: `1px solid ${C.line}`, background: soundEnabled ? "rgba(238,108,26,.1)" : "#fff",
+          style={{ width: 34, height: 34, borderRadius: RADIUS.xs, border: `1px solid ${C.line}`, background: soundEnabled ? "rgba(238,108,26,.1)" : "#fff",
                    cursor: "pointer", display: "grid", placeItems: "center", flexShrink: 0 }}>
           {soundEnabled ? <Volume2 size={15} color={C.orange} /> : <VolumeX size={15} color={C.grayText} />}
         </button>
         <button onClick={onToggleCollapsed} className="vp-portal-collapse-btn"
           title={collapsed ? "Expandir menu" : "Recolher menu"} aria-label={collapsed ? "Expandir menu" : "Recolher menu"}
-          style={{ width: 28, height: 28, borderRadius: 8, border: `1px solid ${C.line}`, background: "#fff",
+          style={{ width: 28, height: 28, borderRadius: RADIUS.xs, border: `1px solid ${C.line}`, background: "#fff",
                    cursor: "pointer", placeItems: "center", flexShrink: 0 }}>
           {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
         </button>
@@ -1412,7 +1412,7 @@ function PartnerSidebar({ restaurant, activeSection, onSectionChange, onToggleOp
         title={isOpen ? "Loja aberta — clique para fechar" : "Loja fechada — clique para reabrir"}
         aria-label={isOpen ? "Loja aberta — clique para fechar" : "Loja fechada — clique para reabrir"}
         style={{ background: isOpen ? "rgba(46,158,91,.1)" : "rgba(180,35,24,.08)",
-                 border: `1px solid ${isOpen ? C.ok : "#B42318"}`, borderRadius: 12,
+                 border: `1px solid ${isOpen ? C.ok : "#B42318"}`, borderRadius: RADIUS.md,
                  padding: collapsed ? "10px" : "10px 12px", cursor: "pointer", textAlign: "left", width: "100%",
                  justifyContent: collapsed ? "center" : "flex-start" }}>
         {isOpen ? <CheckCircle2 size={17} color={C.ok} style={{ flexShrink: 0 }} /> : <XCircle size={17} color="#B42318" style={{ flexShrink: 0 }} />}
@@ -1435,13 +1435,13 @@ function PartnerSidebar({ restaurant, activeSection, onSectionChange, onToggleOp
           return (
             <button key={item.key} onClick={() => onSectionChange(item.key)} title={item.label} aria-label={item.label} className="flex items-center gap-2"
               style={{ position: "relative", flexShrink: 0, background: active ? C.black : "none", color: active ? "#fff" : C.grayText,
-                       border: "none", borderRadius: 10, cursor: "pointer", padding: collapsed ? "10px" : "10px 14px",
+                       border: "none", borderRadius: RADIUS.sm, cursor: "pointer", padding: collapsed ? "10px" : "10px 14px",
                        fontFamily: FONT, fontSize: 13.5, fontWeight: 600, whiteSpace: "nowrap",
                        justifyContent: collapsed ? "center" : "flex-start" }}>
               <ItemIcon size={16} /> {!collapsed && item.label}
               {item.key === "inicio" && hasNewOrder && (
                 <span style={{ position: "absolute", top: collapsed ? 4 : "50%", right: collapsed ? 4 : 10,
-                     transform: collapsed ? "none" : "translateY(-50%)", width: 8, height: 8, borderRadius: 999,
+                     transform: collapsed ? "none" : "translateY(-50%)", width: 8, height: 8, borderRadius: RADIUS.pill,
                      background: C.orange, animation: "vp-pulse 1.4s ease-in-out infinite" }} />
               )}
             </button>
@@ -1457,7 +1457,7 @@ function PartnerSidebar({ restaurant, activeSection, onSectionChange, onToggleOp
           </span>
         )}
         <button onClick={onSignOut} title="Sair" aria-label="Sair da conta" className="flex items-center gap-2"
-          style={{ background: "none", border: `1px solid ${C.line}`, borderRadius: 10, cursor: "pointer",
+          style={{ background: "none", border: `1px solid ${C.line}`, borderRadius: RADIUS.sm, cursor: "pointer",
                    padding: collapsed ? "9px" : "9px 12px", fontFamily: FONT, fontSize: 13, fontWeight: 600, color: C.black,
                    justifyContent: "center" }}>
           <LogOut size={14} /> {!collapsed && "Sair"}
@@ -1743,7 +1743,7 @@ export default function PartnerDashboard() {
         <main className="vp-portal-main">
           <div style={{ maxWidth: 1000 }}>
             <div className="flex items-center gap-3" style={{ marginBottom: 20 }}>
-              <div style={{ width: 44, height: 44, borderRadius: 12, background: C.orange, display: "grid", placeItems: "center" }}>
+              <div style={{ width: 44, height: 44, borderRadius: RADIUS.md, background: C.orange, display: "grid", placeItems: "center" }}>
                 <Icon size={20} color="#fff" />
               </div>
               <div>
@@ -1753,13 +1753,13 @@ export default function PartnerDashboard() {
             </div>
 
             {mpStatus === "connected" && (
-              <div style={{ background: "rgba(46,158,91,.1)", color: C.ok, borderRadius: 12, padding: "10px 14px",
+              <div style={{ background: "rgba(46,158,91,.1)", color: C.ok, borderRadius: RADIUS.md, padding: "10px 14px",
                    fontSize: 13.5, fontWeight: 600, marginBottom: 14 }}>
                 Mercado Pago conectado com sucesso!
               </div>
             )}
             {mpStatus === "error" && (
-              <div style={{ background: "#FDECEC", color: "#B42318", borderRadius: 12, padding: "10px 14px",
+              <div style={{ background: "#FDECEC", color: "#B42318", borderRadius: RADIUS.md, padding: "10px 14px",
                    fontSize: 13.5, fontWeight: 600, marginBottom: 14 }}>
                 Não foi possível conectar o Mercado Pago. Tente novamente.
               </div>
@@ -1779,7 +1779,7 @@ export default function PartnerDashboard() {
                 <div className="flex items-center justify-between" style={{ marginBottom: 14, flexWrap: "wrap", gap: 10 }}>
                   <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>Pedidos recebidos</h2>
                   {orders.length > 0 && (
-                    <div className="flex items-center gap-2" style={{ background: C.surface, borderRadius: 10,
+                    <div className="flex items-center gap-2" style={{ background: C.surface, borderRadius: RADIUS.sm,
                          padding: "0 12px", height: 38, width: 240, maxWidth: "100%" }}>
                       <Search size={14} color={C.grayText} />
                       <input value={orderSearch} onChange={(e) => setOrderSearch(e.target.value)}
@@ -1804,13 +1804,13 @@ export default function PartnerDashboard() {
                           <div className="flex items-center gap-2" style={{ marginBottom: 10, padding: "0 2px" }}>
                             <span style={{ fontSize: 13, fontWeight: 700, color: meta.color }}>{meta.label}</span>
                             <span style={{ fontSize: 11.5, fontWeight: 700, color: meta.color, background: meta.bg,
-                                 borderRadius: 999, minWidth: 20, height: 20, display: "grid", placeItems: "center", padding: "0 6px" }}>
+                                 borderRadius: RADIUS.pill, minWidth: 20, height: 20, display: "grid", placeItems: "center", padding: "0 6px" }}>
                               {list.length}
                             </span>
                           </div>
                           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                             {list.length === 0 ? (
-                              <div style={{ border: `1.5px dashed ${C.line}`, borderRadius: 14, padding: 16, textAlign: "center" }}>
+                              <div style={{ border: `1.5px dashed ${C.line}`, borderRadius: RADIUS.lg, padding: 16, textAlign: "center" }}>
                                 <span style={{ fontSize: 12.5, color: C.grayText }}>Vazio</span>
                               </div>
                             ) : (
@@ -1877,7 +1877,7 @@ export default function PartnerDashboard() {
                   <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>Cardápio</h2>
                   {!showAddForm && (
                     <button onClick={() => setShowAddForm(true)} className="flex items-center gap-1"
-                      style={{ background: C.orange, color: "#fff", border: "none", cursor: "pointer", borderRadius: 10,
+                      style={{ background: C.orange, color: "#fff", border: "none", cursor: "pointer", borderRadius: RADIUS.sm,
                                padding: "9px 16px", fontFamily: FONT, fontSize: 13.5, fontWeight: 600 }}>
                       <Plus size={15} /> Adicionar item
                     </button>
@@ -1892,7 +1892,7 @@ export default function PartnerDashboard() {
                 )}
 
                 {!showAddForm && (restaurant.menu_items || []).length > 0 && (
-                  <div className="flex items-center gap-2" style={{ background: C.surface, borderRadius: 10,
+                  <div className="flex items-center gap-2" style={{ background: C.surface, borderRadius: RADIUS.sm,
                        padding: "0 12px", height: 42, marginBottom: 18 }}>
                     <Search size={15} color={C.grayText} />
                     <input value={menuSearch} onChange={(e) => setMenuSearch(e.target.value)}
@@ -1903,15 +1903,15 @@ export default function PartnerDashboard() {
 
                 {selectedItems.size > 0 && (
                   <div className="flex items-center gap-2" style={{ background: "rgba(238,108,26,.08)", border: `1px solid ${C.orange}`,
-                       borderRadius: 10, padding: "10px 14px", marginBottom: 16, flexWrap: "wrap" }}>
+                       borderRadius: RADIUS.sm, padding: "10px 14px", marginBottom: 16, flexWrap: "wrap" }}>
                     <span style={{ fontSize: 13, fontWeight: 600, marginRight: "auto" }}>{selectedItems.size} selecionado(s)</span>
                     <button disabled={bulkWorking} onClick={() => handleBulkAvailability(false)} className="flex items-center gap-1"
-                      style={{ background: "#fff", border: `1px solid ${C.line}`, borderRadius: 8, cursor: bulkWorking ? "default" : "pointer",
+                      style={{ background: "#fff", border: `1px solid ${C.line}`, borderRadius: RADIUS.xs, cursor: bulkWorking ? "default" : "pointer",
                                padding: "6px 12px", fontFamily: FONT, fontSize: 12.5, fontWeight: 600 }}>
                       <Pause size={13} /> Pausar
                     </button>
                     <button disabled={bulkWorking} onClick={() => handleBulkAvailability(true)} className="flex items-center gap-1"
-                      style={{ background: "#fff", border: `1px solid ${C.line}`, borderRadius: 8, cursor: bulkWorking ? "default" : "pointer",
+                      style={{ background: "#fff", border: `1px solid ${C.line}`, borderRadius: RADIUS.xs, cursor: bulkWorking ? "default" : "pointer",
                                padding: "6px 12px", fontFamily: FONT, fontSize: 12.5, fontWeight: 600, color: C.ok }}>
                       <Play size={13} /> Reativar
                     </button>
@@ -1950,7 +1950,7 @@ export default function PartnerDashboard() {
                             <span style={{ fontSize: 13.5, fontWeight: 700, color: C.grayText, textTransform: "uppercase", letterSpacing: .3 }}>
                               {categoryName}
                             </span>
-                            <span style={{ fontSize: 12, color: C.grayText, background: C.surface, borderRadius: 999,
+                            <span style={{ fontSize: 12, color: C.grayText, background: C.surface, borderRadius: RADIUS.pill,
                                  minWidth: 20, height: 20, display: "grid", placeItems: "center", padding: "0 6px" }}>
                               {items.length}
                             </span>
@@ -1965,7 +1965,7 @@ export default function PartnerDashboard() {
                                   onCancel={() => setEditingItem(null)} />
                               ) : (
                                 <div key={item.id} style={{ padding: 14, background: "#fff",
-                                     border: `1px solid ${C.line}`, borderRadius: 14, opacity: item.available === false ? 0.55 : 1 }}
+                                     border: `1px solid ${C.line}`, borderRadius: RADIUS.lg, opacity: item.available === false ? 0.55 : 1 }}
                                      draggable={menuDragEnabled} onDragStart={() => { dragItemId.current = item.id; }}
                                      onDragOver={(e) => menuDragEnabled && e.preventDefault()}
                                      onDrop={() => menuDragEnabled && handleItemDrop(items, item.id)}>
@@ -1975,7 +1975,7 @@ export default function PartnerDashboard() {
                                       aria-label={`Selecionar ${item.name}`}
                                       onChange={() => toggleItemSelected(item.id)}
                                       style={{ width: 15, height: 15, cursor: "pointer", flexShrink: 0 }} />
-                                    <div style={{ width: 52, height: 52, borderRadius: 10, flexShrink: 0, overflow: "hidden",
+                                    <div style={{ width: 52, height: 52, borderRadius: RADIUS.sm, flexShrink: 0, overflow: "hidden",
                                          background: C.surface, display: "grid", placeItems: "center" }}>
                                       {item.image_url ? (
                                         <img src={item.image_url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
@@ -1988,7 +1988,7 @@ export default function PartnerDashboard() {
                                         <span style={{ fontSize: 15, fontWeight: 600 }}>{item.name}</span>
                                         {item.available === false && (
                                           <span style={{ fontSize: 10.5, fontWeight: 700, color: C.grayText, background: C.surface,
-                                               padding: "2px 7px", borderRadius: 999, flexShrink: 0 }}>
+                                               padding: "2px 7px", borderRadius: RADIUS.pill, flexShrink: 0 }}>
                                             Pausado
                                           </span>
                                         )}
@@ -1999,12 +1999,12 @@ export default function PartnerDashboard() {
                                       <div style={{ fontSize: 14, fontWeight: 700, marginTop: 4 }}>{formatBRL(item.price)}</div>
                                     </div>
                                     <button onClick={() => setEditingItem(item.id)} aria-label={`Editar ${item.name}`}
-                                      style={{ width: 34, height: 34, borderRadius: 8, border: `1px solid ${C.line}`, background: "#fff",
+                                      style={{ width: 34, height: 34, borderRadius: RADIUS.xs, border: `1px solid ${C.line}`, background: "#fff",
                                                cursor: "pointer", display: "grid", placeItems: "center", flexShrink: 0 }}>
                                       <Pencil size={15} />
                                     </button>
                                     <button onClick={() => handleDelete(item.id)} aria-label={`Excluir ${item.name}`}
-                                      style={{ width: 34, height: 34, borderRadius: 8, border: `1px solid ${C.line}`, background: "#fff",
+                                      style={{ width: 34, height: 34, borderRadius: RADIUS.xs, border: `1px solid ${C.line}`, background: "#fff",
                                                cursor: "pointer", display: "grid", placeItems: "center", flexShrink: 0 }}>
                                       <Trash2 size={15} color="#B42318" />
                                     </button>
@@ -2012,19 +2012,19 @@ export default function PartnerDashboard() {
                                   <div className="flex items-center" style={{ gap: 8, marginTop: 8 }}>
                                     <button onClick={() => handleToggleAvailable(item)} className="flex items-center justify-center gap-1"
                                       style={{ flex: 1, background: "none", border: `1px solid ${C.line}`,
-                                               borderRadius: 8, cursor: "pointer", padding: "8px 0", fontFamily: FONT, fontSize: 13,
+                                               borderRadius: RADIUS.xs, cursor: "pointer", padding: "8px 0", fontFamily: FONT, fontSize: 13,
                                                fontWeight: 600, color: item.available === false ? C.ok : C.grayText }}>
                                       {item.available === false ? <><Play size={14} /> Retomar vendas</> : <><Pause size={14} /> Pausar vendas</>}
                                     </button>
                                     <button onClick={() => setExpandedComplements(expandedComplements === item.id ? null : item.id)}
                                       className="flex items-center justify-center gap-1"
                                       style={{ flex: 1, background: "none", border: `1px solid ${C.line}`,
-                                               borderRadius: 8, cursor: "pointer", padding: "8px 0", fontFamily: FONT, fontSize: 13,
+                                               borderRadius: RADIUS.xs, cursor: "pointer", padding: "8px 0", fontFamily: FONT, fontSize: 13,
                                                fontWeight: 600, color: C.grayText }}>
                                       <ListPlus size={14} /> Complementos
                                       {(item.complement_groups || []).length > 0 && (
                                         <span style={{ fontSize: 11, fontWeight: 700, color: C.orange, background: "rgba(238,108,26,.1)",
-                                             borderRadius: 999, minWidth: 16, height: 16, display: "grid", placeItems: "center", padding: "0 4px" }}>
+                                             borderRadius: RADIUS.pill, minWidth: 16, height: 16, display: "grid", placeItems: "center", padding: "0 4px" }}>
                                           {item.complement_groups.length}
                                         </span>
                                       )}
@@ -2052,7 +2052,7 @@ export default function PartnerDashboard() {
                   <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>Cupons de desconto</h2>
                   {!showCouponForm && (
                     <button onClick={() => setShowCouponForm(true)} className="flex items-center gap-1"
-                      style={{ background: C.orange, color: "#fff", border: "none", cursor: "pointer", borderRadius: 10,
+                      style={{ background: C.orange, color: "#fff", border: "none", cursor: "pointer", borderRadius: RADIUS.sm,
                                padding: "8px 14px", fontFamily: FONT, fontSize: 13.5, fontWeight: 600 }}>
                       <Plus size={15} /> Criar cupom
                     </button>
@@ -2073,12 +2073,12 @@ export default function PartnerDashboard() {
                   <div className="vp-card-grid">
                     {coupons.map((c) => (
                       <div key={c.id} className="flex items-center gap-3" style={{ background: "#fff",
-                           border: `1px solid ${C.line}`, borderRadius: 12, padding: "12px 14px" }}>
+                           border: `1px solid ${C.line}`, borderRadius: RADIUS.md, padding: "12px 14px" }}>
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div className="flex items-center gap-2">
                             <span style={{ fontSize: 14.5, fontWeight: 700 }}>{c.code}</span>
                             <span style={{ fontSize: 11.5, fontWeight: 700, color: c.active ? C.ok : C.grayText,
-                                 background: c.active ? "rgba(46,158,91,.1)" : C.surface, padding: "2px 8px", borderRadius: 999 }}>
+                                 background: c.active ? "rgba(46,158,91,.1)" : C.surface, padding: "2px 8px", borderRadius: RADIUS.pill }}>
                               {c.active ? "Ativo" : "Pausado"}
                             </span>
                           </div>
@@ -2091,7 +2091,7 @@ export default function PartnerDashboard() {
                           </div>
                         </div>
                         <button onClick={() => handleToggleCoupon(c)}
-                          style={{ background: "none", border: `1px solid ${C.line}`, cursor: "pointer", borderRadius: 8,
+                          style={{ background: "none", border: `1px solid ${C.line}`, cursor: "pointer", borderRadius: RADIUS.xs,
                                    padding: "6px 12px", fontFamily: FONT, fontSize: 12.5, fontWeight: 600, color: C.grayText, flexShrink: 0 }}>
                           {c.active ? "Pausar" : "Reativar"}
                         </button>
