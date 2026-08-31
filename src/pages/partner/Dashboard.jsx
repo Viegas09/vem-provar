@@ -4,7 +4,7 @@ import {
   Plus, Trash2, Pencil, Store, Package, Wallet, CreditCard, CheckCircle2, XCircle, Receipt, TrendingUp,
   Clock3, Coins, Pause, Play, Home as HomeIcon, UtensilsCrossed, LogOut, ChevronLeft, ChevronRight,
   ImagePlus, BarChart3, ListPlus, ChevronDown, ChevronUp, TrendingDown, MessageCircle, X, Tag,
-  Lock, HelpCircle, Bell, Search,
+  Lock, HelpCircle, Bell, Search, Volume2, VolumeX, GripVertical,
 } from "lucide-react";
 import { C, FONT, formatBRL } from "../../theme";
 import { ICONS } from "../../data/icons";
@@ -26,6 +26,25 @@ import NotificationBell from "../../components/NotificationBell";
 import LocateButton from "../../components/LocateButton";
 import WORDMARK_DARK from "../../assets/wordmark-dark.png";
 import LOGO_MARK_HEART from "../../assets/logo-mark-heart.png";
+
+function playAlertBeep() {
+  try {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return;
+    const ctx = new Ctx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "sine";
+    osc.frequency.value = 880;
+    gain.gain.setValueAtTime(0.001, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.28, ctx.currentTime + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.32);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.35);
+    setTimeout(() => ctx.close(), 500);
+  } catch { /* som é um extra, não trava a UI se falhar */ }
+}
 
 const KANBAN_STATUSES = ["pending", "preparing", "out_for_delivery", "delivered", "cancelled"];
 const NAV_ITEMS = [
@@ -54,6 +73,39 @@ const monthLabel = (key) => {
   return `${MONTH_NAMES[Number(m) - 1]} de ${y}`;
 };
 
+function ProfileChecklist({ restaurant }) {
+  const items = [
+    { label: "Foto de capa da loja", done: !!restaurant.banner_url },
+    { label: "Descrição da loja", done: !!(restaurant.description || "").trim() },
+    { label: "Telefone / WhatsApp", done: !!(restaurant.phone || "").trim() },
+    { label: "Horário de funcionamento configurado", done: restaurant.business_hours != null },
+    { label: "Ao menos um item do cardápio com foto", done: (restaurant.menu_items || []).some((i) => i.image_url) },
+  ];
+  const doneCount = items.filter((i) => i.done).length;
+  if (doneCount === items.length) return null;
+  const pct = Math.round((doneCount / items.length) * 100);
+  return (
+    <div style={{ background: "#fff", border: `1.5px solid ${C.orange}`, borderRadius: 16, padding: 16, marginBottom: 24 }}>
+      <div className="flex items-center justify-between" style={{ marginBottom: 10 }}>
+        <span style={{ fontSize: 14, fontWeight: 700 }}>Complete seu perfil pra vender mais</span>
+        <span style={{ fontSize: 12.5, fontWeight: 700, color: C.orange }}>{doneCount}/{items.length}</span>
+      </div>
+      <div style={{ height: 6, borderRadius: 999, background: C.surface, overflow: "hidden", marginBottom: 12 }}>
+        <div style={{ height: "100%", width: `${pct}%`, background: C.orange, borderRadius: 999, transition: "width .3s ease" }} />
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+        {items.map((item) => (
+          <div key={item.label} className="flex items-center gap-2" style={{ fontSize: 13, color: item.done ? C.grayText : C.black }}>
+            {item.done ? <CheckCircle2 size={15} color={C.ok} /> :
+              <span style={{ width: 15, height: 15, borderRadius: "50%", border: `1.5px solid ${C.line}`, flexShrink: 0 }} />}
+            <span style={{ textDecoration: item.done ? "line-through" : "none" }}>{item.label}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function StatTile({ icon: Icon, label, value, accent }) {
   return (
     <div style={{ background: "#fff", border: `1px solid ${C.line}`, borderRadius: 16, padding: 16 }}>
@@ -69,7 +121,7 @@ function StatTile({ icon: Icon, label, value, accent }) {
   );
 }
 
-function MenuItemForm({ restaurantId, item, existingCategories, onSaved, onCancel }) {
+function MenuItemForm({ restaurantId, item, existingCategories, nextSortOrder, onSaved, onCancel }) {
   const [name, setName] = useState(item?.name || "");
   const [description, setDescription] = useState(item?.description || "");
   const [category, setCategory] = useState(item?.category || "");
@@ -106,6 +158,7 @@ function MenuItemForm({ restaurantId, item, existingCategories, onSaved, onCance
           price: Number(price),
           color_variant: Math.floor(Math.random() * 5),
           image_url: imageUrl,
+          sort_order: nextSortOrder ?? 0,
         });
       }
       onSaved();
@@ -1157,6 +1210,14 @@ function ComplementsManager({ item, onChange }) {
 
 function OrderCard({ order, onStatusChange, onOpenChat, isNew }) {
   const meta = STATUS_META[order.status] || STATUS_META.pending;
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 30000);
+    return () => clearInterval(t);
+  }, []);
+  const isOpenStatus = order.status === "pending" || order.status === "preparing" || order.status === "out_for_delivery";
+  const elapsedMin = Math.floor((now - new Date(order.created_at).getTime()) / 60000);
+  const urgencyColor = elapsedMin >= 20 ? "#B42318" : elapsedMin >= 10 ? "#A06A00" : C.grayText;
   return (
     <div className={isNew ? "vp-order-new" : undefined} style={{ padding: 14, background: "#fff", border: `1px solid ${C.line}`,
          borderLeft: `4px solid ${meta.color}`, borderRadius: 14 }}>
@@ -1166,6 +1227,11 @@ function OrderCard({ order, onStatusChange, onOpenChat, isNew }) {
           {new Date(order.created_at).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
         </span>
       </div>
+      {isOpenStatus && !order.scheduled_for && (
+        <div style={{ fontSize: 11.5, fontWeight: 700, color: urgencyColor, marginTop: 3 }}>
+          há {elapsedMin < 1 ? "menos de 1" : elapsedMin} min
+        </div>
+      )}
       {order.scheduled_for && (
         <div style={{ display: "inline-block", marginTop: 6, background: "rgba(238,108,26,.1)", color: C.orange,
              fontSize: 11.5, fontWeight: 700, padding: "3px 8px", borderRadius: 6 }}>
@@ -1308,7 +1374,7 @@ function HeartForkMark({ size = 32 }) {
   );
 }
 
-function PartnerSidebar({ restaurant, activeSection, onSectionChange, onToggleOpen, userEmail, onSignOut, collapsed, onToggleCollapsed, hasNewOrder }) {
+function PartnerSidebar({ restaurant, activeSection, onSectionChange, onToggleOpen, userEmail, onSignOut, collapsed, onToggleCollapsed, hasNewOrder, soundEnabled, onToggleSound }) {
   const isOpen = restaurant.is_open !== false;
   return (
     <aside className={`vp-portal-sidebar${collapsed ? " vp-portal-sidebar--collapsed" : ""}`}>
@@ -1322,6 +1388,11 @@ function PartnerSidebar({ restaurant, activeSection, onSectionChange, onToggleOp
           )}
         </Link>
         <NotificationBell />
+        <button onClick={onToggleSound} title={soundEnabled ? "Desativar som de alerta de pedido novo" : "Ativar som de alerta de pedido novo"}
+          style={{ width: 34, height: 34, borderRadius: 8, border: `1px solid ${C.line}`, background: soundEnabled ? "rgba(238,108,26,.1)" : "#fff",
+                   cursor: "pointer", display: "grid", placeItems: "center", flexShrink: 0 }}>
+          {soundEnabled ? <Volume2 size={15} color={C.orange} /> : <VolumeX size={15} color={C.grayText} />}
+        </button>
         <button onClick={onToggleCollapsed} className="vp-portal-collapse-btn" title={collapsed ? "Expandir menu" : "Recolher menu"}
           style={{ width: 28, height: 28, borderRadius: 8, border: `1px solid ${C.line}`, background: "#fff",
                    cursor: "pointer", placeItems: "center", flexShrink: 0 }}>
@@ -1409,11 +1480,28 @@ export default function PartnerDashboard() {
   const [collapsed, setCollapsed] = useState(() => localStorage.getItem("vp_sidebar_collapsed") === "1");
   const [chatOrder, setChatOrder] = useState(null);
   const [newOrderIds, setNewOrderIds] = useState(() => new Set());
+  const [alertOrderIds, setAlertOrderIds] = useState(() => new Set());
   const knownOrderIds = useRef(null);
+  const dragItemId = useRef(null);
+  const dragCategoryName = useRef(null);
   const [menuSearch, setMenuSearch] = useState("");
   const [orderSearch, setOrderSearch] = useState("");
   const [collapsedCategories, setCollapsedCategories] = useState(() => new Set());
+  const [selectedItems, setSelectedItems] = useState(() => new Set());
+  const [bulkWorking, setBulkWorking] = useState(false);
+  const [soundEnabled, setSoundEnabled] = useState(() => {
+    try { return localStorage.getItem("vp_sound_enabled") === "1"; } catch { return false; }
+  });
   const mpStatus = searchParams.get("mp");
+
+  function toggleSound() {
+    setSoundEnabled((prev) => {
+      const next = !prev;
+      try { localStorage.setItem("vp_sound_enabled", next ? "1" : "0"); } catch { /* localStorage indisponível */ }
+      if (next) playAlertBeep();
+      return next;
+    });
+  }
 
   function toggleCategoryCollapsed(name) {
     setCollapsedCategories((prev) => {
@@ -1421,6 +1509,35 @@ export default function PartnerDashboard() {
       if (next.has(name)) next.delete(name); else next.add(name);
       return next;
     });
+  }
+
+  function toggleItemSelected(id) {
+    setSelectedItems((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleCategorySelected(items) {
+    const ids = items.map((i) => i.id);
+    const allSelected = ids.every((id) => selectedItems.has(id));
+    setSelectedItems((prev) => {
+      const next = new Set(prev);
+      ids.forEach((id) => (allSelected ? next.delete(id) : next.add(id)));
+      return next;
+    });
+  }
+
+  async function handleBulkAvailability(available) {
+    setBulkWorking(true);
+    try {
+      await Promise.all([...selectedItems].map((id) => updateMenuItem(id, { available })));
+      setSelectedItems(new Set());
+      await reload();
+    } finally {
+      setBulkWorking(false);
+    }
   }
 
   function toggleCollapsed() {
@@ -1443,6 +1560,7 @@ export default function PartnerDashboard() {
         if (arrived.length > 0) {
           arrived.forEach((it) => knownOrderIds.current.add(it.id));
           setNewOrderIds((prev) => new Set([...prev, ...arrived.map((it) => it.id)]));
+          setAlertOrderIds((prev) => new Set([...prev, ...arrived.map((it) => it.id)]));
           showToast(arrived.length === 1 ? "Novo pedido recebido!" : `${arrived.length} novos pedidos recebidos!`, { icon: Bell, duration: 3200 });
         }
       }
@@ -1474,6 +1592,13 @@ export default function PartnerDashboard() {
     if (user) subscribeToPush(user.id);
   }, [user]);
 
+  useEffect(() => {
+    if (!soundEnabled || alertOrderIds.size === 0) return;
+    playAlertBeep();
+    const t = setInterval(playAlertBeep, 2500);
+    return () => clearInterval(t);
+  }, [soundEnabled, alertOrderIds.size]);
+
   if (authLoading) return <SkeletonPage />;
   if (!user) return <Navigate to="/parceiro/entrar" replace />;
   if (loading) return <SkeletonPage />;
@@ -1488,6 +1613,12 @@ export default function PartnerDashboard() {
   }
 
   async function handleStatusChange(orderId, status) {
+    setAlertOrderIds((prev) => {
+      if (!prev.has(orderId)) return prev;
+      const next = new Set(prev);
+      next.delete(orderId);
+      return next;
+    });
     await updateOrderStatus(orderId, status);
     reload();
   }
@@ -1529,25 +1660,81 @@ export default function PartnerDashboard() {
     return acc;
   }, {});
 
+  const menuItemsSorted = [...(restaurant.menu_items || [])].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
   const menuQuery = menuSearch.trim().toLowerCase();
-  const filteredMenuItems = (restaurant.menu_items || []).filter((item) =>
+  const filteredMenuItems = menuItemsSorted.filter((item) =>
     !menuQuery || item.name.toLowerCase().includes(menuQuery) || (item.category || "").toLowerCase().includes(menuQuery)
   );
-  const menuCategories = [...new Set((restaurant.menu_items || []).map((i) => i.category).filter(Boolean))].sort();
+  const menuCategories = [...new Set(menuItemsSorted.map((i) => i.category).filter(Boolean))].sort();
   const menuGroups = Object.entries(
     filteredMenuItems.reduce((acc, item) => {
       const key = item.category || "Sem categoria";
       (acc[key] = acc[key] || []).push(item);
       return acc;
     }, {})
-  ).sort(([a], [b]) => (a === "Sem categoria" ? 1 : b === "Sem categoria" ? -1 : a.localeCompare(b)));
+  ).sort(([a, itemsA], [b, itemsB]) => {
+    if (a === "Sem categoria") return 1;
+    if (b === "Sem categoria") return -1;
+    const minA = Math.min(...itemsA.map((i) => i.sort_order ?? 0));
+    const minB = Math.min(...itemsB.map((i) => i.sort_order ?? 0));
+    return minA - minB;
+  });
+  const menuDragEnabled = !menuQuery;
+
+  function reorderWithinCategory(categoryItems, draggedId, targetId) {
+    const fromIdx = categoryItems.findIndex((i) => i.id === draggedId);
+    const toIdx = categoryItems.findIndex((i) => i.id === targetId);
+    if (fromIdx === -1 || toIdx === -1 || fromIdx === toIdx) return categoryItems;
+    const next = [...categoryItems];
+    const [moved] = next.splice(fromIdx, 1);
+    next.splice(toIdx, 0, moved);
+    return next;
+  }
+
+  async function persistMenuOrder(orderedGroups) {
+    const flatItems = orderedGroups.flatMap(([, items]) => items);
+    const updates = flatItems
+      .map((item, index) => ({ id: item.id, sort_order: index }))
+      .filter((u) => ((restaurant.menu_items || []).find((it) => it.id === u.id)?.sort_order ?? 0) !== u.sort_order);
+    if (updates.length === 0) return;
+    setBulkWorking(true);
+    try {
+      await Promise.all(updates.map((u) => updateMenuItem(u.id, { sort_order: u.sort_order })));
+      await reload();
+    } finally {
+      setBulkWorking(false);
+    }
+  }
+
+  function handleItemDrop(categoryItems, targetItemId) {
+    const draggedId = dragItemId.current;
+    dragItemId.current = null;
+    if (!draggedId || draggedId === targetItemId) return;
+    const reorderedCategoryItems = reorderWithinCategory(categoryItems, draggedId, targetItemId);
+    const newGroups = menuGroups.map(([name, items]) => (items === categoryItems ? [name, reorderedCategoryItems] : [name, items]));
+    persistMenuOrder(newGroups);
+  }
+
+  function handleCategoryDrop(targetCategoryName) {
+    const draggedName = dragCategoryName.current;
+    dragCategoryName.current = null;
+    if (!draggedName || draggedName === targetCategoryName) return;
+    const fromIdx = menuGroups.findIndex(([name]) => name === draggedName);
+    const toIdx = menuGroups.findIndex(([name]) => name === targetCategoryName);
+    if (fromIdx === -1 || toIdx === -1) return;
+    const next = [...menuGroups];
+    const [moved] = next.splice(fromIdx, 1);
+    next.splice(toIdx, 0, moved);
+    persistMenuOrder(next);
+  }
 
   return (
     <div style={{ fontFamily: FONT, background: C.white, color: C.black }}>
       <div className="vp-portal-shell">
         <PartnerSidebar restaurant={restaurant} activeSection={activeSection} onSectionChange={setActiveSection}
           onToggleOpen={handleToggleOpen} userEmail={user.email} onSignOut={handleSignOut}
-          collapsed={collapsed} onToggleCollapsed={toggleCollapsed} hasNewOrder={newOrderIds.size > 0} />
+          collapsed={collapsed} onToggleCollapsed={toggleCollapsed} hasNewOrder={newOrderIds.size > 0}
+          soundEnabled={soundEnabled} onToggleSound={toggleSound} />
 
         <main className="vp-portal-main">
           <div style={{ maxWidth: 1000 }}>
@@ -1576,6 +1763,7 @@ export default function PartnerDashboard() {
 
             {activeSection === "inicio" && (
               <>
+                <ProfileChecklist restaurant={restaurant} />
                 <div className="vp-dash-stats" style={{ marginBottom: 28 }}>
                   <StatTile icon={Receipt} label="Pedidos hoje" value={todaysOrders.length} />
                   <StatTile icon={TrendingUp} label="Faturamento hoje" value={formatBRL(todayRevenue)} />
@@ -1694,6 +1882,7 @@ export default function PartnerDashboard() {
 
                 {showAddForm && (
                   <MenuItemForm restaurantId={restaurant.id} existingCategories={menuCategories}
+                    nextSortOrder={Math.max(-1, ...(restaurant.menu_items || []).map((i) => i.sort_order ?? 0)) + 1}
                     onSaved={() => { setShowAddForm(false); reload(); }}
                     onCancel={() => setShowAddForm(false)} />
                 )}
@@ -1708,6 +1897,28 @@ export default function PartnerDashboard() {
                   </div>
                 )}
 
+                {selectedItems.size > 0 && (
+                  <div className="flex items-center gap-2" style={{ background: "rgba(238,108,26,.08)", border: `1px solid ${C.orange}`,
+                       borderRadius: 10, padding: "10px 14px", marginBottom: 16, flexWrap: "wrap" }}>
+                    <span style={{ fontSize: 13, fontWeight: 600, marginRight: "auto" }}>{selectedItems.size} selecionado(s)</span>
+                    <button disabled={bulkWorking} onClick={() => handleBulkAvailability(false)} className="flex items-center gap-1"
+                      style={{ background: "#fff", border: `1px solid ${C.line}`, borderRadius: 8, cursor: bulkWorking ? "default" : "pointer",
+                               padding: "6px 12px", fontFamily: FONT, fontSize: 12.5, fontWeight: 600 }}>
+                      <Pause size={13} /> Pausar
+                    </button>
+                    <button disabled={bulkWorking} onClick={() => handleBulkAvailability(true)} className="flex items-center gap-1"
+                      style={{ background: "#fff", border: `1px solid ${C.line}`, borderRadius: 8, cursor: bulkWorking ? "default" : "pointer",
+                               padding: "6px 12px", fontFamily: FONT, fontSize: 12.5, fontWeight: 600, color: C.ok }}>
+                      <Play size={13} /> Reativar
+                    </button>
+                    <button onClick={() => setSelectedItems(new Set())}
+                      style={{ background: "none", border: "none", cursor: "pointer", color: C.grayText,
+                               fontFamily: FONT, fontSize: 12.5, fontWeight: 600 }}>
+                      Cancelar
+                    </button>
+                  </div>
+                )}
+
                 <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>
                   {(restaurant.menu_items || []).length === 0 && !showAddForm && (
                     <p style={{ color: C.grayText, fontSize: 14 }}>Nenhum item cadastrado ainda.</p>
@@ -1718,19 +1929,28 @@ export default function PartnerDashboard() {
                   {menuGroups.map(([categoryName, items]) => {
                     const isCollapsed = collapsedCategories.has(categoryName);
                     return (
-                      <div key={categoryName}>
-                        <button type="button" onClick={() => toggleCategoryCollapsed(categoryName)}
-                          className="flex items-center gap-2" style={{ background: "none", border: "none", cursor: "pointer",
-                               padding: 0, marginBottom: 10, width: "100%" }}>
-                          {isCollapsed ? <ChevronRight size={16} color={C.grayText} /> : <ChevronDown size={16} color={C.grayText} />}
-                          <span style={{ fontSize: 13.5, fontWeight: 700, color: C.grayText, textTransform: "uppercase", letterSpacing: .3 }}>
-                            {categoryName}
-                          </span>
-                          <span style={{ fontSize: 12, color: C.grayText, background: C.surface, borderRadius: 999,
-                               minWidth: 20, height: 20, display: "grid", placeItems: "center", padding: "0 6px" }}>
-                            {items.length}
-                          </span>
-                        </button>
+                      <div key={categoryName}
+                        draggable={menuDragEnabled} onDragStart={() => { dragCategoryName.current = categoryName; }}
+                        onDragOver={(e) => menuDragEnabled && e.preventDefault()}
+                        onDrop={() => menuDragEnabled && handleCategoryDrop(categoryName)}>
+                        <div className="flex items-center gap-2" style={{ marginBottom: 10 }}>
+                          {menuDragEnabled && <GripVertical size={15} color={C.gray} style={{ cursor: "grab", flexShrink: 0 }} />}
+                          <input type="checkbox" checked={items.every((i) => selectedItems.has(i.id))}
+                            onChange={() => toggleCategorySelected(items)}
+                            style={{ width: 15, height: 15, cursor: "pointer", flexShrink: 0 }} />
+                          <button type="button" onClick={() => toggleCategoryCollapsed(categoryName)}
+                            className="flex items-center gap-2" style={{ background: "none", border: "none", cursor: "pointer",
+                                 padding: 0, flex: 1 }}>
+                            {isCollapsed ? <ChevronRight size={16} color={C.grayText} /> : <ChevronDown size={16} color={C.grayText} />}
+                            <span style={{ fontSize: 13.5, fontWeight: 700, color: C.grayText, textTransform: "uppercase", letterSpacing: .3 }}>
+                              {categoryName}
+                            </span>
+                            <span style={{ fontSize: 12, color: C.grayText, background: C.surface, borderRadius: 999,
+                                 minWidth: 20, height: 20, display: "grid", placeItems: "center", padding: "0 6px" }}>
+                              {items.length}
+                            </span>
+                          </button>
+                        </div>
                         {!isCollapsed && (
                           <div className="vp-card-grid">
                             {items.map((item) =>
@@ -1740,8 +1960,15 @@ export default function PartnerDashboard() {
                                   onCancel={() => setEditingItem(null)} />
                               ) : (
                                 <div key={item.id} style={{ padding: 14, background: "#fff",
-                                     border: `1px solid ${C.line}`, borderRadius: 14, opacity: item.available === false ? 0.55 : 1 }}>
+                                     border: `1px solid ${C.line}`, borderRadius: 14, opacity: item.available === false ? 0.55 : 1 }}
+                                     draggable={menuDragEnabled} onDragStart={() => { dragItemId.current = item.id; }}
+                                     onDragOver={(e) => menuDragEnabled && e.preventDefault()}
+                                     onDrop={() => menuDragEnabled && handleItemDrop(items, item.id)}>
                                   <div className="flex items-center" style={{ gap: 12 }}>
+                                    {menuDragEnabled && <GripVertical size={15} color={C.gray} style={{ cursor: "grab", flexShrink: 0 }} />}
+                                    <input type="checkbox" checked={selectedItems.has(item.id)}
+                                      onChange={() => toggleItemSelected(item.id)}
+                                      style={{ width: 15, height: 15, cursor: "pointer", flexShrink: 0 }} />
                                     <div style={{ width: 52, height: 52, borderRadius: 10, flexShrink: 0, overflow: "hidden",
                                          background: C.surface, display: "grid", placeItems: "center" }}>
                                       {item.image_url ? (
