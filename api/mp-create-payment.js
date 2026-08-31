@@ -63,8 +63,11 @@ export default async function handler(req, res) {
       description: `Pedido ${order.id.slice(0, 8)} · ${restaurant.name}`,
       external_reference: order.id,
       notification_url: `${origin}/api/mp-webhook`,
-      application_fee: Number(order.commission_amount || 0),
     };
+    // o Mercado Pago rejeita application_fee = 0 (ex: restaurante em período promocional de comissão zero) — nesse caso não manda o campo, o repasse vai inteiro pro restaurante
+    if (Number(order.commission_amount) > 0) {
+      payload.application_fee = Number(order.commission_amount);
+    }
 
     if (method === "pix") {
       payload.payment_method_id = "pix";
