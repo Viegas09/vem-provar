@@ -8,8 +8,8 @@ html{ scroll-behavior:smooth; }
 @keyframes vp-pulse{0%,100%{opacity:.35}50%{opacity:1}}
 @keyframes vp-spin{to{transform:rotate(360deg)}}
 @keyframes vp-pop{0%{transform:scale(1)}35%{transform:scale(1.35)}100%{transform:scale(1)}}
-@keyframes vp-dropdown-in{from{opacity:0; transform:translateY(-6px) scale(.98)}to{opacity:1; transform:none}}
-@keyframes vp-fadein{from{opacity:0; transform:translateY(8px)}to{opacity:1; transform:none}}
+@keyframes vp-dropdown-in{from{opacity:0}to{opacity:1}}
+@keyframes vp-fadein{from{opacity:0}to{opacity:1}}
 @keyframes vp-shimmer{0%{background-position:-400px 0}100%{background-position:400px 0}}
 @keyframes vp-splash-mark-in{0%{opacity:0; transform:scale(.75)}60%{opacity:1; transform:scale(1.06)}100%{opacity:1; transform:scale(1)}}
 @keyframes vp-splash-fade-in{from{opacity:0; transform:translateY(6px)}to{opacity:1; transform:none}}
@@ -19,8 +19,8 @@ html{ scroll-behavior:smooth; }
 .vp-skel{ background:linear-gradient(90deg,#EDEAE2 25%,#F5F3EE 37%,#EDEAE2 63%); background-size:800px 100%; animation:vp-shimmer 1.4s ease-in-out infinite; }
 .vp-spin{ animation:vp-spin 0.8s linear infinite; }
 .vp-pop{ animation:vp-pop .3s ease; }
-.vp-dropdown-in{ animation:vp-dropdown-in .16s ease both; transform-origin:top; }
-.vp-fade-in{ animation:vp-fadein .4s ease both; }
+.vp-dropdown-in{ animation:vp-dropdown-in .16s ease; transform-origin:top; }
+.vp-fade-in{ animation:vp-fadein .4s ease; }
 @keyframes vp-toast-in{ from{ opacity:0; transform:translateY(14px) scale(.92); } to{ opacity:1; transform:none; } }
 @keyframes vp-toast-out{ to{ opacity:0; transform:translateY(8px) scale(.95); } }
 .vp-toast-stack{ position:fixed; left:50%; transform:translateX(-50%); bottom:calc(88px + env(safe-area-inset-bottom));
@@ -33,7 +33,7 @@ html{ scroll-behavior:smooth; }
 @keyframes vp-check-in{ 0%{ opacity:0; transform:scale(.4); } 55%{ opacity:1; transform:scale(1.15); } 100%{ transform:scale(1); } }
 .vp-check-in{ animation:vp-check-in .55s cubic-bezier(.28,1.4,.5,1) both; }
 @keyframes vp-route-in{ from{ opacity:0; } to{ opacity:1; } }
-.vp-route-fade{ animation:vp-route-in .28s cubic-bezier(.22,.8,.32,1) both; }
+.vp-route-fade{ animation:vp-route-in .28s cubic-bezier(.22,.8,.32,1); }
 @keyframes vp-order-glow{ 0%,100%{ box-shadow:0 0 0 0 rgba(238,108,26,.4); } 50%{ box-shadow:0 0 0 7px rgba(238,108,26,0); } }
 .vp-order-new{ animation:vp-order-glow 1.7s ease-in-out infinite; }
 @keyframes vp-pull-spin{ to{ transform:rotate(360deg); } }
