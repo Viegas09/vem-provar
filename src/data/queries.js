@@ -2,12 +2,24 @@ import { supabase } from "../lib/supabase";
 
 const MENU_ITEMS_SELECT = "*, menu_items(*, complement_groups(*, complement_items(*)))";
 
+// filtra restaurantes suspensos pelo admin; se a coluna ainda não existir no banco
+// (migração supabase-schema-32 não rodada), cai pra consulta sem o filtro em vez de quebrar a home
+function isMissingSuspendedColumn(error) {
+  return error?.code === "42703" || /column .*suspended.* does not exist/i.test(error?.message || "");
+}
+
 export async function fetchRestaurants() {
   const { data, error } = await supabase
     .from("restaurants")
     .select(MENU_ITEMS_SELECT)
+    .eq("suspended", false)
     .order("name");
-  if (error) throw error;
+  if (error) {
+    if (!isMissingSuspendedColumn(error)) throw error;
+    const fallback = await supabase.from("restaurants").select(MENU_ITEMS_SELECT).order("name");
+    if (fallback.error) throw fallback.error;
+    return fallback.data;
+  }
   return data;
 }
 
@@ -16,8 +28,14 @@ export async function fetchRestaurantBySlug(slug) {
     .from("restaurants")
     .select(MENU_ITEMS_SELECT)
     .eq("slug", slug)
+    .eq("suspended", false)
     .maybeSingle();
-  if (error) throw error;
+  if (error) {
+    if (!isMissingSuspendedColumn(error)) throw error;
+    const fallback = await supabase.from("restaurants").select(MENU_ITEMS_SELECT).eq("slug", slug).maybeSingle();
+    if (fallback.error) throw fallback.error;
+    return fallback.data;
+  }
   return data;
 }
 
@@ -187,6 +205,15 @@ export async function createDriver(driver) {
 
 export async function fetchProfile(userId) {
   const { data, error } = await supabase.from("profiles").select("*").eq("id", userId).maybeSingle();
+  if (error) throw error;
+  return data;
+}
+
+export async function fetchAllRestaurantsAdmin() {
+  const { data, error } = await supabase
+    .from("restaurants")
+    .select(MENU_ITEMS_SELECT)
+    .order("name");
   if (error) throw error;
   return data;
 }

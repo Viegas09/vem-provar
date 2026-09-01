@@ -3,12 +3,12 @@ import { Navigate, useNavigate } from "react-router-dom";
 import {
   Store, Package, Bike, Wallet, TrendingUp, LayoutDashboard, ChevronLeft, ChevronRight,
   LogOut, Search, AlertTriangle, ArrowLeft, CheckCircle2, XCircle, Link2, Link2Off, Clock3,
-  Receipt, Download, TicketPercent,
+  Receipt, Download, TicketPercent, ShieldOff, ShieldCheck,
 } from "lucide-react";
 import { C, FONT, formatBRL, RADIUS } from "../../theme";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
-import { fetchProfile, fetchRestaurants, fetchAllOrdersAdmin, fetchAllDriversAdmin, updateOrderStatus } from "../../data/queries";
+import { fetchProfile, fetchAllRestaurantsAdmin, fetchAllOrdersAdmin, fetchAllDriversAdmin, updateOrderStatus, updateRestaurant } from "../../data/queries";
 import { getCommissionRate, isInPromoPeriod } from "../../lib/commission";
 import { STATUS_META, STATUS_OPTIONS, NEXT_STATUS, OPEN_STATUSES } from "../../lib/orderStatus";
 import { ICONS } from "../../data/icons";
@@ -366,13 +366,14 @@ function PaymentIssueRow({ order }) {
   );
 }
 
-function RestaurantDetail({ health, orders, onBack, onAdvance, onCancel, workingOrderId }) {
+function RestaurantDetail({ health, orders, onBack, onAdvance, onCancel, workingOrderId, onSuspend, onReactivate, workingRestaurantId }) {
   const { restaurant: r, orderCount, revenue, lastOrderAt } = health;
   const inPromo = isInPromoPeriod(r.promo_started_at);
   const rate = getCommissionRate(r);
   const ticket = orderCount > 0 ? revenue / orderCount : 0;
   const restaurantOrders = orders.filter((o) => o.restaurant_id === r.id).slice(0, 30);
   const series = useMemo(() => buildDailySeries(restaurantOrders), [restaurantOrders]);
+  const busy = workingRestaurantId === r.id;
 
   return (
     <div>
@@ -381,26 +382,50 @@ function RestaurantDetail({ health, orders, onBack, onAdvance, onCancel, working
         <ArrowLeft size={16} /> Voltar pra Restaurantes
       </button>
 
-      <div className="flex items-center gap-3" style={{ marginBottom: 18, flexWrap: "wrap" }}>
-        <RestaurantAvatar iconKey={r.icon_key} size={52} />
-        <div>
-          <div className="flex items-center gap-2" style={{ flexWrap: "wrap" }}>
-            <h2 style={{ fontSize: 19, fontWeight: 700, margin: 0 }}>{r.name}</h2>
-            <span className="flex items-center gap-1" style={{ fontSize: 11.5, fontWeight: 700,
-                 color: r.is_open !== false ? C.ok : "#B42318", background: r.is_open !== false ? "rgba(46,158,91,.1)" : "#FDECEC",
-                 padding: "3px 9px", borderRadius: RADIUS.pill }}>
-              {r.is_open !== false ? <CheckCircle2 size={12} /> : <XCircle size={12} />}
-              {r.is_open !== false ? "Aberta" : "Fechada"}
-            </span>
-            <span className="flex items-center gap-1" style={{ fontSize: 11.5, fontWeight: 700,
-                 color: r.mp_connected ? C.ok : C.orange, background: r.mp_connected ? "rgba(46,158,91,.1)" : "rgba(238,108,26,.1)",
-                 padding: "3px 9px", borderRadius: RADIUS.pill }}>
-              {r.mp_connected ? <Link2 size={12} /> : <Link2Off size={12} />}
-              {r.mp_connected ? "Mercado Pago conectado" : "Sem Mercado Pago"}
-            </span>
+      <div className="flex items-center justify-between" style={{ marginBottom: 18, flexWrap: "wrap", gap: 12 }}>
+        <div className="flex items-center gap-3" style={{ flexWrap: "wrap" }}>
+          <RestaurantAvatar iconKey={r.icon_key} size={52} />
+          <div>
+            <div className="flex items-center gap-2" style={{ flexWrap: "wrap" }}>
+              <h2 style={{ fontSize: 19, fontWeight: 700, margin: 0 }}>{r.name}</h2>
+              {r.suspended && (
+                <span className="flex items-center gap-1" style={{ fontSize: 11.5, fontWeight: 700,
+                     color: "#B42318", background: "#FDECEC", padding: "3px 9px", borderRadius: RADIUS.pill }}>
+                  <ShieldOff size={12} /> Suspenso pela plataforma
+                </span>
+              )}
+              <span className="flex items-center gap-1" style={{ fontSize: 11.5, fontWeight: 700,
+                   color: r.is_open !== false ? C.ok : "#B42318", background: r.is_open !== false ? "rgba(46,158,91,.1)" : "#FDECEC",
+                   padding: "3px 9px", borderRadius: RADIUS.pill }}>
+                {r.is_open !== false ? <CheckCircle2 size={12} /> : <XCircle size={12} />}
+                {r.is_open !== false ? "Aberta" : "Fechada"}
+              </span>
+              <span className="flex items-center gap-1" style={{ fontSize: 11.5, fontWeight: 700,
+                   color: r.mp_connected ? C.ok : C.orange, background: r.mp_connected ? "rgba(46,158,91,.1)" : "rgba(238,108,26,.1)",
+                   padding: "3px 9px", borderRadius: RADIUS.pill }}>
+                {r.mp_connected ? <Link2 size={12} /> : <Link2Off size={12} />}
+                {r.mp_connected ? "Mercado Pago conectado" : "Sem Mercado Pago"}
+              </span>
+            </div>
+            <div style={{ fontSize: 13, color: C.grayText, marginTop: 2 }}>{r.category || "—"}</div>
+            {r.suspended && r.suspension_reason && (
+              <div style={{ fontSize: 12.5, color: "#B42318", marginTop: 4 }}>Motivo: {r.suspension_reason}</div>
+            )}
           </div>
-          <div style={{ fontSize: 13, color: C.grayText, marginTop: 2 }}>{r.category || "—"}</div>
         </div>
+        {r.suspended ? (
+          <button disabled={busy} onClick={() => onReactivate(r)} className="flex items-center gap-2"
+            style={{ background: C.ok, color: "#fff", border: "none", borderRadius: RADIUS.sm, cursor: busy ? "default" : "pointer",
+                     padding: "9px 14px", fontFamily: FONT, fontSize: 13, fontWeight: 600, opacity: busy ? .6 : 1, flexShrink: 0 }}>
+            <ShieldCheck size={14} /> Reativar restaurante
+          </button>
+        ) : (
+          <button disabled={busy} onClick={() => onSuspend(r)} className="flex items-center gap-2"
+            style={{ background: "#fff", color: "#B42318", border: "1px solid #B42318", borderRadius: RADIUS.sm, cursor: busy ? "default" : "pointer",
+                     padding: "9px 14px", fontFamily: FONT, fontSize: 13, fontWeight: 600, opacity: busy ? .6 : 1, flexShrink: 0 }}>
+            <ShieldOff size={14} /> Suspender restaurante
+          </button>
+        )}
       </div>
 
       <div className="vp-dash-stats" style={{ marginBottom: 24 }}>
@@ -489,6 +514,37 @@ export default function AdminDashboard() {
     }
   }
 
+  const [workingRestaurantId, setWorkingRestaurantId] = useState(null);
+
+  async function handleSuspendRestaurant(restaurant) {
+    const reason = window.prompt(`Por que suspender "${restaurant.name}"? (motivo fica registrado, opcional)`, "");
+    if (reason === null) return; // cancelou o prompt
+    setWorkingRestaurantId(restaurant.id);
+    try {
+      await updateRestaurant(restaurant.id, { suspended: true, suspension_reason: reason || null });
+      setRestaurants((prev) => prev.map((r) => (r.id === restaurant.id ? { ...r, suspended: true, suspension_reason: reason || null } : r)));
+      showToast(`${restaurant.name} suspenso — sai da vitrine pros clientes.`);
+    } catch {
+      showToast("Não foi possível suspender agora.");
+    } finally {
+      setWorkingRestaurantId(null);
+    }
+  }
+
+  async function handleReactivateRestaurant(restaurant) {
+    if (!window.confirm(`Reativar "${restaurant.name}"? Ele volta a aparecer pros clientes.`)) return;
+    setWorkingRestaurantId(restaurant.id);
+    try {
+      await updateRestaurant(restaurant.id, { suspended: false, suspension_reason: null });
+      setRestaurants((prev) => prev.map((r) => (r.id === restaurant.id ? { ...r, suspended: false, suspension_reason: null } : r)));
+      showToast(`${restaurant.name} reativado.`);
+    } catch {
+      showToast("Não foi possível reativar agora.");
+    } finally {
+      setWorkingRestaurantId(null);
+    }
+  }
+
   function toggleCollapsed() {
     setCollapsed((v) => {
       try { localStorage.setItem("vp_admin_sidebar_collapsed", v ? "0" : "1"); } catch { /* noop */ }
@@ -516,7 +572,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     if (!isAdmin) return;
     let cancelled = false;
-    Promise.all([fetchRestaurants(), fetchAllOrdersAdmin(), fetchAllDriversAdmin()]).then(([r, o, d]) => {
+    Promise.all([fetchAllRestaurantsAdmin(), fetchAllOrdersAdmin(), fetchAllDriversAdmin()]).then(([r, o, d]) => {
       if (cancelled) return;
       setRestaurants(r);
       setOrders(o);
@@ -566,6 +622,7 @@ export default function AdminDashboard() {
     if (restaurantFilter === "no_mp" && h.restaurant.mp_connected) return false;
     if (restaurantFilter === "no_orders" && h.orderCount > 0) return false;
     if (restaurantFilter === "closed" && h.restaurant.is_open !== false) return false;
+    if (restaurantFilter === "suspended" && !h.restaurant.suspended) return false;
     return true;
   }).sort((a, b) => b.revenue - a.revenue);
 
@@ -700,7 +757,8 @@ export default function AdminDashboard() {
             {activeSection === "restaurantes" && (
               selectedHealth ? (
                 <RestaurantDetail health={selectedHealth} orders={orders} onBack={() => setSelectedRestaurantId(null)}
-                  onAdvance={handleAdvanceOrder} onCancel={handleCancelOrder} workingOrderId={workingOrderId} />
+                  onAdvance={handleAdvanceOrder} onCancel={handleCancelOrder} workingOrderId={workingOrderId}
+                  onSuspend={handleSuspendRestaurant} onReactivate={handleReactivateRestaurant} workingRestaurantId={workingRestaurantId} />
               ) : (
                 <>
                   <h1 style={{ fontSize: 22, fontWeight: 700, margin: "0 0 20px" }}>Restaurantes</h1>
@@ -710,6 +768,7 @@ export default function AdminDashboard() {
                     <FilterChip active={restaurantFilter === "no_mp"} onClick={() => setRestaurantFilter("no_mp")} color={C.orange}>Sem MP</FilterChip>
                     <FilterChip active={restaurantFilter === "no_orders"} onClick={() => setRestaurantFilter("no_orders")}>Sem pedidos</FilterChip>
                     <FilterChip active={restaurantFilter === "closed"} onClick={() => setRestaurantFilter("closed")}>Fechados</FilterChip>
+                    <FilterChip active={restaurantFilter === "suspended"} onClick={() => setRestaurantFilter("suspended")} color="#B42318">Suspensos</FilterChip>
                   </div>
 
                   {filteredHealth.length === 0 ? (
@@ -720,12 +779,18 @@ export default function AdminDashboard() {
                         const r = h.restaurant;
                         return (
                           <button key={r.id} onClick={() => setSelectedRestaurantId(r.id)} className="flex items-center vp-tap"
-                            style={{ gap: 12, padding: 12, background: "#fff", border: `1px solid ${C.line}`, borderRadius: RADIUS.lg,
+                            style={{ gap: 12, padding: 12, background: "#fff", border: `1px solid ${r.suspended ? "#B42318" : C.line}`, borderRadius: RADIUS.lg,
                                      cursor: "pointer", textAlign: "left", width: "100%", fontFamily: FONT }}>
                             <RestaurantAvatar iconKey={r.icon_key} />
                             <div style={{ flex: 1, minWidth: 0 }}>
                               <div className="flex items-center gap-2" style={{ flexWrap: "wrap" }}>
                                 <span style={{ fontSize: 14.5, fontWeight: 600 }}>{r.name}</span>
+                                {r.suspended && (
+                                  <span className="flex items-center gap-1" style={{ fontSize: 10.5, fontWeight: 700,
+                                       color: "#B42318", background: "#FDECEC", padding: "2px 7px", borderRadius: RADIUS.pill }}>
+                                    <ShieldOff size={10} /> Suspenso
+                                  </span>
+                                )}
                                 <span style={{ width: 6, height: 6, borderRadius: "50%", background: r.is_open !== false ? C.ok : "#B42318", flexShrink: 0 }} />
                                 {!r.mp_connected && <Link2Off size={12} color={C.orange} />}
                               </div>

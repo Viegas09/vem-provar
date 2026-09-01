@@ -1752,6 +1752,14 @@ export default function PartnerDashboard() {
               </div>
             </div>
 
+            {restaurant.suspended && (
+              <div style={{ background: "#FDECEC", color: "#B42318", borderRadius: RADIUS.md, padding: "12px 14px",
+                   fontSize: 13.5, fontWeight: 600, marginBottom: 14 }}>
+                Sua loja foi suspensa pela plataforma e não aparece mais pros clientes.
+                {restaurant.suspension_reason ? ` Motivo: ${restaurant.suspension_reason}.` : ""} Entre em contato pra saber mais.
+              </div>
+            )}
+
             {mpStatus === "connected" && (
               <div style={{ background: "rgba(46,158,91,.1)", color: C.ok, borderRadius: RADIUS.md, padding: "10px 14px",
                    fontSize: 13.5, fontWeight: 600, marginBottom: 14 }}>
