@@ -3,6 +3,7 @@ import { Navigate, useNavigate } from "react-router-dom";
 import {
   Store, Package, Bike, Wallet, TrendingUp, LayoutDashboard, ChevronLeft, ChevronRight,
   LogOut, Search, AlertTriangle, ArrowLeft, CheckCircle2, XCircle, Link2, Link2Off, Clock3,
+  Receipt, Download, TicketPercent,
 } from "lucide-react";
 import { C, FONT, formatBRL, RADIUS } from "../../theme";
 import { useAuth } from "../../context/AuthContext";
@@ -21,8 +22,81 @@ const NAV_ITEMS = [
   { key: "geral", label: "Visão geral", icon: LayoutDashboard },
   { key: "restaurantes", label: "Restaurantes", icon: Store },
   { key: "pedidos", label: "Pedidos", icon: Package },
+  { key: "financeiro", label: "Financeiro", icon: Receipt },
   { key: "entregadores", label: "Entregadores", icon: Bike },
 ];
+
+const PAYMENT_STATUS_META = {
+  simulated: { label: "Na entrega", color: C.grayText, bg: C.surface },
+  approved: { label: "Pago", color: C.ok, bg: "rgba(46,158,91,.1)" },
+  pending: { label: "Pendente", color: C.orange, bg: "rgba(238,108,26,.1)" },
+  in_process: { label: "Pendente", color: C.orange, bg: "rgba(238,108,26,.1)" },
+  authorized: { label: "Pendente", color: C.orange, bg: "rgba(238,108,26,.1)" },
+  rejected: { label: "Recusado", color: "#B42318", bg: "#FDECEC" },
+  cancelled: { label: "Cancelado", color: "#B42318", bg: "#FDECEC" },
+  refunded: { label: "Estornado", color: "#B42318", bg: "#FDECEC" },
+  charged_back: { label: "Estornado", color: "#B42318", bg: "#FDECEC" },
+};
+
+function paymentStatusMeta(status) {
+  return PAYMENT_STATUS_META[status] || PAYMENT_STATUS_META.simulated;
+}
+
+const ONLINE_PAYMENT_METHODS = ["pix", "card_online"];
+
+function isConfirmedOrder(o) {
+  if (o.status === "cancelled") return false;
+  if (!ONLINE_PAYMENT_METHODS.includes(o.payment_method)) return true; // dinheiro/cartão na entrega: confia no repasse na entrega
+  return o.payment_status === "approved";
+}
+
+const FINANCE_PERIODS = [
+  { key: "7", label: "7 dias", days: 7 },
+  { key: "30", label: "30 dias", days: 30 },
+  { key: "90", label: "90 dias", days: 90 },
+  { key: "all", label: "Tudo", days: null },
+];
+
+function filterByPeriod(orders, periodKey) {
+  const period = FINANCE_PERIODS.find((p) => p.key === periodKey);
+  if (!period || period.days == null) return orders;
+  const cutoff = Date.now() - period.days * 86400000;
+  return orders.filter((o) => new Date(o.created_at).getTime() >= cutoff);
+}
+
+function csvEscape(value) {
+  const s = String(value ?? "");
+  return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+}
+
+function downloadCsv(filename, headers, rows) {
+  const lines = [headers.map(csvEscape).join(","), ...rows.map((row) => row.map(csvEscape).join(","))];
+  const blob = new Blob(["﻿" + lines.join("\n")], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function buildRestaurantFinance(restaurants, orders) {
+  const map = new Map(restaurants.map((r) => [r.id, {
+    restaurant: r, orderCount: 0, gmv: 0, commission: 0, payout: 0, discount: 0,
+  }]));
+  orders.forEach((o) => {
+    const entry = map.get(o.restaurant_id);
+    if (!entry || !isConfirmedOrder(o)) return;
+    entry.orderCount += 1;
+    entry.gmv += Number(o.total || 0);
+    entry.commission += Number(o.commission_amount || 0);
+    entry.payout += Number(o.restaurant_payout ?? (o.total - (o.commission_amount || 0)));
+    entry.discount += Number(o.discount_amount || 0);
+  });
+  return [...map.values()];
+}
 
 function relativeTime(dateStr) {
   if (!dateStr) return "Nunca";
@@ -249,6 +323,26 @@ function OrderRow({ order }) {
   );
 }
 
+function PaymentIssueRow({ order }) {
+  const meta = paymentStatusMeta(order.payment_status);
+  const methodLabel = order.payment_method === "pix" ? "Pix" : order.payment_method === "card_online" ? "Cartão online" : order.payment_method;
+  return (
+    <div className="flex items-center justify-between" style={{ padding: 14, background: "#fff", border: `1px solid ${C.line}`,
+         borderLeft: `4px solid ${meta.color}`, borderRadius: RADIUS.lg, gap: 10, flexWrap: "wrap" }}>
+      <div style={{ minWidth: 0 }}>
+        <span style={{ fontSize: 14, fontWeight: 700 }}>#{order.id.slice(0, 8)} · {order.restaurants?.name}</span>
+        <div style={{ fontSize: 12.5, color: C.grayText, marginTop: 2 }}>
+          {methodLabel} · {formatBRL(order.total)} · {new Date(order.created_at).toLocaleString("pt-BR")}
+        </div>
+      </div>
+      <span style={{ fontSize: 12, fontWeight: 700, color: meta.color, background: meta.bg,
+           padding: "5px 11px", borderRadius: RADIUS.pill, flexShrink: 0 }}>
+        {meta.label}
+      </span>
+    </div>
+  );
+}
+
 function RestaurantDetail({ health, orders, onBack }) {
   const { restaurant: r, orderCount, revenue, lastOrderAt } = health;
   const inPromo = isInPromoPeriod(r.promo_started_at);
@@ -339,6 +433,7 @@ export default function AdminDashboard() {
   const [orderSearch, setOrderSearch] = useState("");
   const [orderStatusFilter, setOrderStatusFilter] = useState("all");
   const [driverSearch, setDriverSearch] = useState("");
+  const [financePeriod, setFinancePeriod] = useState("30");
 
   function toggleCollapsed() {
     setCollapsed((v) => {
@@ -425,6 +520,31 @@ export default function AdminDashboard() {
   const filteredDrivers = drivers.filter((d) =>
     !dq || d.full_name.toLowerCase().includes(dq) || (d.vehicle_type || "").toLowerCase().includes(dq)
   );
+
+  const financeOrders = filterByPeriod(orders, financePeriod);
+  const confirmedOrders = financeOrders.filter(isConfirmedOrder);
+  const gmvConfirmed = confirmedOrders.reduce((sum, o) => sum + Number(o.total || 0), 0);
+  const commissionConfirmed = confirmedOrders.reduce((sum, o) => sum + Number(o.commission_amount || 0), 0);
+  const payoutConfirmed = confirmedOrders.reduce((sum, o) => sum + Number(o.restaurant_payout ?? (o.total - (o.commission_amount || 0))), 0);
+  const discountConfirmed = confirmedOrders.reduce((sum, o) => sum + Number(o.discount_amount || 0), 0);
+  const paymentIssues = financeOrders
+    .filter((o) => ONLINE_PAYMENT_METHODS.includes(o.payment_method) && o.payment_status !== "approved" && o.status !== "cancelled")
+    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  const restaurantFinance = buildRestaurantFinance(restaurants, financeOrders)
+    .filter((f) => f.orderCount > 0)
+    .sort((a, b) => b.commission - a.commission);
+
+  function exportFinanceCsv() {
+    downloadCsv(`vem-provar-financeiro-${financePeriod}d-${new Date().toISOString().slice(0, 10)}.csv`,
+      ["Pedido", "Restaurante", "Data", "Total", "Comissão", "Repasse", "Desconto", "Método", "Status pagamento", "Status pedido"],
+      financeOrders.map((o) => [
+        o.id.slice(0, 8), o.restaurants?.name || "", new Date(o.created_at).toLocaleString("pt-BR"),
+        Number(o.total || 0).toFixed(2), Number(o.commission_amount || 0).toFixed(2),
+        Number(o.restaurant_payout ?? (o.total - (o.commission_amount || 0))).toFixed(2),
+        Number(o.discount_amount || 0).toFixed(2), o.payment_method || "",
+        paymentStatusMeta(o.payment_status).label, STATUS_META[o.status]?.label || o.status,
+      ]));
+  }
 
   return (
     <div style={{ fontFamily: FONT, background: C.white, color: C.black }}>
@@ -571,6 +691,82 @@ export default function AdminDashboard() {
                 ) : (
                   <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                     {filteredOrders.map((o) => <OrderRow key={o.id} order={o} />)}
+                  </div>
+                )}
+              </>
+            )}
+
+            {activeSection === "financeiro" && (
+              <>
+                <div className="flex items-center justify-between" style={{ marginBottom: 18, flexWrap: "wrap", gap: 12 }}>
+                  <h1 style={{ fontSize: 22, fontWeight: 700, margin: 0 }}>Financeiro</h1>
+                  <button onClick={exportFinanceCsv} className="flex items-center gap-2"
+                    style={{ background: "#fff", border: `1px solid ${C.line}`, borderRadius: RADIUS.sm, cursor: "pointer",
+                             padding: "9px 14px", fontFamily: FONT, fontSize: 13, fontWeight: 600, color: C.black }}>
+                    <Download size={14} /> Exportar CSV
+                  </button>
+                </div>
+
+                <div className="flex items-center gap-2" style={{ marginBottom: 20 }}>
+                  {FINANCE_PERIODS.map((p) => (
+                    <FilterChip key={p.key} active={financePeriod === p.key} onClick={() => setFinancePeriod(p.key)}>
+                      {p.label}
+                    </FilterChip>
+                  ))}
+                </div>
+
+                <div className="vp-dash-stats" style={{ marginBottom: 24 }}>
+                  <StatTile icon={TrendingUp} label="GMV confirmado" value={formatBRL(gmvConfirmed)} />
+                  <StatTile icon={Wallet} label="Receita da plataforma" value={formatBRL(commissionConfirmed)} accent />
+                  <StatTile icon={Store} label="Repasse aos restaurantes" value={formatBRL(payoutConfirmed)} />
+                  <StatTile icon={TicketPercent} label="Descontos em cupons" value={formatBRL(discountConfirmed)} />
+                </div>
+
+                {paymentIssues.length > 0 && (
+                  <div style={{ marginBottom: 28 }}>
+                    <div className="flex items-center gap-2" style={{ marginBottom: 10 }}>
+                      <AlertTriangle size={16} color={C.orange} />
+                      <h2 style={{ fontSize: 15, fontWeight: 700, margin: 0 }}>
+                        Pagamentos pendentes ou com problema ({paymentIssues.length})
+                      </h2>
+                    </div>
+                    <p style={{ fontSize: 12.5, color: C.grayText, margin: "0 0 12px" }}>
+                      Pedidos pagos por Pix ou cartão online que ainda não foram confirmados como pagos pelo Mercado Pago.
+                    </p>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                      {paymentIssues.map((o) => <PaymentIssueRow key={o.id} order={o} />)}
+                    </div>
+                  </div>
+                )}
+
+                <h2 style={{ fontSize: 16, fontWeight: 700, margin: "0 0 12px" }}>Por restaurante</h2>
+                {restaurantFinance.length === 0 ? (
+                  <p style={{ color: C.grayText, fontSize: 14 }}>Nenhum pedido confirmado nesse período.</p>
+                ) : (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                    {restaurantFinance.map((f) => (
+                      <div key={f.restaurant.id} className="flex items-center justify-between"
+                        style={{ padding: "12px 14px", background: "#fff", border: `1px solid ${C.line}`, borderRadius: RADIUS.md, gap: 10, flexWrap: "wrap" }}>
+                        <div style={{ minWidth: 0 }}>
+                          <div style={{ fontSize: 14, fontWeight: 600 }}>{f.restaurant.name}</div>
+                          <div style={{ fontSize: 12, color: C.grayText }}>{f.orderCount} pedido{f.orderCount === 1 ? "" : "s"} confirmado{f.orderCount === 1 ? "" : "s"}</div>
+                        </div>
+                        <div className="flex items-center gap-4" style={{ flexShrink: 0 }}>
+                          <div style={{ textAlign: "right" }}>
+                            <div style={{ fontSize: 11, color: C.grayText }}>GMV</div>
+                            <div style={{ fontSize: 13.5, fontWeight: 700 }}>{formatBRL(f.gmv)}</div>
+                          </div>
+                          <div style={{ textAlign: "right" }}>
+                            <div style={{ fontSize: 11, color: C.grayText }}>Comissão</div>
+                            <div style={{ fontSize: 13.5, fontWeight: 700, color: C.orange }}>{formatBRL(f.commission)}</div>
+                          </div>
+                          <div style={{ textAlign: "right" }}>
+                            <div style={{ fontSize: 11, color: C.grayText }}>Repasse</div>
+                            <div style={{ fontSize: 13.5, fontWeight: 700, color: C.ok }}>{formatBRL(f.payout)}</div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 )}
               </>
