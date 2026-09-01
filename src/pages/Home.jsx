@@ -30,11 +30,17 @@ const SORT_OPTIONS = [
   { value: "nota", label: "Melhor nota" },
   { value: "entrega", label: "Menor tempo" },
   { value: "distancia", label: "Mais perto" },
+  { value: "preco", label: "Menor preço" },
 ];
 
 function parseDeliveryMinutes(deliveryTime) {
   const match = String(deliveryTime).match(/\d+/);
   return match ? Number(match[0]) : Infinity;
+}
+
+function cheapestPrice(r) {
+  const prices = (r.menu_items || []).filter((i) => i.available !== false).map((i) => Number(i.price));
+  return prices.length ? Math.min(...prices) : Infinity;
 }
 
 function greeting() {
@@ -57,6 +63,9 @@ export default function Home() {
   const isAppMode = useAppMode();
   const navigate = useNavigate();
   const [sortBy, setSortBy] = useState("relevancia");
+  const [openNowOnly, setOpenNowOnly] = useState(false);
+  const [freeDeliveryOnly, setFreeDeliveryOnly] = useState(false);
+  const [highRatedOnly, setHighRatedOnly] = useState(false);
   const { restaurants, loading, error, refetch } = useRestaurants();
   const [location, setLocation] = useUserLocation();
   const { user } = useAuth();
@@ -101,9 +110,17 @@ export default function Home() {
         ? distanceKm(location.latitude, location.longitude, r.latitude, r.longitude)
         : null,
   }));
-  const sortedRestaurants = [...restaurantsWithDistance].sort((a, b) => {
+  const hasActiveFilter = openNowOnly || freeDeliveryOnly || highRatedOnly;
+  const filteredRestaurants = restaurantsWithDistance.filter((r) => {
+    if (openNowOnly && r.is_open === false) return false;
+    if (freeDeliveryOnly && Number(r.delivery_fee) !== 0) return false;
+    if (highRatedOnly && Number(r.rating) < 4.5) return false;
+    return true;
+  });
+  const sortedRestaurants = [...filteredRestaurants].sort((a, b) => {
     if (sortBy === "nota") return Number(b.rating) - Number(a.rating);
     if (sortBy === "entrega") return parseDeliveryMinutes(a.delivery_time) - parseDeliveryMinutes(b.delivery_time);
+    if (sortBy === "preco") return cheapestPrice(a) - cheapestPrice(b);
     if (sortBy === "distancia" || (sortBy === "relevancia" && hasLocation)) {
       return (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity);
     }
@@ -317,7 +334,7 @@ export default function Home() {
           )}
         </div>
 
-        {!loading && !error && sortedRestaurants.length > 0 && (
+        {!loading && !error && matchingRestaurants.length > 0 && (
           <div className="vp-scroll" style={{ display: "flex", gap: 8, marginBottom: 18 }}>
             {SORT_OPTIONS.map((opt) => {
               const active = sortBy === opt.value;
@@ -330,6 +347,25 @@ export default function Home() {
                 </button>
               );
             })}
+            <span style={{ width: 1, height: 20, alignSelf: "center", background: C.line, flexShrink: 0 }} />
+            <button onClick={() => setOpenNowOnly((v) => !v)}
+              style={{ flexShrink: 0, background: openNowOnly ? C.black : "#fff", color: openNowOnly ? "#fff" : C.grayText,
+                       border: `1.5px solid ${openNowOnly ? C.black : C.line}`, borderRadius: RADIUS.pill, cursor: "pointer",
+                       padding: "7px 14px", fontFamily: FONT, fontSize: 13, fontWeight: 600, whiteSpace: "nowrap" }}>
+              Aberto agora
+            </button>
+            <button onClick={() => setFreeDeliveryOnly((v) => !v)}
+              style={{ flexShrink: 0, background: freeDeliveryOnly ? C.ok : "#fff", color: freeDeliveryOnly ? "#fff" : C.grayText,
+                       border: `1.5px solid ${freeDeliveryOnly ? C.ok : C.line}`, borderRadius: RADIUS.pill, cursor: "pointer",
+                       padding: "7px 14px", fontFamily: FONT, fontSize: 13, fontWeight: 600, whiteSpace: "nowrap" }}>
+              Entrega grátis
+            </button>
+            <button onClick={() => setHighRatedOnly((v) => !v)}
+              style={{ flexShrink: 0, background: highRatedOnly ? C.black : "#fff", color: highRatedOnly ? "#fff" : C.grayText,
+                       border: `1.5px solid ${highRatedOnly ? C.black : C.line}`, borderRadius: RADIUS.pill, cursor: "pointer",
+                       padding: "7px 14px", fontFamily: FONT, fontSize: 13, fontWeight: 600, whiteSpace: "nowrap" }}>
+              Nota 4,5+
+            </button>
           </div>
         )}
 
@@ -340,7 +376,9 @@ export default function Home() {
         ) : !error && restaurants.length === 0 ? (
           <p style={{ color: C.grayText, fontSize: 14.5 }}>Nenhum restaurante cadastrado ainda.</p>
         ) : !error && sortedRestaurants.length === 0 ? (
-          <p style={{ color: C.grayText, fontSize: 14.5 }}>Nenhum resultado para essa busca.</p>
+          <p style={{ color: C.grayText, fontSize: 14.5 }}>
+            {!hasQuery && hasActiveFilter ? "Nenhum restaurante encontrado com esses filtros." : "Nenhum resultado para essa busca."}
+          </p>
         ) : (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 16 }}>
             {sortedRestaurants.map((r) => (

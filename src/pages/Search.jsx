@@ -41,6 +41,8 @@ export default function Search() {
   const catKey = searchParams.get("cat") || "";
   const [sortBy, setSortBy] = useState("relevancia");
   const [freeDeliveryOnly, setFreeDeliveryOnly] = useState(false);
+  const [openNowOnly, setOpenNowOnly] = useState(false);
+  const [highRatedOnly, setHighRatedOnly] = useState(false);
   const inputRef = useRef(null);
 
   useEffect(() => {
@@ -64,7 +66,12 @@ export default function Search() {
 
   const showingList = hasQuery || !!activeCat;
 
-  const filteredResults = freeDeliveryOnly ? results.filter((r) => Number(r.delivery_fee) === 0) : results;
+  const filteredResults = results.filter((r) => {
+    if (freeDeliveryOnly && Number(r.delivery_fee) !== 0) return false;
+    if (openNowOnly && r.is_open === false) return false;
+    if (highRatedOnly && Number(r.rating) < 4.5) return false;
+    return true;
+  });
   const sortedResults = sortBy === "menor_preco"
     ? [...filteredResults].sort((a, b) => cheapestPrice(a) - cheapestPrice(b))
     : filteredResults;
@@ -155,17 +162,29 @@ export default function Search() {
                     </button>
                   ))}
                   <span style={{ width: 1, height: 20, background: C.line, flexShrink: 0 }} />
+                  <button onClick={() => setOpenNowOnly((v) => !v)}
+                    style={{ flexShrink: 0, background: openNowOnly ? C.black : "#fff", color: openNowOnly ? "#fff" : C.black,
+                             border: `1.5px solid ${openNowOnly ? C.black : C.line}`, borderRadius: RADIUS.pill, padding: "7px 14px",
+                             fontFamily: FONT, fontSize: 13, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap" }}>
+                    Aberto agora
+                  </button>
                   <button onClick={() => setFreeDeliveryOnly((v) => !v)}
                     style={{ flexShrink: 0, background: freeDeliveryOnly ? C.ok : "#fff", color: freeDeliveryOnly ? "#fff" : C.black,
                              border: `1.5px solid ${freeDeliveryOnly ? C.ok : C.line}`, borderRadius: RADIUS.pill, padding: "7px 14px",
                              fontFamily: FONT, fontSize: 13, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap" }}>
                     Entrega grátis
                   </button>
+                  <button onClick={() => setHighRatedOnly((v) => !v)}
+                    style={{ flexShrink: 0, background: highRatedOnly ? C.black : "#fff", color: highRatedOnly ? "#fff" : C.black,
+                             border: `1.5px solid ${highRatedOnly ? C.black : C.line}`, borderRadius: RADIUS.pill, padding: "7px 14px",
+                             fontFamily: FONT, fontSize: 13, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap" }}>
+                    Nota 4,5+
+                  </button>
                 </div>
 
                 {sortedResults.length === 0 ? (
                   <p style={{ color: C.grayText, fontSize: 14, textAlign: "center", padding: "40px 0" }}>
-                    Nenhum restaurante com entrega grátis encontrado.
+                    Nenhum restaurante encontrado com esses filtros.
                   </p>
                 ) : (
                   <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
