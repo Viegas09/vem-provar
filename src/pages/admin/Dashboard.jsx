@@ -7,9 +7,10 @@ import {
 } from "lucide-react";
 import { C, FONT, formatBRL, RADIUS } from "../../theme";
 import { useAuth } from "../../context/AuthContext";
-import { fetchProfile, fetchRestaurants, fetchAllOrdersAdmin, fetchAllDriversAdmin } from "../../data/queries";
+import { useToast } from "../../context/ToastContext";
+import { fetchProfile, fetchRestaurants, fetchAllOrdersAdmin, fetchAllDriversAdmin, updateOrderStatus } from "../../data/queries";
 import { getCommissionRate, isInPromoPeriod } from "../../lib/commission";
-import { STATUS_META, STATUS_OPTIONS } from "../../lib/orderStatus";
+import { STATUS_META, STATUS_OPTIONS, NEXT_STATUS, OPEN_STATUSES } from "../../lib/orderStatus";
 import { ICONS } from "../../data/icons";
 import WORDMARK_DARK from "../../assets/wordmark-dark.png";
 import { SkeletonPage } from "../../components/Skeleton";
@@ -296,8 +297,10 @@ function RestaurantAvatar({ iconKey, size = 40 }) {
   );
 }
 
-function OrderRow({ order }) {
+function OrderRow({ order, onAdvance, onCancel, working }) {
   const meta = STATUS_META[order.status] || STATUS_META.pending;
+  const next = NEXT_STATUS[order.status];
+  const canIntervene = (onAdvance || onCancel) && order.status !== "delivered" && order.status !== "cancelled";
   return (
     <div style={{ padding: 14, background: "#fff", border: `1px solid ${C.line}`,
          borderLeft: `4px solid ${meta.color}`, borderRadius: RADIUS.lg }}>
@@ -319,6 +322,26 @@ function OrderRow({ order }) {
           {meta.label}
         </span>
       </div>
+      {canIntervene && (
+        <div className="flex items-center gap-2" style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${C.line}`, flexWrap: "wrap" }}>
+          {next && onAdvance && (
+            <button disabled={working} onClick={() => onAdvance(order, next.value)}
+              style={{ background: C.black, color: "#fff", border: "none", borderRadius: RADIUS.xs,
+                       cursor: working ? "default" : "pointer", padding: "7px 12px", fontFamily: FONT, fontSize: 12.5,
+                       fontWeight: 600, opacity: working ? .6 : 1 }}>
+              {next.label}
+            </button>
+          )}
+          {onCancel && (
+            <button disabled={working} onClick={() => onCancel(order)}
+              style={{ background: "#fff", color: "#B42318", border: "1px solid #B42318", borderRadius: RADIUS.xs,
+                       cursor: working ? "default" : "pointer", padding: "7px 12px", fontFamily: FONT, fontSize: 12.5,
+                       fontWeight: 600, opacity: working ? .6 : 1 }}>
+              Cancelar pedido
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -343,7 +366,7 @@ function PaymentIssueRow({ order }) {
   );
 }
 
-function RestaurantDetail({ health, orders, onBack }) {
+function RestaurantDetail({ health, orders, onBack, onAdvance, onCancel, workingOrderId }) {
   const { restaurant: r, orderCount, revenue, lastOrderAt } = health;
   const inPromo = isInPromoPeriod(r.promo_started_at);
   const rate = getCommissionRate(r);
@@ -406,7 +429,9 @@ function RestaurantDetail({ health, orders, onBack }) {
         <p style={{ color: C.grayText, fontSize: 14 }}>Esse restaurante ainda não recebeu nenhum pedido.</p>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {restaurantOrders.map((o) => <OrderRow key={o.id} order={o} />)}
+          {restaurantOrders.map((o) => (
+            <OrderRow key={o.id} order={o} onAdvance={onAdvance} onCancel={onCancel} working={workingOrderId === o.id} />
+          ))}
         </div>
       )}
     </div>
@@ -415,6 +440,7 @@ function RestaurantDetail({ health, orders, onBack }) {
 
 export default function AdminDashboard() {
   const { user, loading: authLoading, signOut } = useAuth();
+  const { showToast } = useToast();
   const navigate = useNavigate();
   const [checkingRole, setCheckingRole] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -434,6 +460,34 @@ export default function AdminDashboard() {
   const [orderStatusFilter, setOrderStatusFilter] = useState("all");
   const [driverSearch, setDriverSearch] = useState("");
   const [financePeriod, setFinancePeriod] = useState("30");
+  const [workingOrderId, setWorkingOrderId] = useState(null);
+
+  async function handleAdvanceOrder(order, nextStatus) {
+    setWorkingOrderId(order.id);
+    try {
+      await updateOrderStatus(order.id, nextStatus);
+      setOrders((prev) => prev.map((o) => (o.id === order.id ? { ...o, status: nextStatus } : o)));
+      showToast(`Pedido #${order.id.slice(0, 8)} atualizado para "${STATUS_META[nextStatus].label}"`);
+    } catch {
+      showToast("Não foi possível atualizar o pedido agora.");
+    } finally {
+      setWorkingOrderId(null);
+    }
+  }
+
+  async function handleCancelOrder(order) {
+    if (!window.confirm(`Cancelar o pedido #${order.id.slice(0, 8)} de ${order.restaurants?.name}? Essa ação não pode ser desfeita.`)) return;
+    setWorkingOrderId(order.id);
+    try {
+      await updateOrderStatus(order.id, "cancelled");
+      setOrders((prev) => prev.map((o) => (o.id === order.id ? { ...o, status: "cancelled" } : o)));
+      showToast(`Pedido #${order.id.slice(0, 8)} cancelado.`);
+    } catch {
+      showToast("Não foi possível cancelar o pedido agora.");
+    } finally {
+      setWorkingOrderId(null);
+    }
+  }
 
   function toggleCollapsed() {
     setCollapsed((v) => {
@@ -491,11 +545,19 @@ export default function AdminDashboard() {
   const noMpCount = restaurants.filter((r) => !r.mp_connected).length;
   const noOrdersCount = health.filter((h) => h.orderCount === 0).length;
   const closedCount = restaurants.filter((r) => r.is_open === false).length;
+  const STUCK_HOURS = 2;
+  const stuckOrders = orders.filter((o) => OPEN_STATUSES.includes(o.status) && Date.now() - new Date(o.created_at).getTime() > STUCK_HOURS * 3600000);
 
   function goToRestaurants(filter) {
     setSelectedRestaurantId(null);
     setRestaurantFilter(filter);
     setActiveSection("restaurantes");
+  }
+
+  function goToOrders() {
+    setOrderStatusFilter("all");
+    setOrderSearch("");
+    setActiveSection("pedidos");
   }
 
   const filteredHealth = health.filter((h) => {
@@ -568,13 +630,23 @@ export default function AdminDashboard() {
                   <StatTile icon={Wallet} label="Receita da plataforma" value={formatBRL(commissionRevenue)} accent />
                 </div>
 
-                {(noMpCount > 0 || noOrdersCount > 0 || closedCount > 0) && (
+                {(noMpCount > 0 || noOrdersCount > 0 || closedCount > 0 || stuckOrders.length > 0) && (
                   <div style={{ marginBottom: 28 }}>
                     <div className="flex items-center gap-2" style={{ marginBottom: 10 }}>
                       <AlertTriangle size={16} color={C.orange} />
                       <h2 style={{ fontSize: 15, fontWeight: 700, margin: 0 }}>Precisa de atenção</h2>
                     </div>
                     <div className="flex items-center gap-2" style={{ flexWrap: "wrap" }}>
+                      {stuckOrders.length > 0 && (
+                        <button onClick={goToOrders} className="flex items-center gap-2"
+                          style={{ background: "rgba(238,108,26,.08)", border: `1px solid ${C.orange}`, borderRadius: RADIUS.md,
+                                   padding: "10px 14px", cursor: "pointer", fontFamily: FONT }}>
+                          <Clock3 size={14} color={C.orange} />
+                          <span style={{ fontSize: 13, fontWeight: 600, color: C.black }}>
+                            {stuckOrders.length} pedido{stuckOrders.length > 1 ? "s" : ""} parado{stuckOrders.length > 1 ? "s" : ""} há mais de {STUCK_HOURS}h
+                          </span>
+                        </button>
+                      )}
                       {noMpCount > 0 && (
                         <button onClick={() => goToRestaurants("no_mp")} className="flex items-center gap-2"
                           style={{ background: "rgba(238,108,26,.08)", border: `1px solid ${C.orange}`, borderRadius: RADIUS.md,
@@ -627,7 +699,8 @@ export default function AdminDashboard() {
 
             {activeSection === "restaurantes" && (
               selectedHealth ? (
-                <RestaurantDetail health={selectedHealth} orders={orders} onBack={() => setSelectedRestaurantId(null)} />
+                <RestaurantDetail health={selectedHealth} orders={orders} onBack={() => setSelectedRestaurantId(null)}
+                  onAdvance={handleAdvanceOrder} onCancel={handleCancelOrder} workingOrderId={workingOrderId} />
               ) : (
                 <>
                   <h1 style={{ fontSize: 22, fontWeight: 700, margin: "0 0 20px" }}>Restaurantes</h1>
@@ -690,7 +763,10 @@ export default function AdminDashboard() {
                   <p style={{ color: C.grayText, fontSize: 14 }}>Nenhum pedido encontrado.</p>
                 ) : (
                   <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                    {filteredOrders.map((o) => <OrderRow key={o.id} order={o} />)}
+                    {filteredOrders.map((o) => (
+                      <OrderRow key={o.id} order={o} onAdvance={handleAdvanceOrder} onCancel={handleCancelOrder}
+                        working={workingOrderId === o.id} />
+                    ))}
                   </div>
                 )}
               </>
