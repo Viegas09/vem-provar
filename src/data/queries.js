@@ -209,6 +209,13 @@ export async function fetchProfile(userId) {
   return data;
 }
 
+export async function fetchProfilesByIds(ids) {
+  if (!ids || ids.length === 0) return [];
+  const { data, error } = await supabase.from("profiles").select("*").in("id", ids);
+  if (error) throw error;
+  return data;
+}
+
 export async function fetchAllRestaurantsAdmin() {
   const { data, error } = await supabase
     .from("restaurants")

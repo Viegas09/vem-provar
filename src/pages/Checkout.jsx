@@ -7,7 +7,7 @@ import { useAppMode } from "../hooks/useAppMode";
 import { useCart } from "../context/CartContext";
 import { useUserLocation } from "../hooks/useUserLocation";
 import { useAuth } from "../context/AuthContext";
-import { createOrder, fetchAddresses, createAddress, updateAddress, fetchCouponByCode, redeemCoupon } from "../data/queries";
+import { createOrder, fetchAddresses, createAddress, updateAddress, fetchCouponByCode, redeemCoupon, fetchProfile } from "../data/queries";
 import { getCommissionRate, calculateCommission } from "../lib/commission";
 import { formatAddress } from "../lib/geolocation";
 import { isRestaurantOpenNow } from "../lib/businessHours";
@@ -140,6 +140,7 @@ export default function Checkout() {
   const [savedAddresses, setSavedAddresses] = useState([]);
   const [selectedAddressId, setSelectedAddressId] = useState(null);
   const [addressModal, setAddressModal] = useState(null);
+  const [blockedInfo, setBlockedInfo] = useState(null);
 
   function handleLocated({ latitude, longitude, address: found }) {
     const nextAddress = found || address;
@@ -153,6 +154,9 @@ export default function Checkout() {
       setSavedAddresses(data);
       const def = data.find((a) => a.is_default) || data[0];
       if (def) setSelectedAddressId(def.id);
+    });
+    fetchProfile(user.id).then((profile) => {
+      if (profile?.blocked) setBlockedInfo({ reason: profile.blocked_reason });
     });
   }, [user]);
 
@@ -192,6 +196,10 @@ export default function Checkout() {
     if (!restaurant) return;
     if (!isPickup && (usingSavedAddresses ? !selectedAddress : !address.trim())) return;
     if (scheduleMode === "later" && !scheduledFor) return;
+    if (blockedInfo) {
+      setSubmitError(`Sua conta está bloqueada de fazer pedidos${blockedInfo.reason ? `: ${blockedInfo.reason}` : "."} Fale com o suporte.`);
+      return;
+    }
     if (!isRestaurantOpenNow(restaurant)) {
       setSubmitError("Esse restaurante está fechado no momento e não pode receber pedidos agora.");
       return;
@@ -542,15 +550,21 @@ export default function Checkout() {
           </div>
         )}
 
+        {blockedInfo && (
+          <div style={{ background: "#FDECEC", color: "#B42318", borderRadius: RADIUS.md, padding: 14, fontSize: 14, marginBottom: 16 }}>
+            Sua conta está bloqueada de fazer pedidos{blockedInfo.reason ? `: ${blockedInfo.reason}` : "."} Fale com o suporte.
+          </div>
+        )}
+
         {submitError && (
           <div style={{ background: "#FDECEC", color: "#B42318", borderRadius: RADIUS.md, padding: 14, fontSize: 14, marginBottom: 16 }}>
             {submitError}
           </div>
         )}
 
-        <button type="submit" disabled={submitting || (restaurant && !isRestaurantOpenNow(restaurant)) || (scheduleMode === "later" && !scheduledFor)}
-          style={{ width: "100%", background: submitting || (restaurant && !isRestaurantOpenNow(restaurant)) || (scheduleMode === "later" && !scheduledFor) ? C.gray : C.orange, color: "#fff", border: "none",
-                   cursor: submitting || (restaurant && !isRestaurantOpenNow(restaurant)) ? "default" : "pointer", borderRadius: RADIUS.md, padding: "15px 0", fontFamily: FONT,
+        <button type="submit" disabled={submitting || blockedInfo || (restaurant && !isRestaurantOpenNow(restaurant)) || (scheduleMode === "later" && !scheduledFor)}
+          style={{ width: "100%", background: submitting || blockedInfo || (restaurant && !isRestaurantOpenNow(restaurant)) || (scheduleMode === "later" && !scheduledFor) ? C.gray : C.orange, color: "#fff", border: "none",
+                   cursor: submitting || blockedInfo || (restaurant && !isRestaurantOpenNow(restaurant)) ? "default" : "pointer", borderRadius: RADIUS.md, padding: "15px 0", fontFamily: FONT,
                    fontSize: 15.5, fontWeight: 600 }}>
           {submitting ? "Confirmando…" : scheduleMode === "later" && scheduledFor
             ? `Agendar para ${SCHEDULE_DAYS.find((d) => d.offset === scheduleDay)?.label.toLowerCase()} às ${scheduledFor.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}`

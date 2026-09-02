@@ -4,12 +4,15 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Store, Package, Bike, Wallet, TrendingUp, LayoutDashboard, ChevronLeft, ChevronRight,
   LogOut, Search, AlertTriangle, ArrowLeft, CheckCircle2, XCircle, Link2, Link2Off, Clock3,
-  Receipt, Download, TicketPercent, ShieldOff, ShieldCheck,
+  Receipt, Download, TicketPercent, ShieldOff, ShieldCheck, Users, Ban,
 } from "lucide-react";
 import { C, FONT, formatBRL, RADIUS } from "../../theme";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
-import { fetchProfile, fetchAllRestaurantsAdmin, fetchAllOrdersAdmin, fetchAllDriversAdmin, updateOrderStatus, updateRestaurant } from "../../data/queries";
+import {
+  fetchProfile, fetchAllRestaurantsAdmin, fetchAllOrdersAdmin, fetchAllDriversAdmin,
+  updateOrderStatus, updateRestaurant, fetchProfilesByIds, updateProfile,
+} from "../../data/queries";
 import { getCommissionRate, isInPromoPeriod } from "../../lib/commission";
 import { STATUS_META, STATUS_OPTIONS, NEXT_STATUS, OPEN_STATUSES } from "../../lib/orderStatus";
 import { ICONS } from "../../data/icons";
@@ -30,6 +33,7 @@ const NAV_ITEMS = [
   { key: "restaurantes", label: "Restaurantes", icon: Store },
   { key: "pedidos", label: "Pedidos", icon: Package },
   { key: "financeiro", label: "Financeiro", icon: Receipt },
+  { key: "clientes", label: "Clientes", icon: Users },
   { key: "entregadores", label: "Entregadores", icon: Bike },
 ];
 
@@ -142,6 +146,19 @@ function buildRestaurantHealth(restaurants, orders) {
     if (!entry) return;
     entry.orderCount += 1;
     entry.revenue += Number(o.total || 0);
+    if (!entry.lastOrderAt || new Date(o.created_at) > new Date(entry.lastOrderAt)) entry.lastOrderAt = o.created_at;
+  });
+  return [...map.values()];
+}
+
+function buildCustomerHealth(profiles, orders) {
+  const map = new Map(profiles.map((p) => [p.id, { profile: p, orderCount: 0, cancelledCount: 0, spend: 0, lastOrderAt: null }]));
+  orders.forEach((o) => {
+    const entry = map.get(o.customer_id);
+    if (!entry) return;
+    entry.orderCount += 1;
+    if (o.status === "cancelled") entry.cancelledCount += 1;
+    else entry.spend += Number(o.total || 0);
     if (!entry.lastOrderAt || new Date(o.created_at) > new Date(entry.lastOrderAt)) entry.lastOrderAt = o.created_at;
   });
   return [...map.values()];
@@ -485,6 +502,13 @@ export default function AdminDashboard() {
   const restaurants = restaurantsQuery.data || [];
   const orders = ordersQuery.data || [];
   const drivers = driversQuery.data || [];
+  const customerIds = useMemo(() => [...new Set(orders.map((o) => o.customer_id).filter(Boolean))], [orders]);
+  const customersQuery = useQuery({
+    queryKey: ["admin", "customers", customerIds],
+    queryFn: () => fetchProfilesByIds(customerIds),
+    enabled: isAdmin && customerIds.length > 0,
+  });
+  const customerProfiles = customersQuery.data || [];
   const loadingData = restaurantsQuery.isLoading || ordersQuery.isLoading || driversQuery.isLoading;
 
   const [activeSection, setActiveSection] = useState("geral");
@@ -497,6 +521,8 @@ export default function AdminDashboard() {
   const [orderSearch, setOrderSearch] = useState("");
   const [orderStatusFilter, setOrderStatusFilter] = useState("all");
   const [driverSearch, setDriverSearch] = useState("");
+  const [customerSearch, setCustomerSearch] = useState("");
+  const [customerFilter, setCustomerFilter] = useState("all");
   const [financePeriod, setFinancePeriod] = useState("30");
   const [workingOrderId, setWorkingOrderId] = useState(null);
 
@@ -557,6 +583,39 @@ export default function AdminDashboard() {
       showToast("Não foi possível reativar agora.");
     } finally {
       setWorkingRestaurantId(null);
+    }
+  }
+
+  const [workingCustomerId, setWorkingCustomerId] = useState(null);
+
+  async function handleBlockCustomer(profile) {
+    const reason = window.prompt(`Por que bloquear ${profile.full_name || profile.email || "esse cliente"}? (motivo fica registrado, opcional)`, "");
+    if (reason === null) return;
+    setWorkingCustomerId(profile.id);
+    try {
+      await updateProfile(profile.id, { blocked: true, blocked_reason: reason || null });
+      queryClient.setQueryData(["admin", "customers", customerIds], (prev) =>
+        (prev || []).map((p) => (p.id === profile.id ? { ...p, blocked: true, blocked_reason: reason || null } : p)));
+      showToast(`${profile.full_name || "Cliente"} bloqueado — não vai conseguir fazer novo pedido.`);
+    } catch {
+      showToast("Não foi possível bloquear agora.");
+    } finally {
+      setWorkingCustomerId(null);
+    }
+  }
+
+  async function handleUnblockCustomer(profile) {
+    if (!window.confirm(`Desbloquear ${profile.full_name || profile.email || "esse cliente"}?`)) return;
+    setWorkingCustomerId(profile.id);
+    try {
+      await updateProfile(profile.id, { blocked: false, blocked_reason: null });
+      queryClient.setQueryData(["admin", "customers", customerIds], (prev) =>
+        (prev || []).map((p) => (p.id === profile.id ? { ...p, blocked: false, blocked_reason: null } : p)));
+      showToast(`${profile.full_name || "Cliente"} desbloqueado.`);
+    } catch {
+      showToast("Não foi possível desbloquear agora.");
+    } finally {
+      setWorkingCustomerId(null);
     }
   }
 
@@ -640,6 +699,14 @@ export default function AdminDashboard() {
   const filteredDrivers = drivers.filter((d) =>
     !dq || d.full_name.toLowerCase().includes(dq) || (d.vehicle_type || "").toLowerCase().includes(dq)
   );
+
+  const customerHealth = buildCustomerHealth(customerProfiles, orders);
+  const cq = customerSearch.trim().toLowerCase();
+  const filteredCustomers = customerHealth.filter((c) => {
+    if (cq && !(c.profile.full_name || "").toLowerCase().includes(cq) && !(c.profile.email || "").toLowerCase().includes(cq)) return false;
+    if (customerFilter === "blocked" && !c.profile.blocked) return false;
+    return true;
+  }).sort((a, b) => b.spend - a.spend);
 
   const financeOrders = filterByPeriod(orders, financePeriod);
   const confirmedOrders = financeOrders.filter(isConfirmedOrder);
@@ -909,6 +976,73 @@ export default function AdminDashboard() {
                         </div>
                       </div>
                     ))}
+                  </div>
+                )}
+              </>
+            )}
+
+            {activeSection === "clientes" && (
+              <>
+                <h1 style={{ fontSize: 22, fontWeight: 700, margin: "0 0 20px" }}>Clientes</h1>
+                <p style={{ fontSize: 12.5, color: C.grayText, margin: "-12px 0 16px" }}>
+                  Só aparece quem já fez pelo menos um pedido.
+                </p>
+                <div className="flex items-center gap-2" style={{ marginBottom: 16, flexWrap: "wrap" }}>
+                  <SearchBox value={customerSearch} onChange={setCustomerSearch} placeholder="Buscar por nome ou e-mail" />
+                  <FilterChip active={customerFilter === "all"} onClick={() => setCustomerFilter("all")}>Todos</FilterChip>
+                  <FilterChip active={customerFilter === "blocked"} onClick={() => setCustomerFilter("blocked")} color="#B42318">Bloqueados</FilterChip>
+                </div>
+
+                {filteredCustomers.length === 0 ? (
+                  <p style={{ color: C.grayText, fontSize: 14 }}>Nenhum cliente encontrado.</p>
+                ) : (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                    {filteredCustomers.map((c) => {
+                      const p = c.profile;
+                      const busy = workingCustomerId === p.id;
+                      return (
+                        <div key={p.id} className="flex items-center justify-between" style={{ padding: "12px 14px",
+                             background: "#fff", border: `1px solid ${p.blocked ? "#B42318" : C.line}`, borderRadius: RADIUS.lg, gap: 10, flexWrap: "wrap" }}>
+                          <div style={{ minWidth: 0 }}>
+                            <div className="flex items-center gap-2" style={{ flexWrap: "wrap" }}>
+                              <span style={{ fontSize: 14.5, fontWeight: 600 }}>{p.full_name || "Sem nome"}</span>
+                              {p.blocked && (
+                                <span className="flex items-center gap-1" style={{ fontSize: 10.5, fontWeight: 700,
+                                     color: "#B42318", background: "#FDECEC", padding: "2px 7px", borderRadius: RADIUS.pill }}>
+                                  <Ban size={10} /> Bloqueado
+                                </span>
+                              )}
+                            </div>
+                            <div style={{ fontSize: 12, color: C.grayText, marginTop: 2 }}>
+                              {p.email || "—"} · Último pedido: {relativeTime(c.lastOrderAt)}
+                              {c.cancelledCount > 0 && ` · ${c.cancelledCount} cancelado${c.cancelledCount === 1 ? "" : "s"}`}
+                            </div>
+                            {p.blocked && p.blocked_reason && (
+                              <div style={{ fontSize: 12, color: "#B42318", marginTop: 2 }}>Motivo: {p.blocked_reason}</div>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-3" style={{ flexShrink: 0 }}>
+                            <div style={{ textAlign: "right" }}>
+                              <div style={{ fontSize: 14, fontWeight: 700 }}>{formatBRL(c.spend)}</div>
+                              <div style={{ fontSize: 12, color: C.grayText }}>{c.orderCount} pedido{c.orderCount === 1 ? "" : "s"}</div>
+                            </div>
+                            {p.blocked ? (
+                              <button disabled={busy} onClick={() => handleUnblockCustomer(p)}
+                                style={{ background: C.ok, color: "#fff", border: "none", borderRadius: RADIUS.xs, cursor: busy ? "default" : "pointer",
+                                         padding: "7px 12px", fontFamily: FONT, fontSize: 12.5, fontWeight: 600, opacity: busy ? .6 : 1 }}>
+                                Desbloquear
+                              </button>
+                            ) : (
+                              <button disabled={busy} onClick={() => handleBlockCustomer(p)}
+                                style={{ background: "#fff", color: "#B42318", border: "1px solid #B42318", borderRadius: RADIUS.xs, cursor: busy ? "default" : "pointer",
+                                         padding: "7px 12px", fontFamily: FONT, fontSize: 12.5, fontWeight: 600, opacity: busy ? .6 : 1 }}>
+                                Bloquear
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </>
