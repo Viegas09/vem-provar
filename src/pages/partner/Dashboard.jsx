@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useOrdersRealtime } from "../../hooks/useOrdersRealtime";
 import {
   Plus, Trash2, Pencil, Store, Package, Wallet, CreditCard, CheckCircle2, XCircle, Receipt, TrendingUp,
   Clock3, Coins, Pause, Play, Home as HomeIcon, UtensilsCrossed, LogOut, ChevronLeft, ChevronRight,
@@ -1467,15 +1469,39 @@ function PartnerSidebar({ restaurant, activeSection, onSectionChange, onToggleOp
   );
 }
 
+const partnerRestaurantKey = (ownerId) => ["partner", "restaurant", ownerId];
+const partnerOrdersKey = (restaurantId) => ["partner", "orders", restaurantId];
+const partnerCouponsKey = (restaurantId) => ["partner", "coupons", restaurantId];
+
 export default function PartnerDashboard() {
   const { user, loading: authLoading, signOut } = useAuth();
   const { showToast } = useToast();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [searchParams] = useSearchParams();
-  const [restaurant, setRestaurant] = useState(null);
-  const [orders, setOrders] = useState([]);
-  const [coupons, setCoupons] = useState([]);
-  const [loading, setLoading] = useState(true);
+
+  const restaurantQuery = useQuery({
+    queryKey: partnerRestaurantKey(user?.id),
+    queryFn: () => fetchRestaurantByOwner(user.id),
+    enabled: !!user,
+  });
+  const restaurant = restaurantQuery.data;
+  const ordersQuery = useQuery({
+    queryKey: partnerOrdersKey(restaurant?.id),
+    queryFn: () => fetchOrdersForRestaurant(restaurant.id),
+    enabled: !!restaurant?.id,
+  });
+  const couponsQuery = useQuery({
+    queryKey: partnerCouponsKey(restaurant?.id),
+    queryFn: () => fetchCouponsForRestaurant(restaurant.id),
+    enabled: !!restaurant?.id,
+  });
+  useOrdersRealtime(partnerOrdersKey(restaurant?.id), { restaurantId: restaurant?.id, enabled: !!restaurant?.id });
+
+  const orders = ordersQuery.data || [];
+  const coupons = couponsQuery.data || [];
+  const loading = restaurantQuery.isLoading || (!!restaurant?.id && (ordersQuery.isLoading || couponsQuery.isLoading));
+
   const [showAddForm, setShowAddForm] = useState(false);
   const [showCouponForm, setShowCouponForm] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
@@ -1553,37 +1579,32 @@ export default function PartnerDashboard() {
   }
 
   async function reload() {
-    const r = await fetchRestaurantByOwner(user.id);
-    setRestaurant(r);
-    if (r) {
-      const o = await fetchOrdersForRestaurant(r.id);
-      if (knownOrderIds.current === null) {
-        knownOrderIds.current = new Set(o.map((it) => it.id));
-      } else {
-        const arrived = o.filter((it) => !knownOrderIds.current.has(it.id));
-        if (arrived.length > 0) {
-          arrived.forEach((it) => knownOrderIds.current.add(it.id));
-          setNewOrderIds((prev) => new Set([...prev, ...arrived.map((it) => it.id)]));
-          setAlertOrderIds((prev) => new Set([...prev, ...arrived.map((it) => it.id)]));
-          showToast(arrived.length === 1 ? "Novo pedido recebido!" : `${arrived.length} novos pedidos recebidos!`, { icon: Bell, duration: 3200 });
-        }
-      }
-      setOrders(o);
-      const c = await fetchCouponsForRestaurant(r.id);
-      setCoupons(c);
+    await queryClient.invalidateQueries({ queryKey: partnerRestaurantKey(user.id) });
+    if (restaurant?.id) {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: partnerOrdersKey(restaurant.id) }),
+        queryClient.invalidateQueries({ queryKey: partnerCouponsKey(restaurant.id) }),
+      ]);
     }
-    setLoading(false);
   }
 
+  // detecta pedido novo comparando com o que já foi visto — dispara mesmo quando
+  // `orders` chega via Realtime (não só logo depois de um reload() manual)
   useEffect(() => {
-    if (user) reload();
-  }, [user]);
-
-  useEffect(() => {
-    if (!user) return;
-    const interval = setInterval(reload, 25000);
-    return () => clearInterval(interval);
-  }, [user]);
+    if (!ordersQuery.data) return;
+    if (knownOrderIds.current === null) {
+      knownOrderIds.current = new Set(ordersQuery.data.map((it) => it.id));
+      return;
+    }
+    const arrived = ordersQuery.data.filter((it) => !knownOrderIds.current.has(it.id));
+    if (arrived.length > 0) {
+      arrived.forEach((it) => knownOrderIds.current.add(it.id));
+      setNewOrderIds((prev) => new Set([...prev, ...arrived.map((it) => it.id)]));
+      setAlertOrderIds((prev) => new Set([...prev, ...arrived.map((it) => it.id)]));
+      showToast(arrived.length === 1 ? "Novo pedido recebido!" : `${arrived.length} novos pedidos recebidos!`, { icon: Bell, duration: 3200 });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ordersQuery.data]);
 
   useEffect(() => {
     if (activeSection === "inicio" && newOrderIds.size > 0) {

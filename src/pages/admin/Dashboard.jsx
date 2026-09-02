@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Store, Package, Bike, Wallet, TrendingUp, LayoutDashboard, ChevronLeft, ChevronRight,
   LogOut, Search, AlertTriangle, ArrowLeft, CheckCircle2, XCircle, Link2, Link2Off, Clock3,
@@ -14,6 +15,11 @@ import { STATUS_META, STATUS_OPTIONS, NEXT_STATUS, OPEN_STATUSES } from "../../l
 import { ICONS } from "../../data/icons";
 import WORDMARK_DARK from "../../assets/wordmark-dark.png";
 import { SkeletonPage } from "../../components/Skeleton";
+import { useOrdersRealtime } from "../../hooks/useOrdersRealtime";
+
+const ADMIN_ORDERS_KEY = ["admin", "orders"];
+const ADMIN_RESTAURANTS_KEY = ["admin", "restaurants"];
+const ADMIN_DRIVERS_KEY = ["admin", "drivers"];
 
 function LoadingScreen() {
   return <SkeletonPage />;
@@ -467,12 +473,19 @@ export default function AdminDashboard() {
   const { user, loading: authLoading, signOut } = useAuth();
   const { showToast } = useToast();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [checkingRole, setCheckingRole] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [loadingData, setLoadingData] = useState(true);
-  const [restaurants, setRestaurants] = useState([]);
-  const [orders, setOrders] = useState([]);
-  const [drivers, setDrivers] = useState([]);
+
+  const restaurantsQuery = useQuery({ queryKey: ADMIN_RESTAURANTS_KEY, queryFn: fetchAllRestaurantsAdmin, enabled: isAdmin });
+  const ordersQuery = useQuery({ queryKey: ADMIN_ORDERS_KEY, queryFn: fetchAllOrdersAdmin, enabled: isAdmin });
+  const driversQuery = useQuery({ queryKey: ADMIN_DRIVERS_KEY, queryFn: fetchAllDriversAdmin, enabled: isAdmin });
+  useOrdersRealtime(ADMIN_ORDERS_KEY);
+
+  const restaurants = restaurantsQuery.data || [];
+  const orders = ordersQuery.data || [];
+  const drivers = driversQuery.data || [];
+  const loadingData = restaurantsQuery.isLoading || ordersQuery.isLoading || driversQuery.isLoading;
 
   const [activeSection, setActiveSection] = useState("geral");
   const [collapsed, setCollapsed] = useState(() => {
@@ -491,7 +504,7 @@ export default function AdminDashboard() {
     setWorkingOrderId(order.id);
     try {
       await updateOrderStatus(order.id, nextStatus);
-      setOrders((prev) => prev.map((o) => (o.id === order.id ? { ...o, status: nextStatus } : o)));
+      queryClient.setQueryData(ADMIN_ORDERS_KEY, (prev) => (prev || []).map((o) => (o.id === order.id ? { ...o, status: nextStatus } : o)));
       showToast(`Pedido #${order.id.slice(0, 8)} atualizado para "${STATUS_META[nextStatus].label}"`);
     } catch {
       showToast("Não foi possível atualizar o pedido agora.");
@@ -505,7 +518,7 @@ export default function AdminDashboard() {
     setWorkingOrderId(order.id);
     try {
       await updateOrderStatus(order.id, "cancelled");
-      setOrders((prev) => prev.map((o) => (o.id === order.id ? { ...o, status: "cancelled" } : o)));
+      queryClient.setQueryData(ADMIN_ORDERS_KEY, (prev) => (prev || []).map((o) => (o.id === order.id ? { ...o, status: "cancelled" } : o)));
       showToast(`Pedido #${order.id.slice(0, 8)} cancelado.`);
     } catch {
       showToast("Não foi possível cancelar o pedido agora.");
@@ -522,7 +535,8 @@ export default function AdminDashboard() {
     setWorkingRestaurantId(restaurant.id);
     try {
       await updateRestaurant(restaurant.id, { suspended: true, suspension_reason: reason || null });
-      setRestaurants((prev) => prev.map((r) => (r.id === restaurant.id ? { ...r, suspended: true, suspension_reason: reason || null } : r)));
+      queryClient.setQueryData(ADMIN_RESTAURANTS_KEY, (prev) =>
+        (prev || []).map((r) => (r.id === restaurant.id ? { ...r, suspended: true, suspension_reason: reason || null } : r)));
       showToast(`${restaurant.name} suspenso — sai da vitrine pros clientes.`);
     } catch {
       showToast("Não foi possível suspender agora.");
@@ -536,7 +550,8 @@ export default function AdminDashboard() {
     setWorkingRestaurantId(restaurant.id);
     try {
       await updateRestaurant(restaurant.id, { suspended: false, suspension_reason: null });
-      setRestaurants((prev) => prev.map((r) => (r.id === restaurant.id ? { ...r, suspended: false, suspension_reason: null } : r)));
+      queryClient.setQueryData(ADMIN_RESTAURANTS_KEY, (prev) =>
+        (prev || []).map((r) => (r.id === restaurant.id ? { ...r, suspended: false, suspension_reason: null } : r)));
       showToast(`${restaurant.name} reativado.`);
     } catch {
       showToast("Não foi possível reativar agora.");
@@ -569,20 +584,6 @@ export default function AdminDashboard() {
     };
   }, [user, authLoading]);
 
-  useEffect(() => {
-    if (!isAdmin) return;
-    let cancelled = false;
-    Promise.all([fetchAllRestaurantsAdmin(), fetchAllOrdersAdmin(), fetchAllDriversAdmin()]).then(([r, o, d]) => {
-      if (cancelled) return;
-      setRestaurants(r);
-      setOrders(o);
-      setDrivers(d);
-      setLoadingData(false);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [isAdmin]);
 
   async function handleSignOut() {
     await signOut();
