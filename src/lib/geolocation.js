@@ -56,6 +56,20 @@ export function formatAddress({ street, number, neighborhood, city, cep }) {
   return parts.join(" - ");
 }
 
+export function mapsDirectionsUrl(lat, lng, address) {
+  if (lat != null && lng != null) {
+    return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=driving`;
+  }
+  return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(address || "")}&travelmode=driving`;
+}
+
+export function wazeUrl(lat, lng, address) {
+  if (lat != null && lng != null) {
+    return `https://waze.com/ul?ll=${lat},${lng}&navigate=yes`;
+  }
+  return `https://waze.com/ul?q=${encodeURIComponent(address || "")}&navigate=yes`;
+}
+
 export function distanceKm(lat1, lon1, lat2, lon2) {
   const R = 6371;
   const dLat = ((lat2 - lat1) * Math.PI) / 180;

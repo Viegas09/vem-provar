@@ -231,10 +231,17 @@ export default function Checkout() {
         : usingSavedAddresses
         ? formatAddress(selectedAddress)
         : address;
+      const deliveryCoords = isPickup
+        ? { latitude: null, longitude: null }
+        : usingSavedAddresses
+        ? { latitude: selectedAddress?.latitude ?? null, longitude: selectedAddress?.longitude ?? null }
+        : { latitude: location.latitude ?? null, longitude: location.longitude ?? null };
       const order = await createOrder({
         restaurantId: restaurant.id,
         customerId: user?.id,
         address: orderAddress,
+        latitude: deliveryCoords.latitude,
+        longitude: deliveryCoords.longitude,
         paymentMethod: payment,
         subtotal,
         deliveryFee,

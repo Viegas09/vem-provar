@@ -2,10 +2,10 @@ import { supabase } from "../lib/supabase";
 
 const MENU_ITEMS_SELECT = "*, menu_items(*, complement_groups(*, complement_items(*)))";
 
-// filtra restaurantes suspensos pelo admin; se a coluna ainda não existir no banco
-// (migração supabase-schema-32 não rodada), cai pra consulta sem o filtro em vez de quebrar a home
-function isMissingSuspendedColumn(error) {
-  return error?.code === "42703" || /column .*suspended.* does not exist/i.test(error?.message || "");
+// detecta "coluna ainda não existe" (código padrão do Postgres) pra cair num fallback
+// em vez de quebrar, quando uma migração recente ainda não rodou no banco
+function isMissingColumnError(error) {
+  return error?.code === "42703" || /column .* does not exist/i.test(error?.message || "");
 }
 
 export async function fetchRestaurants() {
@@ -15,7 +15,7 @@ export async function fetchRestaurants() {
     .eq("suspended", false)
     .order("name");
   if (error) {
-    if (!isMissingSuspendedColumn(error)) throw error;
+    if (!isMissingColumnError(error)) throw error;
     const fallback = await supabase.from("restaurants").select(MENU_ITEMS_SELECT).order("name");
     if (fallback.error) throw fallback.error;
     return fallback.data;
@@ -31,7 +31,7 @@ export async function fetchRestaurantBySlug(slug) {
     .eq("suspended", false)
     .maybeSingle();
   if (error) {
-    if (!isMissingSuspendedColumn(error)) throw error;
+    if (!isMissingColumnError(error)) throw error;
     const fallback = await supabase.from("restaurants").select(MENU_ITEMS_SELECT).eq("slug", slug).maybeSingle();
     if (fallback.error) throw fallback.error;
     return fallback.data;
@@ -39,27 +39,31 @@ export async function fetchRestaurantBySlug(slug) {
   return data;
 }
 
-export async function createOrder({ restaurantId, customerId, address, paymentMethod, subtotal, deliveryFee, total, items, commissionRate, commissionAmount, restaurantPayout, couponCode, discountAmount, scheduledFor }) {
-  const { data: order, error: orderError } = await supabase
-    .from("orders")
-    .insert({
-      restaurant_id: restaurantId,
-      customer_id: customerId || null,
-      address,
-      payment_method: paymentMethod,
-      subtotal,
-      delivery_fee: deliveryFee,
-      total,
-      commission_rate: commissionRate,
-      commission_amount: commissionAmount,
-      restaurant_payout: restaurantPayout,
-      payment_status: "simulated",
-      coupon_code: couponCode || null,
-      discount_amount: discountAmount || 0,
-      scheduled_for: scheduledFor || null,
-    })
-    .select()
-    .single();
+export async function createOrder({ restaurantId, customerId, address, latitude, longitude, paymentMethod, subtotal, deliveryFee, total, items, commissionRate, commissionAmount, restaurantPayout, couponCode, discountAmount, scheduledFor }) {
+  const payload = {
+    restaurant_id: restaurantId,
+    customer_id: customerId || null,
+    address,
+    latitude: latitude ?? null,
+    longitude: longitude ?? null,
+    payment_method: paymentMethod,
+    subtotal,
+    delivery_fee: deliveryFee,
+    total,
+    commission_rate: commissionRate,
+    commission_amount: commissionAmount,
+    restaurant_payout: restaurantPayout,
+    payment_status: "simulated",
+    coupon_code: couponCode || null,
+    discount_amount: discountAmount || 0,
+    scheduled_for: scheduledFor || null,
+  };
+  let { data: order, error: orderError } = await supabase.from("orders").insert(payload).select().single();
+  if (orderError && isMissingColumnError(orderError)) {
+    // migração da coordenada de entrega (supabase-schema-39) ainda não rodou — segue sem elas
+    const { latitude: _lat, longitude: _lng, ...withoutCoords } = payload;
+    ({ data: order, error: orderError } = await supabase.from("orders").insert(withoutCoords).select().single());
+  }
   if (orderError) throw orderError;
 
   const { error: itemsError } = await supabase.from("order_items").insert(
@@ -208,7 +212,7 @@ export async function updateDriver(id, changes) {
   if (error) throw error;
 }
 
-const DELIVERY_ORDER_FIELDS = "name, slug, address, icon_key, color_variant, plan";
+const DELIVERY_ORDER_FIELDS = "name, slug, address, latitude, longitude, icon_key, color_variant, plan";
 const DELIVERY_RESTAURANT_FIELDS = `${DELIVERY_ORDER_FIELDS}, use_platform_drivers`;
 
 export async function fetchAvailableDeliveries() {

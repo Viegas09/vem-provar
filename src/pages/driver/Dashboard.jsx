@@ -3,11 +3,12 @@ import { Navigate, useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Bike, Car, Package, LayoutDashboard, Clock3, LogOut, MapPin, Store, Wallet, TrendingUp,
-  CheckCircle2, PauseCircle, ChevronRight, History, User as UserIcon, Bell, X,
+  CheckCircle2, PauseCircle, ChevronRight, History, User as UserIcon, Bell, X, Navigation,
 } from "lucide-react";
 import { C, FONT, RADIUS, SHADOW, formatBRL } from "../../theme";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
+import { mapsDirectionsUrl, wazeUrl } from "../../lib/geolocation";
 import {
   fetchDriverByUser, updateDriver, fetchAvailableDeliveries, fetchDriverOrders, claimDelivery, updateOrderStatus,
   tryClaimOffer, respondToOffer, fetchMyActiveOffer,
@@ -67,7 +68,36 @@ function StatTile({ icon: Icon, label, value, accent }) {
   );
 }
 
+// depois de aceita, o entregador precisa ir até o restaurante (buscar) e depois até
+// o cliente (entregar) — abre a rota pronta no app de mapas do celular em vez de
+// tentar reinventar navegação dentro do app
+function NavButtons({ lat, lng, address }) {
+  return (
+    <div className="flex items-center gap-2" style={{ marginTop: 8 }}>
+      <a href={mapsDirectionsUrl(lat, lng, address)} target="_blank" rel="noopener noreferrer"
+        onClick={(e) => e.stopPropagation()}
+        className="flex items-center justify-center gap-1"
+        style={{ flex: 1, background: "#fff", color: C.black, border: `1px solid ${C.line}`, borderRadius: RADIUS.xs,
+                 padding: "8px 0", fontFamily: FONT, fontSize: 12.5, fontWeight: 600, textDecoration: "none" }}>
+        <Navigation size={13} /> Google Maps
+      </a>
+      <a href={wazeUrl(lat, lng, address)} target="_blank" rel="noopener noreferrer"
+        onClick={(e) => e.stopPropagation()}
+        className="flex items-center justify-center gap-1"
+        style={{ flex: 1, background: "#fff", color: C.black, border: `1px solid ${C.line}`, borderRadius: RADIUS.xs,
+                 padding: "8px 0", fontFamily: FONT, fontSize: 12.5, fontWeight: 600, textDecoration: "none" }}>
+        <Navigation size={13} /> Waze
+      </a>
+    </div>
+  );
+}
+
 function DeliveryCard({ order, action }) {
+  const goingToRestaurant = order.status === "preparing";
+  const navTarget = goingToRestaurant
+    ? { lat: order.restaurants?.latitude, lng: order.restaurants?.longitude, address: order.restaurants?.address }
+    : { lat: order.latitude, lng: order.longitude, address: order.address };
+
   return (
     <div style={{ padding: 14, background: "#fff", border: `1px solid ${C.line}`, borderRadius: RADIUS.lg }}>
       <div className="flex items-center gap-2" style={{ marginBottom: 8 }}>
@@ -87,6 +117,7 @@ function DeliveryCard({ order, action }) {
           <Wallet size={14} /> {formatBRL(order.delivery_fee ?? 0)}
         </span>
       </div>
+      {action && <NavButtons {...navTarget} />}
       {action}
     </div>
   );
