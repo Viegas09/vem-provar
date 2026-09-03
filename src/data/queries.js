@@ -463,9 +463,30 @@ export async function fetchReviewsForRestaurant(restaurantId) {
     .from("reviews")
     .select("*")
     .eq("restaurant_id", restaurantId)
+    .eq("hidden", false)
+    .order("created_at", { ascending: false });
+  if (error) {
+    if (!isMissingColumnError(error)) throw error;
+    // migração da moderação (supabase-schema-40) ainda não rodou — mostra tudo, sem filtrar
+    const fallback = await supabase.from("reviews").select("*").eq("restaurant_id", restaurantId).order("created_at", { ascending: false });
+    if (fallback.error) throw fallback.error;
+    return fallback.data;
+  }
+  return data;
+}
+
+export async function fetchAllReviewsAdmin() {
+  const { data, error } = await supabase
+    .from("reviews")
+    .select("*, restaurants(name)")
     .order("created_at", { ascending: false });
   if (error) throw error;
   return data;
+}
+
+export async function updateReview(id, changes) {
+  const { error } = await supabase.from("reviews").update(changes).eq("id", id);
+  if (error) throw error;
 }
 
 export async function createReview({ orderId, restaurantId, customerId, customerName, rating, comment }) {
@@ -504,6 +525,18 @@ export async function createCoupon(coupon) {
 export async function updateCoupon(id, changes) {
   const { error } = await supabase.from("coupons").update(changes).eq("id", id);
   if (error) throw error;
+}
+
+// cupom sem restaurant_id vale em qualquer loja — o Checkout já trata isso (linha
+// que checa "coupon.restaurant_id && coupon.restaurant_id !== restaurant.id")
+export async function fetchPlatformCoupons() {
+  const { data, error } = await supabase
+    .from("coupons")
+    .select("*")
+    .is("restaurant_id", null)
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return data;
 }
 
 export async function fetchCouponByCode(code) {

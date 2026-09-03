@@ -4,7 +4,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Store, Package, Bike, Wallet, TrendingUp, LayoutDashboard, ChevronLeft, ChevronRight,
   LogOut, Search, AlertTriangle, ArrowLeft, CheckCircle2, XCircle, Link2, Link2Off, Clock3,
-  Receipt, Download, TicketPercent, ShieldOff, ShieldCheck, Users, Ban,
+  Receipt, Download, TicketPercent, ShieldOff, ShieldCheck, Users, Ban, Star, EyeOff, Eye,
+  Image, ImageOff, Trash2, Plus,
 } from "lucide-react";
 import { C, FONT, formatBRL, RADIUS } from "../../theme";
 import { useAuth } from "../../context/AuthContext";
@@ -12,6 +13,7 @@ import { useToast } from "../../context/ToastContext";
 import {
   fetchProfile, fetchAllRestaurantsAdmin, fetchAllOrdersAdmin, fetchAllDriversAdmin,
   updateOrderStatus, updateRestaurant, fetchProfilesByIds, updateProfile,
+  fetchAllReviewsAdmin, updateReview, updateMenuItem, fetchPlatformCoupons, updateCoupon,
 } from "../../data/queries";
 import { getCommissionRate, isInPromoPeriod } from "../../lib/commission";
 import { STATUS_META, STATUS_OPTIONS, NEXT_STATUS, OPEN_STATUSES } from "../../lib/orderStatus";
@@ -19,10 +21,13 @@ import { ICONS } from "../../data/icons";
 import WORDMARK_DARK from "../../assets/wordmark-dark.png";
 import { SkeletonPage } from "../../components/Skeleton";
 import { useOrdersRealtime } from "../../hooks/useOrdersRealtime";
+import CouponForm from "../../components/CouponForm";
 
 const ADMIN_ORDERS_KEY = ["admin", "orders"];
 const ADMIN_RESTAURANTS_KEY = ["admin", "restaurants"];
 const ADMIN_DRIVERS_KEY = ["admin", "drivers"];
+const ADMIN_REVIEWS_KEY = ["admin", "reviews"];
+const ADMIN_COUPONS_KEY = ["admin", "coupons"];
 
 function LoadingScreen() {
   return <SkeletonPage />;
@@ -35,6 +40,8 @@ const NAV_ITEMS = [
   { key: "financeiro", label: "Financeiro", icon: Receipt },
   { key: "clientes", label: "Clientes", icon: Users },
   { key: "entregadores", label: "Entregadores", icon: Bike },
+  { key: "avaliacoes", label: "Avaliações", icon: Star },
+  { key: "cupons", label: "Cupons", icon: TicketPercent },
 ];
 
 const PAYMENT_STATUS_META = {
@@ -389,7 +396,52 @@ function PaymentIssueRow({ order }) {
   );
 }
 
-function RestaurantDetail({ health, orders, onBack, onAdvance, onCancel, workingOrderId, onSuspend, onReactivate, workingRestaurantId }) {
+function PhotoTile({ label, url, onRemove, working }) {
+  return (
+    <div style={{ position: "relative" }}>
+      <div style={{ width: "100%", aspectRatio: "1", borderRadius: RADIUS.md, overflow: "hidden",
+           background: C.surface, display: "grid", placeItems: "center" }}>
+        {url ? (
+          <img src={url} alt={label} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+        ) : (
+          <Image size={22} color={C.gray} />
+        )}
+      </div>
+      <div style={{ fontSize: 11.5, color: C.grayText, marginTop: 4, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+        {label}
+      </div>
+      {url && (
+        <button disabled={working} onClick={onRemove} title="Remover foto" aria-label={`Remover foto de ${label}`}
+          style={{ position: "absolute", top: 6, right: 6, width: 26, height: 26, borderRadius: "50%",
+                   background: "rgba(20,20,20,.7)", border: "none", cursor: working ? "default" : "pointer",
+                   display: "grid", placeItems: "center", opacity: working ? .6 : 1 }}>
+          <Trash2 size={13} color="#fff" />
+        </button>
+      )}
+    </div>
+  );
+}
+
+function PhotoModeration({ restaurant, menuItems, onRemoveBanner, onRemoveMenuItemPhoto, workingPhotoKey }) {
+  const withPhotos = menuItems.filter((i) => i.image_url);
+  if (!restaurant.banner_url && withPhotos.length === 0) {
+    return <p style={{ color: C.grayText, fontSize: 14 }} className="flex items-center gap-2"><ImageOff size={16} /> Esse restaurante não tem fotos enviadas.</p>;
+  }
+  return (
+    <div className="vp-card-grid" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(110px, 1fr))" }}>
+      {restaurant.banner_url && (
+        <PhotoTile label="Capa da loja" url={restaurant.banner_url}
+          working={workingPhotoKey === "banner"} onRemove={() => onRemoveBanner(restaurant)} />
+      )}
+      {withPhotos.map((item) => (
+        <PhotoTile key={item.id} label={item.name} url={item.image_url}
+          working={workingPhotoKey === item.id} onRemove={() => onRemoveMenuItemPhoto(item)} />
+      ))}
+    </div>
+  );
+}
+
+function RestaurantDetail({ health, orders, onBack, onAdvance, onCancel, workingOrderId, onSuspend, onReactivate, workingRestaurantId, onRemoveBanner, onRemoveMenuItemPhoto, workingPhotoKey }) {
   const { restaurant: r, orderCount, revenue, lastOrderAt } = health;
   const inPromo = isInPromoPeriod(r.promo_started_at);
   const rate = getCommissionRate(r);
@@ -472,6 +524,15 @@ function RestaurantDetail({ health, orders, onBack, onAdvance, onCancel, working
         <DailyBarChart data={series} />
       </div>
 
+      <h3 style={{ fontSize: 15, fontWeight: 700, margin: "0 0 12px" }}>Fotos</h3>
+      <p style={{ fontSize: 12.5, color: C.grayText, margin: "-6px 0 12px" }}>
+        Remove foto de capa ou de prato impróprias — o restaurante pode reenviar outra depois.
+      </p>
+      <div style={{ marginBottom: 28 }}>
+        <PhotoModeration restaurant={r} menuItems={r.menu_items || []}
+          onRemoveBanner={onRemoveBanner} onRemoveMenuItemPhoto={onRemoveMenuItemPhoto} workingPhotoKey={workingPhotoKey} />
+      </div>
+
       <h3 style={{ fontSize: 15, fontWeight: 700, margin: "0 0 12px" }}>Pedidos recentes</h3>
       {restaurantOrders.length === 0 ? (
         <p style={{ color: C.grayText, fontSize: 14 }}>Esse restaurante ainda não recebeu nenhum pedido.</p>
@@ -497,11 +558,15 @@ export default function AdminDashboard() {
   const restaurantsQuery = useQuery({ queryKey: ADMIN_RESTAURANTS_KEY, queryFn: fetchAllRestaurantsAdmin, enabled: isAdmin });
   const ordersQuery = useQuery({ queryKey: ADMIN_ORDERS_KEY, queryFn: fetchAllOrdersAdmin, enabled: isAdmin });
   const driversQuery = useQuery({ queryKey: ADMIN_DRIVERS_KEY, queryFn: fetchAllDriversAdmin, enabled: isAdmin });
+  const reviewsQuery = useQuery({ queryKey: ADMIN_REVIEWS_KEY, queryFn: fetchAllReviewsAdmin, enabled: isAdmin });
+  const couponsQuery = useQuery({ queryKey: ADMIN_COUPONS_KEY, queryFn: fetchPlatformCoupons, enabled: isAdmin });
   useOrdersRealtime(ADMIN_ORDERS_KEY);
 
   const restaurants = restaurantsQuery.data || [];
   const orders = ordersQuery.data || [];
   const drivers = driversQuery.data || [];
+  const reviews = reviewsQuery.data || [];
+  const platformCoupons = couponsQuery.data || [];
   const customerIds = useMemo(() => [...new Set(orders.map((o) => o.customer_id).filter(Boolean))], [orders]);
   const customersQuery = useQuery({
     queryKey: ["admin", "customers", customerIds],
@@ -525,6 +590,12 @@ export default function AdminDashboard() {
   const [customerFilter, setCustomerFilter] = useState("all");
   const [financePeriod, setFinancePeriod] = useState("30");
   const [workingOrderId, setWorkingOrderId] = useState(null);
+  const [reviewSearch, setReviewSearch] = useState("");
+  const [reviewFilter, setReviewFilter] = useState("all");
+  const [workingReviewId, setWorkingReviewId] = useState(null);
+  const [workingPhotoKey, setWorkingPhotoKey] = useState(null);
+  const [showCouponForm, setShowCouponForm] = useState(false);
+  const [workingCouponId, setWorkingCouponId] = useState(null);
 
   async function handleAdvanceOrder(order, nextStatus) {
     setWorkingOrderId(order.id);
@@ -583,6 +654,81 @@ export default function AdminDashboard() {
       showToast("Não foi possível reativar agora.");
     } finally {
       setWorkingRestaurantId(null);
+    }
+  }
+
+  async function handleRemoveBannerPhoto(restaurant) {
+    if (!window.confirm(`Remover a foto de capa de "${restaurant.name}"?`)) return;
+    setWorkingPhotoKey("banner");
+    try {
+      await updateRestaurant(restaurant.id, { banner_url: null });
+      queryClient.setQueryData(ADMIN_RESTAURANTS_KEY, (prev) =>
+        (prev || []).map((r) => (r.id === restaurant.id ? { ...r, banner_url: null } : r)));
+      showToast("Foto de capa removida.");
+    } catch {
+      showToast("Não foi possível remover a foto agora.");
+    } finally {
+      setWorkingPhotoKey(null);
+    }
+  }
+
+  async function handleRemoveMenuItemPhoto(item) {
+    if (!window.confirm(`Remover a foto de "${item.name}"?`)) return;
+    setWorkingPhotoKey(item.id);
+    try {
+      await updateMenuItem(item.id, { image_url: null });
+      queryClient.setQueryData(ADMIN_RESTAURANTS_KEY, (prev) =>
+        (prev || []).map((r) => (r.id === item.restaurant_id
+          ? { ...r, menu_items: (r.menu_items || []).map((mi) => (mi.id === item.id ? { ...mi, image_url: null } : mi)) }
+          : r)));
+      showToast("Foto do prato removida.");
+    } catch {
+      showToast("Não foi possível remover a foto agora.");
+    } finally {
+      setWorkingPhotoKey(null);
+    }
+  }
+
+  async function handleHideReview(review) {
+    const reason = window.prompt("Por que ocultar essa avaliação? (motivo fica registrado, opcional)", "");
+    if (reason === null) return;
+    setWorkingReviewId(review.id);
+    try {
+      await updateReview(review.id, { hidden: true, hidden_reason: reason || null });
+      queryClient.setQueryData(ADMIN_REVIEWS_KEY, (prev) =>
+        (prev || []).map((r) => (r.id === review.id ? { ...r, hidden: true, hidden_reason: reason || null } : r)));
+      showToast("Avaliação ocultada — não aparece mais pros clientes.");
+    } catch {
+      showToast("Não foi possível ocultar agora.");
+    } finally {
+      setWorkingReviewId(null);
+    }
+  }
+
+  async function handleUnhideReview(review) {
+    setWorkingReviewId(review.id);
+    try {
+      await updateReview(review.id, { hidden: false, hidden_reason: null });
+      queryClient.setQueryData(ADMIN_REVIEWS_KEY, (prev) =>
+        (prev || []).map((r) => (r.id === review.id ? { ...r, hidden: false, hidden_reason: null } : r)));
+      showToast("Avaliação reexibida.");
+    } catch {
+      showToast("Não foi possível reexibir agora.");
+    } finally {
+      setWorkingReviewId(null);
+    }
+  }
+
+  async function handleTogglePlatformCoupon(coupon) {
+    setWorkingCouponId(coupon.id);
+    try {
+      await updateCoupon(coupon.id, { active: !coupon.active });
+      queryClient.setQueryData(ADMIN_COUPONS_KEY, (prev) =>
+        (prev || []).map((c) => (c.id === coupon.id ? { ...c, active: !c.active } : c)));
+    } catch {
+      showToast("Não foi possível atualizar o cupom agora.");
+    } finally {
+      setWorkingCouponId(null);
     }
   }
 
@@ -708,6 +854,16 @@ export default function AdminDashboard() {
     return true;
   }).sort((a, b) => b.spend - a.spend);
 
+  const rq = reviewSearch.trim().toLowerCase();
+  const filteredReviews = reviews.filter((r) => {
+    if (reviewFilter === "hidden" && !r.hidden) return false;
+    if (reviewFilter === "low" && r.rating > 2) return false;
+    if (!rq) return true;
+    return (r.restaurants?.name || "").toLowerCase().includes(rq) ||
+      (r.customer_name || "").toLowerCase().includes(rq) ||
+      (r.comment || "").toLowerCase().includes(rq);
+  });
+
   const financeOrders = filterByPeriod(orders, financePeriod);
   const confirmedOrders = financeOrders.filter(isConfirmedOrder);
   const gmvConfirmed = confirmedOrders.reduce((sum, o) => sum + Number(o.total || 0), 0);
@@ -826,7 +982,8 @@ export default function AdminDashboard() {
               selectedHealth ? (
                 <RestaurantDetail health={selectedHealth} orders={orders} onBack={() => setSelectedRestaurantId(null)}
                   onAdvance={handleAdvanceOrder} onCancel={handleCancelOrder} workingOrderId={workingOrderId}
-                  onSuspend={handleSuspendRestaurant} onReactivate={handleReactivateRestaurant} workingRestaurantId={workingRestaurantId} />
+                  onSuspend={handleSuspendRestaurant} onReactivate={handleReactivateRestaurant} workingRestaurantId={workingRestaurantId}
+                  onRemoveBanner={handleRemoveBannerPhoto} onRemoveMenuItemPhoto={handleRemoveMenuItemPhoto} workingPhotoKey={workingPhotoKey} />
               ) : (
                 <>
                   <h1 style={{ fontSize: 22, fontWeight: 700, margin: "0 0 20px" }}>Restaurantes</h1>
@@ -1065,6 +1222,136 @@ export default function AdminDashboard() {
                         <div style={{ fontSize: 12, color: C.grayText }}>{d.vehicle_type}{d.plate ? ` · ${d.plate}` : ""}</div>
                       </div>
                     ))}
+                  </div>
+                )}
+              </>
+            )}
+
+            {activeSection === "avaliacoes" && (
+              <>
+                <h1 style={{ fontSize: 22, fontWeight: 700, margin: "0 0 20px" }}>Avaliações</h1>
+                <div className="flex items-center gap-2" style={{ marginBottom: 16, flexWrap: "wrap" }}>
+                  <SearchBox value={reviewSearch} onChange={setReviewSearch} placeholder="Buscar por restaurante, cliente ou comentário" />
+                  <FilterChip active={reviewFilter === "all"} onClick={() => setReviewFilter("all")}>Todas</FilterChip>
+                  <FilterChip active={reviewFilter === "low"} onClick={() => setReviewFilter("low")} color={C.orange}>Nota baixa (≤2)</FilterChip>
+                  <FilterChip active={reviewFilter === "hidden"} onClick={() => setReviewFilter("hidden")} color="#B42318">Ocultas</FilterChip>
+                </div>
+
+                {filteredReviews.length === 0 ? (
+                  <p style={{ color: C.grayText, fontSize: 14 }}>Nenhuma avaliação encontrada.</p>
+                ) : (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                    {filteredReviews.map((r) => {
+                      const busy = workingReviewId === r.id;
+                      return (
+                        <div key={r.id} style={{ padding: "12px 14px", background: "#fff",
+                             border: `1px solid ${r.hidden ? "#B42318" : C.line}`, borderRadius: RADIUS.lg }}>
+                          <div className="flex items-center justify-between" style={{ gap: 10, flexWrap: "wrap" }}>
+                            <div style={{ minWidth: 0 }}>
+                              <div className="flex items-center gap-2" style={{ flexWrap: "wrap" }}>
+                                <span style={{ fontSize: 14, fontWeight: 700 }}>{r.restaurants?.name || "—"}</span>
+                                <span style={{ fontSize: 12.5, color: C.grayText }}>{r.customer_name || "Cliente"}</span>
+                                {r.hidden && (
+                                  <span className="flex items-center gap-1" style={{ fontSize: 10.5, fontWeight: 700,
+                                       color: "#B42318", background: "#FDECEC", padding: "2px 7px", borderRadius: RADIUS.pill }}>
+                                    <EyeOff size={10} /> Oculta
+                                  </span>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-1" style={{ margin: "4px 0" }}>
+                                {[1, 2, 3, 4, 5].map((n) => (
+                                  <Star key={n} size={12} fill={n <= r.rating ? C.orange : "none"} color={C.orange} />
+                                ))}
+                                <span style={{ fontSize: 11.5, color: C.grayText, marginLeft: 6 }}>
+                                  {new Date(r.created_at).toLocaleDateString("pt-BR")}
+                                </span>
+                              </div>
+                              {r.comment && <p style={{ fontSize: 13, color: C.black, margin: "4px 0 0" }}>{r.comment}</p>}
+                              {r.hidden && r.hidden_reason && (
+                                <div style={{ fontSize: 12, color: "#B42318", marginTop: 4 }}>Motivo: {r.hidden_reason}</div>
+                              )}
+                            </div>
+                            {r.hidden ? (
+                              <button disabled={busy} onClick={() => handleUnhideReview(r)} className="flex items-center gap-1"
+                                style={{ background: C.ok, color: "#fff", border: "none", borderRadius: RADIUS.xs, cursor: busy ? "default" : "pointer",
+                                         padding: "7px 12px", fontFamily: FONT, fontSize: 12.5, fontWeight: 600, opacity: busy ? .6 : 1, flexShrink: 0 }}>
+                                <Eye size={13} /> Reexibir
+                              </button>
+                            ) : (
+                              <button disabled={busy} onClick={() => handleHideReview(r)} className="flex items-center gap-1"
+                                style={{ background: "#fff", color: "#B42318", border: "1px solid #B42318", borderRadius: RADIUS.xs, cursor: busy ? "default" : "pointer",
+                                         padding: "7px 12px", fontFamily: FONT, fontSize: 12.5, fontWeight: 600, opacity: busy ? .6 : 1, flexShrink: 0 }}>
+                                <EyeOff size={13} /> Ocultar
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </>
+            )}
+
+            {activeSection === "cupons" && (
+              <>
+                <div className="flex items-center justify-between" style={{ marginBottom: 18, flexWrap: "wrap", gap: 12 }}>
+                  <div>
+                    <h1 style={{ fontSize: 22, fontWeight: 700, margin: 0 }}>Cupons da plataforma</h1>
+                    <p style={{ fontSize: 12.5, color: C.grayText, margin: "4px 0 0" }}>
+                      Valem em qualquer restaurante — diferente dos cupons que cada loja cria no próprio painel.
+                    </p>
+                  </div>
+                  {!showCouponForm && (
+                    <button onClick={() => setShowCouponForm(true)} className="flex items-center gap-1"
+                      style={{ background: C.orange, color: "#fff", border: "none", cursor: "pointer", borderRadius: RADIUS.sm,
+                               padding: "9px 14px", fontFamily: FONT, fontSize: 13.5, fontWeight: 600, flexShrink: 0 }}>
+                      <Plus size={15} /> Criar cupom
+                    </button>
+                  )}
+                </div>
+
+                {showCouponForm && (
+                  <CouponForm restaurantId={null}
+                    onSaved={() => { setShowCouponForm(false); queryClient.invalidateQueries({ queryKey: ADMIN_COUPONS_KEY }); }}
+                    onCancel={() => setShowCouponForm(false)} />
+                )}
+
+                {platformCoupons.length === 0 ? (
+                  <p style={{ color: C.grayText, fontSize: 14 }} className="flex items-center gap-2">
+                    <TicketPercent size={16} /> Nenhum cupom de plataforma criado ainda.
+                  </p>
+                ) : (
+                  <div className="vp-card-grid">
+                    {platformCoupons.map((c) => {
+                      const busy = workingCouponId === c.id;
+                      return (
+                        <div key={c.id} className="flex items-center gap-3" style={{ background: "#fff",
+                             border: `1px solid ${C.line}`, borderRadius: RADIUS.md, padding: "12px 14px" }}>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div className="flex items-center gap-2">
+                              <span style={{ fontSize: 14.5, fontWeight: 700 }}>{c.code}</span>
+                              <span style={{ fontSize: 11.5, fontWeight: 700, color: c.active ? C.ok : C.grayText,
+                                   background: c.active ? "rgba(46,158,91,.1)" : C.surface, padding: "2px 8px", borderRadius: RADIUS.pill }}>
+                                {c.active ? "Ativo" : "Pausado"}
+                              </span>
+                            </div>
+                            <div style={{ fontSize: 12.5, color: C.grayText, marginTop: 3 }}>
+                              {c.discount_type === "percent" ? `${Number(c.discount_value)}% de desconto` : `${formatBRL(c.discount_value)} de desconto`}
+                              {Number(c.min_order_value) > 0 && ` · pedido mín. ${formatBRL(c.min_order_value)}`}
+                              {c.max_uses != null && ` · ${c.uses_count}/${c.max_uses} usos`}
+                              {c.max_uses == null && ` · ${c.uses_count} usos`}
+                              {c.expires_at && ` · expira em ${new Date(c.expires_at).toLocaleDateString("pt-BR")}`}
+                            </div>
+                          </div>
+                          <button disabled={busy} onClick={() => handleTogglePlatformCoupon(c)}
+                            style={{ background: "none", border: `1px solid ${C.line}`, cursor: busy ? "default" : "pointer", borderRadius: RADIUS.xs,
+                                     padding: "6px 12px", fontFamily: FONT, fontSize: 12.5, fontWeight: 600, color: C.grayText, flexShrink: 0, opacity: busy ? .6 : 1 }}>
+                            {c.active ? "Pausar" : "Reativar"}
+                          </button>
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </>
