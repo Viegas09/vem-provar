@@ -1,15 +1,16 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Bike, Car, Package, LayoutDashboard, Clock3, LogOut, MapPin, Store, Wallet, TrendingUp,
-  CheckCircle2, PauseCircle, ChevronRight, History, User as UserIcon,
+  CheckCircle2, PauseCircle, ChevronRight, History, User as UserIcon, Bell, X,
 } from "lucide-react";
-import { C, FONT, RADIUS, formatBRL } from "../../theme";
+import { C, FONT, RADIUS, SHADOW, formatBRL } from "../../theme";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
 import {
   fetchDriverByUser, updateDriver, fetchAvailableDeliveries, fetchDriverOrders, claimDelivery, updateOrderStatus,
+  tryClaimOffer, respondToOffer, fetchMyActiveOffer, fetchMyRespondedOrderIds,
 } from "../../data/queries";
 import { useOrdersRealtime } from "../../hooks/useOrdersRealtime";
 import PortalHeader from "../../components/PortalHeader";
@@ -17,6 +18,25 @@ import { SkeletonPage } from "../../components/Skeleton";
 
 const VEHICLE_LABELS = { moto: "Moto", bike: "Bicicleta", carro: "Carro" };
 const VEHICLE_ICONS = { moto: Bike, bike: Bike, carro: Car };
+const OFFER_SECONDS = 20;
+const OFFER_POLL_MS = 5000;
+
+function playPingSound() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(880, ctx.currentTime);
+    gain.gain.setValueAtTime(0.001, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.18, ctx.currentTime + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.36);
+  } catch { /* som indisponível, sem problema */ }
+}
 
 const NAV_ITEMS = [
   { key: "inicio", label: "Início", icon: LayoutDashboard },
@@ -72,6 +92,90 @@ function DeliveryCard({ order, action }) {
   );
 }
 
+function RideOfferModal({ offer, onAccept, onDecline, working }) {
+  const order = offer.orders;
+  const [secondsLeft, setSecondsLeft] = useState(OFFER_SECONDS);
+  const deadlineRef = useRef(Date.now() + OFFER_SECONDS * 1000);
+  const declinedRef = useRef(false);
+
+  useEffect(() => {
+    deadlineRef.current = Date.now() + OFFER_SECONDS * 1000;
+    setSecondsLeft(OFFER_SECONDS);
+    declinedRef.current = false;
+    playPingSound();
+    const beepInterval = setInterval(playPingSound, 3000);
+    const tick = setInterval(() => {
+      const remaining = Math.max(0, Math.ceil((deadlineRef.current - Date.now()) / 1000));
+      setSecondsLeft(remaining);
+      if (remaining <= 0 && !declinedRef.current) {
+        declinedRef.current = true;
+        clearInterval(tick);
+        clearInterval(beepInterval);
+        onDecline(offer, "expired");
+      }
+    }, 250);
+    return () => {
+      clearInterval(tick);
+      clearInterval(beepInterval);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [offer.id]);
+
+  const pct = (secondsLeft / OFFER_SECONDS) * 100;
+
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(20,20,20,.55)",
+         display: "flex", alignItems: "flex-end", justifyContent: "center" }}>
+      <div style={{ width: "100%", maxWidth: 440, background: "#fff", borderRadius: "24px 24px 0 0",
+           padding: "22px 20px calc(22px + env(safe-area-inset-bottom))", boxShadow: SHADOW.lg }}>
+        <div className="flex items-center gap-2" style={{ marginBottom: 14 }}>
+          <Bell size={18} color={C.orange} />
+          <span style={{ fontSize: 15, fontWeight: 700 }}>Nova corrida!</span>
+          <span style={{ marginLeft: "auto", fontSize: 13, fontWeight: 700, color: C.orange }}>{secondsLeft}s</span>
+        </div>
+        <div style={{ height: 4, background: C.surface, borderRadius: RADIUS.pill, overflow: "hidden", marginBottom: 18 }}>
+          <div style={{ height: "100%", width: `${pct}%`, background: C.orange, transition: "width .25s linear" }} />
+        </div>
+
+        <div className="flex items-center gap-2" style={{ marginBottom: 10 }}>
+          <Store size={15} color={C.grayText} />
+          <span style={{ fontSize: 16, fontWeight: 700 }}>{order.restaurants?.name}</span>
+        </div>
+        <div className="flex items-start gap-2" style={{ marginBottom: 16 }}>
+          <MapPin size={14} color={C.grayText} style={{ flexShrink: 0, marginTop: 2 }} />
+          <span style={{ fontSize: 13.5, color: C.grayText, lineHeight: 1.5 }}>
+            {order.restaurants?.address || "—"} <br /> → {order.address}
+          </span>
+        </div>
+
+        <div className="flex items-center justify-between" style={{ background: C.surface, borderRadius: RADIUS.lg, padding: "12px 16px", marginBottom: 20 }}>
+          <span style={{ fontSize: 13, color: C.grayText }}>
+            {(order.order_items || []).length} item{(order.order_items || []).length === 1 ? "" : "s"} · pedido {formatBRL(order.total)}
+          </span>
+          <span className="flex items-center gap-1" style={{ fontSize: 18, fontWeight: 700, color: C.ok }}>
+            <Wallet size={16} /> {formatBRL(order.delivery_fee ?? 0)}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button disabled={working} onClick={() => { declinedRef.current = true; onDecline(offer, "declined"); }}
+            className="flex items-center justify-center gap-1"
+            style={{ flex: 1, background: "#fff", color: "#B42318", border: "1.5px solid #B42318", borderRadius: RADIUS.md,
+                     cursor: working ? "default" : "pointer", padding: "14px 0", fontFamily: FONT, fontSize: 14.5, fontWeight: 700 }}>
+            <X size={16} /> Recusar
+          </button>
+          <button disabled={working} onClick={() => { declinedRef.current = true; onAccept(offer); }}
+            className="flex items-center justify-center gap-1"
+            style={{ flex: 1.4, background: C.orange, color: "#fff", border: "none", borderRadius: RADIUS.md,
+                     cursor: working ? "default" : "pointer", padding: "14px 0", fontFamily: FONT, fontSize: 14.5, fontWeight: 700 }}>
+            <CheckCircle2 size={16} /> Aceitar corrida
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function DriverDashboard() {
   const { user, loading: authLoading, signOut } = useAuth();
   const { showToast } = useToast();
@@ -79,17 +183,52 @@ export default function DriverDashboard() {
   const queryClient = useQueryClient();
   const [activeSection, setActiveSection] = useState("inicio");
   const [workingId, setWorkingId] = useState(null);
+  const [offerWorking, setOfferWorking] = useState(false);
 
   const driverQuery = useQuery({ queryKey: ["driver", "self", user?.id], queryFn: () => fetchDriverByUser(user.id), enabled: !!user });
   const driver = driverQuery.data;
 
   const availableQuery = useQuery({ queryKey: ["driver", "available"], queryFn: fetchAvailableDeliveries, enabled: !!driver });
   const mineQuery = useQuery({ queryKey: ["driver", "mine", driver?.id], queryFn: () => fetchDriverOrders(driver.id), enabled: !!driver });
+  const offerQuery = useQuery({
+    queryKey: ["driver", "offer", driver?.id], queryFn: () => fetchMyActiveOffer(driver.id),
+    enabled: !!driver, refetchInterval: OFFER_POLL_MS,
+  });
+  const respondedQuery = useQuery({
+    queryKey: ["driver", "responded", driver?.id], queryFn: () => fetchMyRespondedOrderIds(driver.id), enabled: !!driver,
+  });
   useOrdersRealtime(["driver", "available"]);
   useOrdersRealtime(["driver", "mine", driver?.id]);
 
   const available = availableQuery.data || [];
   const mine = mineQuery.data || [];
+  const activeOffer = offerQuery.data || null;
+  const respondedOrderIds = respondedQuery.data || [];
+
+  // heartbeat que força reavaliar a fila periodicamente — sem isso, se essa tentativa
+  // de travar uma corrida perder a corrida pra outro entregador, nada mais dispara
+  // uma nova tentativa até algo mudar (novo pedido, nova recusa, etc.)
+  const [pollTick, setPollTick] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setPollTick((n) => n + 1), OFFER_POLL_MS);
+    return () => clearInterval(t);
+  }, []);
+
+  // fica de olho nas corridas disponíveis e, se estiver livre pra receber uma, tenta
+  // "travar" o oferecimento da mais antiga que ainda não recusou — só um entregador
+  // consegue travar por vez (o banco garante isso), então funciona como uma fila
+  useEffect(() => {
+    if (!driver?.available || activeOffer || available.length === 0) return;
+    const candidate = available.find((o) => !respondedOrderIds.includes(o.id));
+    if (!candidate) return;
+    let cancelled = false;
+    tryClaimOffer(candidate.id, driver.id).then((offer) => {
+      if (cancelled || !offer) return;
+      queryClient.invalidateQueries({ queryKey: ["driver", "offer", driver.id] });
+    }).catch(() => {});
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [driver?.available, driver?.id, activeOffer, available.map((o) => o.id).join(","), respondedOrderIds.join(","), pollTick]);
   const inProgress = mine.filter((o) => o.status === "preparing" || o.status === "out_for_delivery");
   const delivered = mine.filter((o) => o.status === "delivered");
 
@@ -119,21 +258,35 @@ export default function DriverDashboard() {
     }
   }
 
-  async function handleClaim(order) {
-    setWorkingId(order.id);
+  async function handleAcceptOffer(offer) {
+    setOfferWorking(true);
     try {
-      const claimed = await claimDelivery(order.id, driver.id);
-      if (claimed) {
-        showToast(`Corrida de ${order.restaurants?.name} aceita!`);
-      } else {
-        showToast("Essa corrida já foi aceita por outro entregador.");
-      }
+      const claimed = await claimDelivery(offer.order_id, driver.id);
+      showToast(claimed ? `Corrida de ${offer.orders.restaurants?.name} aceita!` : "Essa corrida não está mais disponível.");
+      queryClient.setQueryData(["driver", "offer", driver.id], null);
       queryClient.invalidateQueries({ queryKey: ["driver", "available"] });
       queryClient.invalidateQueries({ queryKey: ["driver", "mine", driver.id] });
     } catch {
       showToast("Não foi possível aceitar agora.");
     } finally {
-      setWorkingId(null);
+      setOfferWorking(false);
+    }
+  }
+
+  async function handleDeclineOffer(offer, status) {
+    setOfferWorking(true);
+    try {
+      await respondToOffer(offer.id, status);
+      // atualiza os dois de uma vez: se só limpasse a oferta e deixasse a lista de
+      // recusadas pra revalidar depois, a tentativa automática de pegar a próxima
+      // corrida podia rodar antes disso e travar a MESMA corrida de novo
+      queryClient.setQueryData(["driver", "offer", driver.id], null);
+      queryClient.setQueryData(["driver", "responded", driver.id], (prev) => [...(prev || []), offer.order_id]);
+      if (status === "declined") showToast("Corrida recusada.");
+    } catch {
+      showToast("Não foi possível recusar agora.");
+    } finally {
+      setOfferWorking(false);
     }
   }
 
@@ -241,7 +394,10 @@ export default function DriverDashboard() {
                   </>
                 )}
 
-                <h2 style={{ fontSize: 16, fontWeight: 700, margin: "0 0 12px" }}>Corridas disponíveis</h2>
+                <h2 style={{ fontSize: 16, fontWeight: 700, margin: "0 0 4px" }}>Corridas na fila</h2>
+                <p style={{ fontSize: 12.5, color: C.grayText, margin: "0 0 12px" }}>
+                  Elas pingam pra você automaticamente, uma de cada vez — não precisa clicar aqui.
+                </p>
                 {available.length === 0 ? (
                   <div style={{ background: C.surface, borderRadius: RADIUS.lg, padding: 24, textAlign: "center" }}>
                     <Package size={26} color={C.gray} style={{ margin: "0 auto 10px" }} />
@@ -250,14 +406,7 @@ export default function DriverDashboard() {
                 ) : (
                   <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                     {available.map((o) => (
-                      <DeliveryCard key={o.id} order={o} action={
-                        <button disabled={workingId === o.id} onClick={() => handleClaim(o)}
-                          style={{ marginTop: 10, background: C.orange, color: "#fff", border: "none", borderRadius: RADIUS.xs,
-                                   cursor: workingId === o.id ? "default" : "pointer", padding: "8px 14px", fontFamily: FONT,
-                                   fontSize: 12.5, fontWeight: 600, opacity: workingId === o.id ? .6 : 1, width: "100%" }}>
-                          Aceitar corrida
-                        </button>
-                      } />
+                      <DeliveryCard key={o.id} order={o} />
                     ))}
                   </div>
                 )}
@@ -306,6 +455,10 @@ export default function DriverDashboard() {
           </div>
         </main>
       </div>
+
+      {activeOffer && (
+        <RideOfferModal offer={activeOffer} onAccept={handleAcceptOffer} onDecline={handleDeclineOffer} working={offerWorking} />
+      )}
     </div>
   );
 }

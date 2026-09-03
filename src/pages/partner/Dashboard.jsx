@@ -6,7 +6,7 @@ import {
   Plus, Trash2, Pencil, Store, Package, Wallet, CreditCard, CheckCircle2, XCircle, Receipt, TrendingUp,
   Clock3, Coins, Pause, Play, Home as HomeIcon, UtensilsCrossed, LogOut, ChevronLeft, ChevronRight,
   ImagePlus, BarChart3, ListPlus, ChevronDown, ChevronUp, TrendingDown, MessageCircle, X, Tag,
-  Lock, HelpCircle, Bell, Search, Volume2, VolumeX, GripVertical,
+  Lock, HelpCircle, Bell, Search, Volume2, VolumeX, GripVertical, Bike,
 } from "lucide-react";
 import { C, FONT, formatBRL, RADIUS } from "../../theme";
 import { ICONS } from "../../data/icons";
@@ -1658,6 +1658,11 @@ export default function PartnerDashboard() {
     reload();
   }
 
+  async function handleToggleDeliveryMode() {
+    await updateRestaurant(restaurant.id, { use_platform_drivers: restaurant.use_platform_drivers === false });
+    reload();
+  }
+
   async function handleToggleCoupon(coupon) {
     await updateCoupon(coupon.id, { active: !coupon.active });
     reload();
@@ -1860,6 +1865,26 @@ export default function PartnerDashboard() {
             {activeSection === "loja" && (
               <>
                 <h2 style={{ fontSize: 18, fontWeight: 700, margin: "0 0 14px" }}>Dados da loja</h2>
+                {restaurant.plan === "entrega" && (
+                  <div style={{ background: "#fff", border: `1px solid ${C.line}`, borderRadius: RADIUS.xl, padding: 18, marginBottom: 20 }}>
+                    <div className="flex items-center gap-2" style={{ marginBottom: 4 }}>
+                      <Bike size={16} color={C.orange} />
+                      <span style={{ fontSize: 14.5, fontWeight: 700 }}>Quem faz suas entregas</span>
+                    </div>
+                    <p style={{ fontSize: 13, color: C.grayText, margin: "0 0 12px", lineHeight: 1.5 }}>
+                      {restaurant.use_platform_drivers !== false
+                        ? "Seus pedidos prontos entram na fila dos entregadores da plataforma."
+                        : "Suas entregas ficam só com o seu próprio motoboy — não vão pra fila de entregadores da plataforma."}
+                    </p>
+                    <button onClick={handleToggleDeliveryMode} className="flex items-center gap-2"
+                      style={{ background: restaurant.use_platform_drivers !== false ? "rgba(46,158,91,.1)" : "rgba(238,108,26,.1)",
+                               border: `1px solid ${restaurant.use_platform_drivers !== false ? C.ok : C.orange}`, borderRadius: RADIUS.md,
+                               padding: "10px 14px", cursor: "pointer", fontFamily: FONT, fontSize: 13.5, fontWeight: 700,
+                               color: restaurant.use_platform_drivers !== false ? C.ok : C.orange }}>
+                      {restaurant.use_platform_drivers !== false ? "Usando entregadores da plataforma" : "Usando meu próprio motoboy"}
+                    </button>
+                  </div>
+                )}
                 <RestaurantProfileForm restaurant={restaurant} onSaved={reload} />
                 <BusinessHoursForm restaurant={restaurant} onSaved={reload} />
               </>

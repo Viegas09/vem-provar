@@ -209,14 +209,16 @@ export async function updateDriver(id, changes) {
 }
 
 const DELIVERY_ORDER_FIELDS = "name, slug, address, icon_key, color_variant, plan";
+const DELIVERY_RESTAURANT_FIELDS = `${DELIVERY_ORDER_FIELDS}, use_platform_drivers`;
 
 export async function fetchAvailableDeliveries() {
   const { data, error } = await supabase
     .from("orders")
-    .select(`*, order_items(*), restaurants!inner(${DELIVERY_ORDER_FIELDS})`)
+    .select(`*, order_items(*), restaurants!inner(${DELIVERY_RESTAURANT_FIELDS})`)
     .eq("status", "preparing")
     .is("driver_id", null)
     .eq("restaurants.plan", "entrega")
+    .eq("restaurants.use_platform_drivers", true)
     .order("created_at", { ascending: true });
   if (error) throw error;
   return data;
@@ -242,6 +244,47 @@ export async function claimDelivery(orderId, driverId) {
     .select();
   if (error) throw error;
   return (data || []).length > 0;
+}
+
+// tenta "travar" o oferecimento de uma corrida pro entregador; só um consegue por vez
+// (índice único no banco garante isso) — se outro já pegou, volta false em vez de erro
+export async function tryClaimOffer(orderId, driverId) {
+  const { data, error } = await supabase
+    .from("order_offers")
+    .insert({ order_id: orderId, driver_id: driverId, status: "offered" })
+    .select()
+    .single();
+  if (error) {
+    if (error.code === "23505") return null; // já tem oferecimento ativo pra esse pedido
+    throw error;
+  }
+  return data;
+}
+
+export async function respondToOffer(offerId, status) {
+  const { error } = await supabase.from("order_offers").update({ status }).eq("id", offerId);
+  if (error) throw error;
+}
+
+export async function fetchMyActiveOffer(driverId) {
+  const { data, error } = await supabase
+    .from("order_offers")
+    .select(`*, orders(*, order_items(*), restaurants(${DELIVERY_ORDER_FIELDS}))`)
+    .eq("driver_id", driverId)
+    .eq("status", "offered")
+    .maybeSingle();
+  if (error) throw error;
+  return data;
+}
+
+export async function fetchMyRespondedOrderIds(driverId) {
+  const { data, error } = await supabase
+    .from("order_offers")
+    .select("order_id")
+    .eq("driver_id", driverId)
+    .in("status", ["declined", "expired"]);
+  if (error) throw error;
+  return (data || []).map((o) => o.order_id);
 }
 
 export async function fetchProfile(userId) {
