@@ -246,16 +246,17 @@ export async function claimDelivery(orderId, driverId) {
   return (data || []).length > 0;
 }
 
-// tenta "travar" o oferecimento de uma corrida pro entregador; só um consegue por vez
-// (índice único no banco garante isso) — se outro já pegou, volta false em vez de erro
-export async function tryClaimOffer(orderId, driverId) {
-  const { data, error } = await supabase
-    .from("order_offers")
-    .insert({ order_id: orderId, driver_id: driverId, status: "offered" })
-    .select()
-    .single();
+// tenta "travar" o oferecimento da corrida disponível mais antiga — o banco decide
+// quem ganha: entre os entregadores disponíveis sem oferta ativa, o mais perto do
+// restaurante (função no banco, pra não vazar a localização de um entregador pros outros)
+export async function tryClaimOffer(driverId, lat, lng) {
+  const { data, error } = await supabase.rpc("claim_nearest_offer", {
+    p_driver_id: driverId,
+    p_lat: lat ?? null,
+    p_lng: lng ?? null,
+  });
   if (error) {
-    if (error.code === "23505") return null; // já tem oferecimento ativo pra esse pedido
+    if (error.code === "23505") return null; // outro entregador travou no mesmo instante
     throw error;
   }
   return data;
@@ -275,16 +276,6 @@ export async function fetchMyActiveOffer(driverId) {
     .maybeSingle();
   if (error) throw error;
   return data;
-}
-
-export async function fetchMyRespondedOrderIds(driverId) {
-  const { data, error } = await supabase
-    .from("order_offers")
-    .select("order_id")
-    .eq("driver_id", driverId)
-    .in("status", ["declined", "expired"]);
-  if (error) throw error;
-  return (data || []).map((o) => o.order_id);
 }
 
 export async function fetchProfile(userId) {

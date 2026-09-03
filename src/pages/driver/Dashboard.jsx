@@ -10,7 +10,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
 import {
   fetchDriverByUser, updateDriver, fetchAvailableDeliveries, fetchDriverOrders, claimDelivery, updateOrderStatus,
-  tryClaimOffer, respondToOffer, fetchMyActiveOffer, fetchMyRespondedOrderIds,
+  tryClaimOffer, respondToOffer, fetchMyActiveOffer,
 } from "../../data/queries";
 import { useOrdersRealtime } from "../../hooks/useOrdersRealtime";
 import PortalHeader from "../../components/PortalHeader";
@@ -184,6 +184,8 @@ export default function DriverDashboard() {
   const [activeSection, setActiveSection] = useState("inicio");
   const [workingId, setWorkingId] = useState(null);
   const [offerWorking, setOfferWorking] = useState(false);
+  const [locationDenied, setLocationDenied] = useState(false);
+  const coordsRef = useRef({ lat: null, lng: null });
 
   const driverQuery = useQuery({ queryKey: ["driver", "self", user?.id], queryFn: () => fetchDriverByUser(user.id), enabled: !!user });
   const driver = driverQuery.data;
@@ -194,16 +196,27 @@ export default function DriverDashboard() {
     queryKey: ["driver", "offer", driver?.id], queryFn: () => fetchMyActiveOffer(driver.id),
     enabled: !!driver, refetchInterval: OFFER_POLL_MS,
   });
-  const respondedQuery = useQuery({
-    queryKey: ["driver", "responded", driver?.id], queryFn: () => fetchMyRespondedOrderIds(driver.id), enabled: !!driver,
-  });
   useOrdersRealtime(["driver", "available"]);
   useOrdersRealtime(["driver", "mine", driver?.id]);
 
   const available = availableQuery.data || [];
   const mine = mineQuery.data || [];
   const activeOffer = offerQuery.data || null;
-  const respondedOrderIds = respondedQuery.data || [];
+
+  // enquanto disponível, mantém a localização atual num ref (sem re-renderizar a cada
+  // atualização) — ela só é lida quando uma tentativa de travar oferta é disparada
+  useEffect(() => {
+    if (!driver?.available || !navigator.geolocation) return;
+    const watchId = navigator.geolocation.watchPosition(
+      (pos) => {
+        coordsRef.current = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        setLocationDenied(false);
+      },
+      () => setLocationDenied(true),
+      { enableHighAccuracy: false, maximumAge: 15000, timeout: 10000 }
+    );
+    return () => navigator.geolocation.clearWatch(watchId);
+  }, [driver?.available]);
 
   // heartbeat que força reavaliar a fila periodicamente — sem isso, se essa tentativa
   // de travar uma corrida perder a corrida pra outro entregador, nada mais dispara
@@ -215,20 +228,19 @@ export default function DriverDashboard() {
   }, []);
 
   // fica de olho nas corridas disponíveis e, se estiver livre pra receber uma, tenta
-  // "travar" o oferecimento da mais antiga que ainda não recusou — só um entregador
-  // consegue travar por vez (o banco garante isso), então funciona como uma fila
+  // travar o oferecimento da mais antiga — o banco decide quem ganha (mais perto do
+  // restaurante entre os disponíveis), então isso é só "levantar a mão" periodicamente
   useEffect(() => {
     if (!driver?.available || activeOffer || available.length === 0) return;
-    const candidate = available.find((o) => !respondedOrderIds.includes(o.id));
-    if (!candidate) return;
     let cancelled = false;
-    tryClaimOffer(candidate.id, driver.id).then((offer) => {
+    const { lat, lng } = coordsRef.current;
+    tryClaimOffer(driver.id, lat, lng).then((offer) => {
       if (cancelled || !offer) return;
       queryClient.invalidateQueries({ queryKey: ["driver", "offer", driver.id] });
     }).catch(() => {});
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [driver?.available, driver?.id, activeOffer, available.map((o) => o.id).join(","), respondedOrderIds.join(","), pollTick]);
+  }, [driver?.available, driver?.id, activeOffer, available.map((o) => o.id).join(","), pollTick]);
   const inProgress = mine.filter((o) => o.status === "preparing" || o.status === "out_for_delivery");
   const delivered = mine.filter((o) => o.status === "delivered");
 
@@ -262,6 +274,9 @@ export default function DriverDashboard() {
     setOfferWorking(true);
     try {
       const claimed = await claimDelivery(offer.order_id, driver.id);
+      // se o SQL que libera o status "accepted" ainda não rodou, não deixa isso
+      // travar a aceitação — a corrida já foi assumida via claimDelivery de qualquer jeito
+      await respondToOffer(offer.id, "accepted").catch(() => {});
       showToast(claimed ? `Corrida de ${offer.orders.restaurants?.name} aceita!` : "Essa corrida não está mais disponível.");
       queryClient.setQueryData(["driver", "offer", driver.id], null);
       queryClient.invalidateQueries({ queryKey: ["driver", "available"] });
@@ -277,11 +292,10 @@ export default function DriverDashboard() {
     setOfferWorking(true);
     try {
       await respondToOffer(offer.id, status);
-      // atualiza os dois de uma vez: se só limpasse a oferta e deixasse a lista de
-      // recusadas pra revalidar depois, a tentativa automática de pegar a próxima
-      // corrida podia rodar antes disso e travar a MESMA corrida de novo
+      // o banco já marca esse pedido como recusado/expirado pra esse entregador
+      // (a próxima tentativa de travar oferta ignora ele automaticamente); só
+      // precisa limpar a oferta ativa daqui pra liberar a tentativa seguinte
       queryClient.setQueryData(["driver", "offer", driver.id], null);
-      queryClient.setQueryData(["driver", "responded", driver.id], (prev) => [...(prev || []), offer.order_id]);
       if (status === "declined") showToast("Corrida recusada.");
     } catch {
       showToast("Não foi possível recusar agora.");
@@ -332,6 +346,12 @@ export default function DriverDashboard() {
               <div style={{ fontSize: 11, color: C.grayText }}>Clique pra {driver.available ? "pausar" : "voltar a receber corridas"}</div>
             </div>
           </button>
+
+          {driver.available && locationDenied && (
+            <div style={{ fontSize: 11.5, color: "#B42318", background: "#FDECEC", borderRadius: RADIUS.sm, padding: "8px 10px" }}>
+              Ative a localização do navegador pra receber corridas mais perto de você primeiro.
+            </div>
+          )}
 
           <nav className="vp-portal-nav">
             {NAV_ITEMS.map((item) => {
