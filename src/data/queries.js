@@ -203,6 +203,47 @@ export async function createDriver(driver) {
   return data;
 }
 
+export async function updateDriver(id, changes) {
+  const { error } = await supabase.from("drivers").update(changes).eq("id", id);
+  if (error) throw error;
+}
+
+const DELIVERY_ORDER_FIELDS = "name, slug, address, icon_key, color_variant, plan";
+
+export async function fetchAvailableDeliveries() {
+  const { data, error } = await supabase
+    .from("orders")
+    .select(`*, order_items(*), restaurants!inner(${DELIVERY_ORDER_FIELDS})`)
+    .eq("status", "preparing")
+    .is("driver_id", null)
+    .eq("restaurants.plan", "entrega")
+    .order("created_at", { ascending: true });
+  if (error) throw error;
+  return data;
+}
+
+export async function fetchDriverOrders(driverId) {
+  const { data, error } = await supabase
+    .from("orders")
+    .select(`*, order_items(*), restaurants(${DELIVERY_ORDER_FIELDS})`)
+    .eq("driver_id", driverId)
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return data;
+}
+
+// tenta pegar a corrida; se outro entregador já aceitou, `data` volta vazio
+export async function claimDelivery(orderId, driverId) {
+  const { data, error } = await supabase
+    .from("orders")
+    .update({ driver_id: driverId })
+    .eq("id", orderId)
+    .is("driver_id", null)
+    .select();
+  if (error) throw error;
+  return (data || []).length > 0;
+}
+
 export async function fetchProfile(userId) {
   const { data, error } = await supabase.from("profiles").select("*").eq("id", userId).maybeSingle();
   if (error) throw error;

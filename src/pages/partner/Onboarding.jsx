@@ -39,7 +39,6 @@ const PLAN_OPTIONS = [
     title: "Entrega",
     desc: "O Vem Provar cuida da entrega pra você, usando entregadores cadastrados na plataforma.",
     commission: COMMISSION_RATES.entrega,
-    comingSoon: true,
   },
 ];
 

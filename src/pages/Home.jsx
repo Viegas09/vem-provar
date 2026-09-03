@@ -439,10 +439,6 @@ export default function Home() {
                   </Link>
                 </div>
                 <div id="entregador" style={{ background: "rgba(255,255,255,.04)", borderRadius: RADIUS.xxxl, padding: "30px 28px", position: "relative" }}>
-                  <span style={{ position: "absolute", top: 24, right: 28, fontSize: 11, fontWeight: 700, color: C.gray,
-                       background: "rgba(255,255,255,.08)", padding: "3px 10px", borderRadius: RADIUS.pill }}>
-                    Em breve
-                  </span>
                   <div style={{ width: 52, height: 52, borderRadius: RADIUS.lg, background: C.orange, display: "grid", placeItems: "center", marginBottom: 16 }}>
                     <Bike size={24} color="#fff" />
                   </div>

@@ -29,7 +29,10 @@ import PartnerLogin from "./pages/partner/Login";
 import PartnerSignUp from "./pages/partner/SignUp";
 import PartnerOnboarding from "./pages/partner/Onboarding";
 import PartnerDashboard from "./pages/partner/Dashboard";
-import DriverComingSoon from "./pages/driver/ComingSoon";
+import DriverLogin from "./pages/driver/Login";
+import DriverSignUp from "./pages/driver/SignUp";
+import DriverOnboarding from "./pages/driver/Onboarding";
+import DriverDashboard from "./pages/driver/Dashboard";
 import AdminLogin from "./pages/admin/Login";
 import AdminDashboard from "./pages/admin/Dashboard";
 
@@ -84,10 +87,10 @@ function App() {
             <Route path="/parceiro/cadastro" element={<PartnerOnboarding />} />
             <Route path="/parceiro/painel" element={<PartnerDashboard />} />
 
-            <Route path="/entregador/entrar" element={<DriverComingSoon />} />
-            <Route path="/entregador/criar-conta" element={<DriverComingSoon />} />
-            <Route path="/entregador/cadastro" element={<DriverComingSoon />} />
-            <Route path="/entregador/painel" element={<DriverComingSoon />} />
+            <Route path="/entregador/entrar" element={<DriverLogin />} />
+            <Route path="/entregador/criar-conta" element={<DriverSignUp />} />
+            <Route path="/entregador/cadastro" element={<DriverOnboarding />} />
+            <Route path="/entregador/painel" element={<DriverDashboard />} />
 
             <Route path="/admin/entrar" element={<AdminLogin />} />
             <Route path="/admin/painel" element={<AdminDashboard />} />
