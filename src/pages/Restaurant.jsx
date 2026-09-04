@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Star, Clock, Bike, Store, Heart, XCircle, Search, X, Share2, Check } from "lucide-react";
-import { C, FONT, WARM, formatBRL, RADIUS, SHADOW } from "../theme";
+import { ArrowLeft, Star, Clock, Bike, Store, Heart, XCircle, Search, X, Share2, Check, UtensilsCrossed } from "lucide-react";
+import { C, FONT, formatBRL, RADIUS, SHADOW } from "../theme";
 import { ICONS } from "../data/icons";
 import { useRestaurant } from "../hooks/useRestaurant";
 import { fetchReviewsForRestaurant } from "../data/queries";
@@ -15,23 +15,8 @@ import { distanceKm } from "../lib/geolocation";
 import { isRestaurantOpenNow } from "../lib/businessHours";
 import Header from "../components/Header";
 import ItemModal from "../components/ItemModal";
+import FoodPhoto from "../components/FoodPhoto";
 import { Skeleton, SkeletonMenuItem } from "../components/Skeleton";
-
-function FoodPhoto({ v = 0, icon: Icon, radius = 16, style, photoUrl, iconSize = 26 }) {
-  if (photoUrl) {
-    return (
-      <div className="vp-photo" style={{ borderRadius: radius, overflow: "hidden", ...style }}>
-        <img src={photoUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
-      </div>
-    );
-  }
-  return (
-    <div className="vp-photo" style={{ position: "relative", background: WARM[v % WARM.length], borderRadius: radius, overflow: "hidden", ...style }}>
-      <div style={{ position: "absolute", inset: 0, background: "radial-gradient(120% 80% at 25% 12%, rgba(255,255,255,.28), transparent 60%)" }} />
-      {Icon && <Icon size={iconSize} color="rgba(255,255,255,.5)" style={{ position: "absolute", right: 10, bottom: 10 }} />}
-    </div>
-  );
-}
 
 function RoundIconButton({ onClick, children, style, ariaLabel }) {
   return (
@@ -199,7 +184,7 @@ export default function Restaurant() {
           </div>
         </div>
         <div style={{ position: "relative", flexShrink: 0 }}>
-          <FoodPhoto v={item.color_variant} radius={12} style={{ width: 88, height: 88 }} photoUrl={item.image_url} />
+          <FoodPhoto v={item.color_variant} icon={UtensilsCrossed} iconSize={28} radius={12} style={{ width: 88, height: 88 }} photoUrl={item.image_url} />
           {user && (
             <button type="button" onClick={(e) => { e.stopPropagation(); toggleFavoriteItem(item.id); }}
               aria-label={isFavoriteItem(item.id) ? `Remover ${item.name} dos favoritos` : `Favoritar ${item.name}`}
@@ -242,7 +227,7 @@ export default function Restaurant() {
         <div style={{ position: "relative", marginTop: -40, background: "#fff", borderRadius: RADIUS.xxl, padding: "18px 18px 14px",
              boxShadow: SHADOW.sm, border: `1px solid ${C.line}` }}>
           <div className="flex items-start gap-3">
-            <FoodPhoto v={restaurant.color_variant} icon={Icon} radius={14} style={{ width: 58, height: 58, flexShrink: 0,
+            <FoodPhoto v={restaurant.color_variant} icon={Icon} iconSize={26} radius={14} style={{ width: 58, height: 58, flexShrink: 0,
                  marginTop: -36, border: "3px solid #fff" }} />
             <div style={{ flex: 1, minWidth: 0 }}>
               <h1 style={{ fontSize: 20, fontWeight: 700, margin: 0, letterSpacing: -0.3 }}>{restaurant.name}</h1>
@@ -306,7 +291,7 @@ export default function Restaurant() {
                              cursor: isClosed ? "default" : "pointer", flexShrink: 0, width: 132, textAlign: "left",
                              opacity: isClosed ? 0.55 : 1 }}>
                     <div style={{ position: "relative" }}>
-                      <FoodPhoto v={item.color_variant} radius={14} style={{ width: 132, height: 100 }} photoUrl={item.image_url} />
+                      <FoodPhoto v={item.color_variant} icon={UtensilsCrossed} iconSize={32} radius={14} style={{ width: 132, height: 100 }} photoUrl={item.image_url} />
                       {qty > 0 && (
                         <span key={qty} className="vp-pop" style={{ position: "absolute", top: 6, right: 6, background: C.orange, color: "#fff",
                              fontSize: 11, fontWeight: 700, borderRadius: RADIUS.pill, minWidth: 18, height: 18,

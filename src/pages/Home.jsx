@@ -4,7 +4,7 @@ import {
   MapPin, Star, Clock, Bike, Store, ArrowRight,
   Flame, Heart, ChevronRight, AtSign, Smartphone, X,
 } from "lucide-react";
-import { C, FONT, WARM, RADIUS } from "../theme";
+import { C, FONT, RADIUS } from "../theme";
 import { CATS, ICONS } from "../data/icons";
 import { useRestaurants } from "../hooks/useRestaurants";
 import { useRecentOrders } from "../hooks/useRecentOrders";
@@ -19,6 +19,7 @@ import Header from "../components/Header";
 import AppHeader from "../components/AppHeader";
 import ReviewNudge from "../components/ReviewNudge";
 import LocateButton from "../components/LocateButton";
+import FoodPhoto from "../components/FoodPhoto";
 import { SkeletonCard } from "../components/Skeleton";
 import PullToRefresh from "../components/PullToRefresh";
 import WORDMARK_LIGHT from "../assets/wordmark-light.png";
@@ -48,15 +49,6 @@ function greeting() {
   if (h < 12) return "Bom dia";
   if (h < 18) return "Boa tarde";
   return "Boa noite";
-}
-
-function FoodPhoto({ v = 0, icon: Icon, radius = 16, style }) {
-  return (
-    <div className="vp-photo" style={{ position: "relative", background: WARM[v % WARM.length], borderRadius: radius, overflow: "hidden", ...style }}>
-      <div style={{ position: "absolute", inset: 0, background: "radial-gradient(120% 80% at 25% 12%, rgba(255,255,255,.28), transparent 60%)" }} />
-      {Icon && <Icon size={30} color="rgba(255,255,255,.5)" style={{ position: "absolute", right: 12, bottom: 12 }} />}
-    </div>
-  );
 }
 
 export default function Home() {

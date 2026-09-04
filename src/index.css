@@ -95,6 +95,9 @@ html{ scroll-behavior:smooth; }
 .vp-tap:active{ transform:scale(.975); box-shadow:0 2px 10px rgba(20,20,20,.06); }
 .vp-photo{ transition:transform .4s cubic-bezier(.2,.7,.3,1); }
 .vp-tap:hover .vp-photo{ transform:scale(1.06); }
+.vp-food-photo-texture{ position:absolute; inset:0; background-image:radial-gradient(rgba(255,255,255,.16) 1.4px, transparent 1.4px); background-size:14px 14px; }
+@keyframes vp-float{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-5px); } }
+.vp-food-photo-icon{ animation:vp-float 4.2s ease-in-out infinite; }
 button{ transition:transform .1s ease, opacity .15s ease; }
 button:active{ transform:scale(.96); }
 button:disabled:active{ transform:none; }
