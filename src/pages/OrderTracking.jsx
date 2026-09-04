@@ -6,7 +6,7 @@ import { fetchOrderById } from "../data/queries";
 import { useAuth } from "../context/AuthContext";
 import { subscribeToPush } from "../lib/push";
 import Header from "../components/Header";
-import StepProgress from "../components/StepProgress";
+import OrderStatusTimeline from "../components/OrderStatusTimeline";
 import OrderChat from "../components/OrderChat";
 import { SkeletonPage } from "../components/Skeleton";
 
@@ -14,11 +14,21 @@ const STEPS = ["Pedido recebido", "Em preparo", "Saiu para entrega", "Entregue"]
 const STATUS_INDEX = { pending: 0, preparing: 1, out_for_delivery: 2, delivered: 3 };
 const POLL_MS = 6000;
 
+function secondsAgoLabel(date) {
+  if (!date) return "agora mesmo";
+  const s = Math.max(0, Math.round((Date.now() - date.getTime()) / 1000));
+  if (s < 5) return "agora mesmo";
+  if (s < 60) return `há ${s}s`;
+  return `há ${Math.round(s / 60)} min`;
+}
+
 export default function OrderTracking() {
   const { id } = useParams();
   const { user } = useAuth();
   const [order, setOrder] = useState(null);
   const [notFound, setNotFound] = useState(false);
+  const [lastUpdatedAt, setLastUpdatedAt] = useState(null);
+  const [, setTick] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -27,8 +37,12 @@ export default function OrderTracking() {
       try {
         const data = await fetchOrderById(id);
         if (cancelled) return;
-        if (data) setOrder(data);
-        else setNotFound(true);
+        if (data) {
+          setOrder(data);
+          setLastUpdatedAt(new Date());
+        } else {
+          setNotFound(true);
+        }
       } catch {
         // mantém a última versão carregada; tenta de novo no próximo poll
       }
@@ -41,6 +55,12 @@ export default function OrderTracking() {
       clearInterval(interval);
     };
   }, [id]);
+
+  // só pra recalcular o texto "atualizado há Xs" sem depender de um novo poll
+  useEffect(() => {
+    const t = setInterval(() => setTick((n) => n + 1), 3000);
+    return () => clearInterval(t);
+  }, []);
 
   useEffect(() => {
     if (order && user && user.id === order.customer_id) {
@@ -93,8 +113,14 @@ export default function OrderTracking() {
             <span style={{ fontSize: 14.5, fontWeight: 600 }}>Esse pedido foi cancelado.</span>
           </div>
         ) : (
-          <div key={order.status} className="vp-fade-in" style={{ background: C.surface, borderRadius: RADIUS.xl, padding: "22px 20px", marginBottom: 28 }}>
-            <StepProgress steps={STEPS} current={current} />
+          <div style={{ background: C.surface, borderRadius: RADIUS.xl, padding: "22px 20px 20px", marginBottom: 28 }}>
+            <OrderStatusTimeline current={current} total={STEPS.length} />
+            <div className="flex items-center justify-between" style={{ marginTop: 18, flexWrap: "wrap", gap: 6 }}>
+              <span style={{ fontFamily: FONT, fontSize: 15, fontWeight: 700, color: C.black }}>{STEPS[current]}</span>
+              <span className="flex items-center gap-1.5" style={{ fontSize: 12, color: C.grayText, fontWeight: 600 }}>
+                <span className="vp-live-dot" /> Atualizado {secondsAgoLabel(lastUpdatedAt)}
+              </span>
+            </div>
           </div>
         )}
 
