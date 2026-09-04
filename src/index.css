@@ -43,6 +43,7 @@ html{ scroll-behavior:smooth; }
 .vp-timeline-line{ flex:1; height:3px; background:rgba(20,20,20,0.09); border-radius:999px; margin:0 4px; overflow:hidden; min-width:16px; }
 .vp-timeline-line-fill{ height:100%; background:#EE6C1A; border-radius:999px; transition:width .6s cubic-bezier(.4,0,.2,1); }
 .vp-live-dot{ width:7px; height:7px; border-radius:50%; background:#2E9E5B; flex-shrink:0; animation:vp-pulse 1.6s ease-in-out infinite; }
+.vp-status-dot-pulse{ animation:vp-pulse 1.6s ease-in-out infinite; }
 @keyframes vp-pull-spin{ to{ transform:rotate(360deg); } }
 .vp-pull-indicator{ display:flex; align-items:center; justify-content:center; overflow:hidden; transition:height .15s ease; }
 .vp-pull-indicator svg{ animation:vp-pull-spin .7s linear infinite; }

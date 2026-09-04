@@ -7,7 +7,7 @@ import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
 import { useToast } from "../context/ToastContext";
 import { fetchOrdersForCustomer, fetchReviewsForCustomer } from "../data/queries";
-import { STATUS_META } from "../lib/orderStatus";
+import { STATUS_META, OPEN_STATUSES } from "../lib/orderStatus";
 import Header from "../components/Header";
 import ReviewModal from "../components/ReviewModal";
 import { SkeletonPage } from "../components/Skeleton";
@@ -36,8 +36,9 @@ function RestaurantAvatar({ iconKey, colorVariant, size = 44 }) {
   return (
     <div style={{ width: size, height: size, borderRadius: "50%", flexShrink: 0, position: "relative", overflow: "hidden",
          background: WARM[(colorVariant ?? 0) % WARM.length] }}>
+      <div className="vp-food-photo-texture" />
       <div style={{ position: "absolute", inset: 0, background: "radial-gradient(120% 80% at 25% 12%, rgba(255,255,255,.3), transparent 60%)" }} />
-      <div style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center" }}>
+      <div className="vp-food-photo-icon" style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center" }}>
         <Icon size={size * 0.42} color="#fff" />
       </div>
     </div>
@@ -138,6 +139,7 @@ export default function MyOrders() {
                   {group.orders.map((order) => {
                     const meta = STATUS_META[order.status] || STATUS_META.pending;
                     const delivered = order.status === "delivered";
+                    const isOpen = OPEN_STATUSES.includes(order.status);
                     const items = order.order_items || [];
                     const uniqueItemNames = [...new Set(items.map((i) => i.name))].slice(0, 3);
                     return (
@@ -161,7 +163,8 @@ export default function MyOrders() {
                             </div>
                             <div className="flex items-center gap-1" style={{ marginTop: 2 }}>
                               {delivered ? <CheckCircle2 size={13} color={meta.color} /> :
-                                <span style={{ width: 7, height: 7, borderRadius: RADIUS.pill, background: meta.color, flexShrink: 0 }} />}
+                                <span className={isOpen ? "vp-status-dot-pulse" : ""}
+                                  style={{ width: 7, height: 7, borderRadius: RADIUS.pill, background: meta.color, flexShrink: 0 }} />}
                               <span style={{ fontSize: 12.5, fontWeight: 600, color: meta.color }}>{meta.label}</span>
                               <span style={{ fontSize: 12, color: C.grayText }}>· #{order.id.slice(0, 8)}</span>
                             </div>
