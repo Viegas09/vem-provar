@@ -23,6 +23,7 @@ import { WEEKDAYS as HOURS_WEEKDAYS, defaultBusinessHours } from "../../lib/busi
 import { subscribeToPush } from "../../lib/push";
 import { STATUS_META, STATUS_OPTIONS, OPEN_STATUSES, NEXT_STATUS } from "../../lib/orderStatus";
 import { SkeletonPage } from "../../components/Skeleton";
+import LiveIndicator from "../../components/LiveIndicator";
 import OrderChat from "../../components/OrderChat";
 import NotificationBell from "../../components/NotificationBell";
 import LocateButton from "../../components/LocateButton";
@@ -1720,7 +1721,10 @@ export default function PartnerDashboard() {
                 </div>
 
                 <div className="flex items-center justify-between" style={{ marginBottom: 14, flexWrap: "wrap", gap: 10 }}>
-                  <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>Pedidos recebidos</h2>
+                  <div className="flex items-center gap-3" style={{ flexWrap: "wrap" }}>
+                    <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>Pedidos recebidos</h2>
+                    <LiveIndicator updatedAt={ordersQuery.dataUpdatedAt} />
+                  </div>
                   {orders.length > 0 && (
                     <div className="flex items-center gap-2" style={{ background: C.surface, borderRadius: RADIUS.sm,
                          padding: "0 12px", height: 38, width: 240, maxWidth: "100%" }}>

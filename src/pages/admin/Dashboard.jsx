@@ -21,6 +21,7 @@ import { ICONS } from "../../data/icons";
 import WORDMARK_DARK from "../../assets/wordmark-dark.png";
 import { SkeletonPage } from "../../components/Skeleton";
 import { useOrdersRealtime } from "../../hooks/useOrdersRealtime";
+import LiveIndicator from "../../components/LiveIndicator";
 import CouponForm from "../../components/CouponForm";
 
 const ADMIN_ORDERS_KEY = ["admin", "orders"];
@@ -901,7 +902,10 @@ export default function AdminDashboard() {
 
             {activeSection === "geral" && (
               <>
-                <h1 style={{ fontSize: 22, fontWeight: 700, margin: "0 0 20px" }}>Visão geral</h1>
+                <div className="flex items-center gap-3" style={{ marginBottom: 20, flexWrap: "wrap" }}>
+                  <h1 style={{ fontSize: 22, fontWeight: 700, margin: 0 }}>Visão geral</h1>
+                  <LiveIndicator updatedAt={ordersQuery.dataUpdatedAt} />
+                </div>
 
                 <div className="vp-dash-stats" style={{ marginBottom: 24 }}>
                   <StatTile icon={Store} label="Restaurantes" value={restaurants.length} />
