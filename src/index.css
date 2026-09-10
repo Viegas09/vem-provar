@@ -126,4 +126,14 @@ body.vp-force-bottomnav .vp-minicart{ bottom:calc(78px + env(safe-area-inset-bot
   body.vp-has-bottomnav .vp-installprompt{ bottom:calc(78px + env(safe-area-inset-bottom)); }
   body.vp-has-bottomnav .vp-minicart{ bottom:calc(78px + env(safe-area-inset-bottom)); }
 }
-@media (prefers-reduced-motion:reduce){ *{animation:none!important} }
+/* revela em blocos conforme rola a página (landing do parceiro) — parte
+   opaco/deslocado e anima pra posição normal na primeira vez que entra
+   na viewport; via transição CSS em vez de @keyframes porque o gatilho
+   é um IntersectionObserver no JS, não algo que já começa ao montar */
+.vp-reveal{ opacity:0; transform:translateY(18px); transition:opacity .5s ease, transform .5s cubic-bezier(.22,.8,.32,1); }
+.vp-reveal-in{ opacity:1; transform:none; }
+
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important}
+  .vp-reveal{ opacity:1!important; transform:none!important; transition:none!important; }
+}

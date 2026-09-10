@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   X, Store, Truck, ArrowRight, ClipboardList, Bell, Wallet, LayoutDashboard,
@@ -9,6 +10,72 @@ import { PROMO_DAYS, COMMISSION_RATES } from "../../lib/commission";
 import FoodPhoto from "../../components/FoodPhoto";
 import WORDMARK_ONORANGE from "../../assets/wordmark-onorange.png";
 import WORDMARK_DARK from "../../assets/wordmark-dark.png";
+
+// anima cada bloco (opacidade + leve deslocamento) na primeira vez que ele
+// entra na tela, em vez de tudo já aparecer pronto — só dispara uma vez
+function Reveal({ children, delay = 0, style }) {
+  const ref = useRef(null);
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisible(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.15 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div ref={ref} className={visible ? "vp-reveal vp-reveal-in" : "vp-reveal"} style={{ transitionDelay: `${delay}ms`, ...style }}>
+      {children}
+    </div>
+  );
+}
+
+// conta de 0 até o valor quando o número entra na tela, em vez de já
+// aparecer pronto — pula direto pro valor final se o navegador pedir
+// menos movimento
+function CountUp({ to, duration = 900 }) {
+  const ref = useRef(null);
+  const [value, setValue] = useState(0);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    if (reduceMotion) {
+      setValue(to);
+      return;
+    }
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return;
+        observer.disconnect();
+        const start = performance.now();
+        function tick(now) {
+          const progress = Math.min(1, (now - start) / duration);
+          const eased = 1 - (1 - progress) ** 3;
+          setValue(Math.round(eased * to));
+          if (progress < 1) requestAnimationFrame(tick);
+        }
+        requestAnimationFrame(tick);
+      },
+      { threshold: 0.4 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [to, duration]);
+
+  return <span ref={ref}>{value}</span>;
+}
 
 const STEPS = [
   {
@@ -102,32 +169,32 @@ export default function PartnerLanding() {
       </div>
 
       {/* ── estatística de destaque ── */}
-      <Section style={{ paddingBottom: 24 }}>
-        <div className="flex items-center gap-6" style={{ flexWrap: "wrap" }}>
+      <Section style={{ paddingBottom: 24, textAlign: "center" }}>
+        <Reveal style={{ maxWidth: 420, marginInline: "auto" }}>
           <div style={{ fontSize: "clamp(72px, 11vw, 108px)", fontWeight: 800, color: C.orange, lineHeight: .85,
                fontVariantNumeric: "tabular-nums", letterSpacing: -2 }}>
-            {PROMO_DAYS}
+            <CountUp to={PROMO_DAYS} />
           </div>
-          <div style={{ maxWidth: 340 }}>
-            <div style={{ fontSize: 21, fontWeight: 700, lineHeight: 1.25 }}>dias sem nenhuma comissão</div>
-            <p style={{ fontSize: 14, color: C.grayText, margin: "6px 0 0", lineHeight: 1.5 }}>
-              Em qualquer plano, a partir do seu primeiro pedido publicado. Sem cartão de crédito, sem pegadinha.
-            </p>
-          </div>
-        </div>
+          <div style={{ fontSize: 21, fontWeight: 700, lineHeight: 1.25, marginTop: 14 }}>dias sem nenhuma comissão</div>
+          <p style={{ fontSize: 14, color: C.grayText, margin: "8px 0 0", lineHeight: 1.5 }}>
+            Em qualquer plano, a partir do seu primeiro pedido publicado. Sem cartão de crédito, sem pegadinha.
+          </p>
+        </Reveal>
       </Section>
 
       {/* ── como funciona ── */}
       <Section style={{ paddingTop: 24 }}>
-        <h2 style={{ fontSize: 26, fontWeight: 700, margin: "0 0 8px" }}>Como funciona</h2>
-        <p style={{ fontSize: 14.5, color: C.grayText, margin: "0 0 32px", maxWidth: 480 }}>
-          Do cadastro ao primeiro pedido, sem enrolação.
-        </p>
+        <Reveal>
+          <h2 style={{ fontSize: 26, fontWeight: 700, margin: "0 0 8px" }}>Como funciona</h2>
+          <p style={{ fontSize: 14.5, color: C.grayText, margin: "0 0 32px", maxWidth: 480 }}>
+            Do cadastro ao primeiro pedido, sem enrolação.
+          </p>
+        </Reveal>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 28 }}>
           {STEPS.map((s, i) => {
             const Icon = s.icon;
             return (
-              <div key={s.title}>
+              <Reveal key={s.title} delay={i * 100}>
                 <div style={{ width: 72, height: 72, borderRadius: "50%", background: "rgba(238,108,26,.1)",
                      display: "grid", placeItems: "center", marginBottom: 16, position: "relative" }}>
                   <Icon size={30} color={C.orange} strokeWidth={1.6} />
@@ -138,7 +205,7 @@ export default function PartnerLanding() {
                 </div>
                 <h3 style={{ fontSize: 17, fontWeight: 700, margin: "0 0 6px" }}>{s.title}</h3>
                 <p style={{ fontSize: 14, color: C.grayText, lineHeight: 1.55, margin: 0 }}>{s.desc}</p>
-              </div>
+              </Reveal>
             );
           })}
         </div>
@@ -146,19 +213,21 @@ export default function PartnerLanding() {
 
       {/* ── benefícios ── */}
       <Section style={{ background: C.surface }}>
-        <h2 style={{ fontSize: 26, fontWeight: 700, margin: "0 0 32px" }}>O que você ganha</h2>
+        <Reveal>
+          <h2 style={{ fontSize: 26, fontWeight: 700, margin: "0 0 32px" }}>O que você ganha</h2>
+        </Reveal>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))", gap: 28 }}>
-          {BENEFITS.map((b) => {
+          {BENEFITS.map((b, i) => {
             const Icon = b.icon;
             return (
-              <div key={b.title}>
+              <Reveal key={b.title} delay={i * 90}>
                 <div style={{ width: 60, height: 60, borderRadius: "50%", background: "#fff", boxShadow: SHADOW.xs,
                      display: "grid", placeItems: "center", marginBottom: 16 }}>
                   <Icon size={26} color={C.orange} strokeWidth={1.6} />
                 </div>
                 <h3 style={{ fontSize: 16, fontWeight: 700, margin: "0 0 6px" }}>{b.title}</h3>
                 <p style={{ fontSize: 13.5, color: C.grayText, lineHeight: 1.55, margin: 0 }}>{b.desc}</p>
-              </div>
+              </Reveal>
             );
           })}
         </div>
@@ -166,16 +235,19 @@ export default function PartnerLanding() {
 
       {/* ── planos ── */}
       <div style={{ background: C.black }}>
-        <Section>
-          <h2 style={{ color: "#fff", fontSize: 26, fontWeight: 700, margin: "0 0 8px" }}>Conheça os planos</h2>
-          <p style={{ fontSize: 14.5, color: C.gray, margin: "0 0 32px", maxWidth: 480 }}>
-            Você escolhe qual usar no cadastro — e pode trocar depois, direto no painel.
-          </p>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 20, maxWidth: 680 }}>
-            {PLANS.map((p) => {
+        <Section style={{ textAlign: "center" }}>
+          <Reveal style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+            <h2 style={{ color: "#fff", fontSize: 26, fontWeight: 700, margin: "0 0 8px" }}>Conheça os planos</h2>
+            <p style={{ fontSize: 14.5, color: C.gray, margin: "0 0 32px", maxWidth: 480 }}>
+              Você escolhe qual usar no cadastro — e pode trocar depois, direto no painel.
+            </p>
+          </Reveal>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 20,
+               maxWidth: 680, marginInline: "auto", textAlign: "left" }}>
+            {PLANS.map((p, i) => {
               const Icon = p.icon;
               return (
-                <div key={p.key} style={{ background: "#fff", borderRadius: RADIUS.xxl, padding: 28 }}>
+                <Reveal key={p.key} delay={i * 100} style={{ background: "#fff", borderRadius: RADIUS.xxl, padding: 28 }}>
                   <div className="flex items-center gap-2" style={{ marginBottom: 14 }}>
                     <div style={{ width: 42, height: 42, borderRadius: RADIUS.md, background: "rgba(238,108,26,.1)",
                          display: "grid", placeItems: "center", flexShrink: 0 }}>
@@ -196,7 +268,7 @@ export default function PartnerLanding() {
                       </div>
                     ))}
                   </div>
-                </div>
+                </Reveal>
               );
             })}
           </div>
@@ -205,16 +277,18 @@ export default function PartnerLanding() {
 
       {/* ── CTA final ── */}
       <Section style={{ textAlign: "center" }}>
-        <img src={WORDMARK_DARK} alt="" style={{ height: 26, width: "auto", margin: "0 auto 20px" }} draggable={false} />
-        <h2 style={{ fontSize: 26, fontWeight: 700, margin: "0 0 10px" }}>Pronto pra vender mais?</h2>
-        <p style={{ color: C.grayText, fontSize: 14.5, margin: "0 0 24px" }}>
-          Cadastro leva poucos minutos. Sem cartão de crédito, sem compromisso.
-        </p>
-        <Link to="/parceiro/criar-conta" className="flex items-center justify-center gap-2"
-          style={{ display: "inline-flex", background: C.orange, color: "#fff", textDecoration: "none", fontWeight: 700,
-                   fontSize: 15.5, padding: "16px 30px", borderRadius: RADIUS.md, boxShadow: SHADOW.sm }}>
-          Cadastrar meu restaurante <ArrowRight size={18} />
-        </Link>
+        <Reveal>
+          <img src={WORDMARK_DARK} alt="" style={{ height: 26, width: "auto", margin: "0 auto 20px" }} draggable={false} />
+          <h2 style={{ fontSize: 26, fontWeight: 700, margin: "0 0 10px" }}>Pronto pra vender mais?</h2>
+          <p style={{ color: C.grayText, fontSize: 14.5, margin: "0 0 24px" }}>
+            Cadastro leva poucos minutos. Sem cartão de crédito, sem compromisso.
+          </p>
+          <Link to="/parceiro/criar-conta" className="flex items-center justify-center gap-2"
+            style={{ display: "inline-flex", background: C.orange, color: "#fff", textDecoration: "none", fontWeight: 700,
+                     fontSize: 15.5, padding: "16px 30px", borderRadius: RADIUS.md, boxShadow: SHADOW.sm }}>
+            Cadastrar meu restaurante <ArrowRight size={18} />
+          </Link>
+        </Reveal>
       </Section>
     </div>
   );
