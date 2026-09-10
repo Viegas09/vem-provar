@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Bike, Car, Package, LayoutDashboard, Clock3, LogOut, MapPin, Store, Wallet, TrendingUp,
   CheckCircle2, PauseCircle, ChevronRight, History, User as UserIcon, Bell, X, Navigation,
+  Phone, Home, Mail, IdCard,
 } from "lucide-react";
 import { C, FONT, RADIUS, SHADOW, formatBRL } from "../../theme";
 import { useAuth } from "../../context/AuthContext";
@@ -15,6 +16,7 @@ import {
 } from "../../data/queries";
 import { useOrdersRealtime } from "../../hooks/useOrdersRealtime";
 import PortalHeader from "../../components/PortalHeader";
+import LiveIndicator from "../../components/LiveIndicator";
 import { SkeletonPage } from "../../components/Skeleton";
 
 const VEHICLE_LABELS = { moto: "Moto", bike: "Bicicleta", carro: "Carro" };
@@ -430,7 +432,10 @@ export default function DriverDashboard() {
           <div style={{ maxWidth: 720 }}>
             {activeSection === "inicio" && (
               <>
-                <h1 style={{ fontSize: 22, fontWeight: 700, margin: "0 0 20px" }}>Início</h1>
+                <div className="flex items-center gap-3" style={{ marginBottom: 20, flexWrap: "wrap" }}>
+                  <h1 style={{ fontSize: 22, fontWeight: 700, margin: 0 }}>Início</h1>
+                  <LiveIndicator updatedAt={availableQuery.dataUpdatedAt} />
+                </div>
                 <div className="vp-dash-stats" style={{ marginBottom: 28 }}>
                   <StatTile icon={Package} label="Corridas hoje" value={deliveredToday.length} />
                   <StatTile icon={TrendingUp} label="Ganho hoje" value={formatBRL(earningsToday)} accent />
@@ -511,13 +516,34 @@ export default function DriverDashboard() {
             {activeSection === "conta" && (
               <>
                 <h1 style={{ fontSize: 22, fontWeight: 700, margin: "0 0 20px" }}>Conta</h1>
-                <div style={{ background: "#fff", border: `1px solid ${C.line}`, borderRadius: RADIUS.xl, padding: 20, display: "flex", flexDirection: "column", gap: 10 }}>
-                  <div><strong>Nome:</strong> {driver.full_name}</div>
-                  <div><strong>Veículo:</strong> {VEHICLE_LABELS[driver.vehicle_type] || "Moto"}</div>
-                  {driver.plate && <div><strong>Placa:</strong> {driver.plate}</div>}
-                  <div><strong>Telefone:</strong> {driver.phone || "—"}</div>
-                  <div><strong>Endereço:</strong> {driver.address || "—"}</div>
-                  <div><strong>E-mail:</strong> {user.email}</div>
+                <div className="flex items-center gap-3" style={{ marginBottom: 24 }}>
+                  <div style={{ width: 56, height: 56, borderRadius: RADIUS.pill, background: C.orange, color: "#fff",
+                       display: "grid", placeItems: "center", fontSize: 22, fontWeight: 700, flexShrink: 0 }}>
+                    {driver.full_name?.charAt(0).toUpperCase() || "E"}
+                  </div>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontSize: 18, fontWeight: 700 }}>{driver.full_name}</div>
+                    <div style={{ fontSize: 13, color: C.grayText }}>{VEHICLE_LABELS[driver.vehicle_type] || "Moto"}{driver.plate ? ` · ${driver.plate}` : ""}</div>
+                  </div>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                  {[
+                    { icon: VehicleIcon, label: "Veículo", value: VEHICLE_LABELS[driver.vehicle_type] || "Moto" },
+                    driver.plate && { icon: IdCard, label: "Placa", value: driver.plate },
+                    { icon: Phone, label: "Telefone", value: driver.phone || "—" },
+                    { icon: Home, label: "Endereço", value: driver.address || "—" },
+                    { icon: Mail, label: "E-mail", value: user.email },
+                  ].filter(Boolean).map(({ icon: Icon, label, value }) => (
+                    <div key={label} className="flex items-center gap-3" style={{ background: C.surface, borderRadius: RADIUS.md, padding: 14 }}>
+                      <div style={{ width: 38, height: 38, borderRadius: RADIUS.sm, background: "#fff", flexShrink: 0, display: "grid", placeItems: "center" }}>
+                        <Icon size={17} color={C.orange} />
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 12, color: C.grayText }}>{label}</div>
+                        <div style={{ fontSize: 14.5, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{value}</div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </>
             )}
