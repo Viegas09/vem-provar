@@ -30,13 +30,15 @@ export default function BottomNav() {
     { to: "/meus-pedidos", icon: Package, label: "Pedidos", active: path.startsWith("/meus-pedidos") || path.startsWith("/pedido") },
     { to: profileTo, icon: User, label: "Perfil", active: ["/perfil", "/meus-dados", "/entrar", "/criar-conta", "/favoritos", "/enderecos", "/pagamentos", "/configuracoes", "/ajuda"].some((p) => path.startsWith(p)) },
   ];
-  const activeIndex = Math.max(0, tabs.findIndex((tab) => tab.active));
+  const activeIndex = tabs.findIndex((tab) => tab.active);
 
   return (
     <nav className="vp-bottomnav" style={{ position: "fixed", left: 0, right: 0, bottom: 0, zIndex: 40,
          background: "rgba(255,255,255,.96)", backdropFilter: "blur(8px)", borderTop: `1px solid ${C.line}`, fontFamily: FONT,
          display: isAppMode ? "flex" : undefined }}>
-      <div className="vp-bottomnav-indicator" style={{ width: `${100 / tabs.length}%`, transform: `translateX(${activeIndex * 100}%)` }} />
+      {activeIndex >= 0 && (
+        <div className="vp-bottomnav-indicator" style={{ width: `${100 / tabs.length}%`, transform: `translateX(${activeIndex * 100}%)` }} />
+      )}
       {tabs.map((tab) => {
         const Icon = tab.icon;
         return (

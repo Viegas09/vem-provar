@@ -5,7 +5,7 @@ import {
   Flame, Heart, ChevronRight, AtSign, Smartphone, X,
 } from "lucide-react";
 import { C, FONT, RADIUS } from "../theme";
-import { CATS, ICONS } from "../data/icons";
+import { CATS, ICONS, guessDishIcon } from "../data/icons";
 import { useRestaurants } from "../hooks/useRestaurants";
 import { useRecentOrders } from "../hooks/useRecentOrders";
 import { useUserLocation } from "../hooks/useUserLocation";
@@ -130,7 +130,7 @@ export default function Home() {
       dish: r.menu_items[0].name,
       rest: r.name,
       v: r.menu_items[0].color_variant,
-      icon: ICONS[r.icon_key] || Store,
+      icon: guessDishIcon(r.menu_items[0], ICONS[r.icon_key] || Store),
       tag: HOOD_TAGS[i % HOOD_TAGS.length],
     }));
 

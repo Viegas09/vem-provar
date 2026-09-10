@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Star, Clock, Bike, Store, Heart, XCircle, Search, X, Share2, Check, UtensilsCrossed } from "lucide-react";
 import { C, FONT, formatBRL, RADIUS, SHADOW } from "../theme";
-import { ICONS } from "../data/icons";
+import { ICONS, guessDishIcon } from "../data/icons";
 import { useRestaurant } from "../hooks/useRestaurant";
 import { fetchReviewsForRestaurant } from "../data/queries";
 import { useCart } from "../context/CartContext";
@@ -184,7 +184,7 @@ export default function Restaurant() {
           </div>
         </div>
         <div style={{ position: "relative", flexShrink: 0 }}>
-          <FoodPhoto v={item.color_variant} icon={UtensilsCrossed} iconSize={28} radius={12} style={{ width: 88, height: 88 }} photoUrl={item.image_url} />
+          <FoodPhoto v={item.color_variant} icon={guessDishIcon(item, UtensilsCrossed)} iconSize={28} radius={12} style={{ width: 88, height: 88 }} photoUrl={item.image_url} />
           {user && (
             <button type="button" onClick={(e) => { e.stopPropagation(); toggleFavoriteItem(item.id); }}
               aria-label={isFavoriteItem(item.id) ? `Remover ${item.name} dos favoritos` : `Favoritar ${item.name}`}
@@ -291,7 +291,7 @@ export default function Restaurant() {
                              cursor: isClosed ? "default" : "pointer", flexShrink: 0, width: 132, textAlign: "left",
                              opacity: isClosed ? 0.55 : 1 }}>
                     <div style={{ position: "relative" }}>
-                      <FoodPhoto v={item.color_variant} icon={UtensilsCrossed} iconSize={32} radius={14} style={{ width: 132, height: 100 }} photoUrl={item.image_url} />
+                      <FoodPhoto v={item.color_variant} icon={guessDishIcon(item, UtensilsCrossed)} iconSize={32} radius={14} style={{ width: 132, height: 100 }} photoUrl={item.image_url} />
                       {qty > 0 && (
                         <span key={qty} className="vp-pop" style={{ position: "absolute", top: 6, right: 6, background: C.orange, color: "#fff",
                              fontSize: 11, fontWeight: 700, borderRadius: RADIUS.pill, minWidth: 18, height: 18,
