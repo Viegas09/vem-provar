@@ -19,6 +19,10 @@ import PortalHeader from "../../components/PortalHeader";
 import LiveIndicator from "../../components/LiveIndicator";
 import { SkeletonPage } from "../../components/Skeleton";
 
+function driverEarning(order) {
+  return Number(order.delivery_fee || 0) + Number(order.tip_amount || 0);
+}
+
 const VEHICLE_LABELS = { moto: "Moto", bike: "Bicicleta", carro: "Carro" };
 const VEHICLE_ICONS = { moto: Bike, bike: Bike, carro: Car };
 const OFFER_SECONDS = 20;
@@ -117,7 +121,7 @@ function DeliveryCard({ order, action }) {
           {(order.order_items || []).length} item{(order.order_items || []).length === 1 ? "" : "s"} · pedido {formatBRL(order.total)}
         </span>
         <span className="flex items-center gap-1" style={{ fontSize: 14.5, fontWeight: 700, color: C.ok }}>
-          <Wallet size={14} /> {formatBRL(order.delivery_fee ?? 0)}
+          <Wallet size={14} /> {formatBRL(driverEarning(order))}
         </span>
       </div>
       {action && <NavButtons {...navTarget} />}
@@ -187,7 +191,7 @@ function RideOfferModal({ offer, onAccept, onDecline, working }) {
             {(order.order_items || []).length} item{(order.order_items || []).length === 1 ? "" : "s"} · pedido {formatBRL(order.total)}
           </span>
           <span className="flex items-center gap-1" style={{ fontSize: 18, fontWeight: 700, color: C.ok }}>
-            <Wallet size={16} /> {formatBRL(order.delivery_fee ?? 0)}
+            <Wallet size={16} /> {formatBRL(driverEarning(order))}
           </span>
         </div>
 
@@ -297,8 +301,8 @@ export default function DriverDashboard() {
 
   const today = new Date().toDateString();
   const deliveredToday = delivered.filter((o) => new Date(o.created_at).toDateString() === today);
-  const earningsToday = deliveredToday.reduce((sum, o) => sum + Number(o.delivery_fee || 0), 0);
-  const earningsTotal = delivered.reduce((sum, o) => sum + Number(o.delivery_fee || 0), 0);
+  const earningsToday = deliveredToday.reduce((sum, o) => sum + driverEarning(o), 0);
+  const earningsTotal = delivered.reduce((sum, o) => sum + driverEarning(o), 0);
 
   if (authLoading) return <SkeletonPage />;
   if (!user) return <Navigate to="/entregador/entrar" replace />;
@@ -505,7 +509,7 @@ export default function DriverDashboard() {
                           <div style={{ fontSize: 14, fontWeight: 700 }}>{o.restaurants?.name}</div>
                           <div style={{ fontSize: 12, color: C.grayText, marginTop: 2 }}>{new Date(o.created_at).toLocaleString("pt-BR")}</div>
                         </div>
-                        <span style={{ fontSize: 14.5, fontWeight: 700, color: C.ok }}>{formatBRL(o.delivery_fee ?? 0)}</span>
+                        <span style={{ fontSize: 14.5, fontWeight: 700, color: C.ok }}>{formatBRL(driverEarning(o))}</span>
                       </div>
                     ))}
                   </div>

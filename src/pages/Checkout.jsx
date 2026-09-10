@@ -107,7 +107,13 @@ export default function Checkout() {
   const [couponError, setCouponError] = useState(null);
   const [couponChecking, setCouponChecking] = useState(false);
   const discount = computeDiscount(appliedCoupon, subtotal);
-  const total = subtotal + deliveryFee - discount;
+
+  const showTip = !isPickup && restaurant?.use_platform_drivers !== false;
+  const [tip, setTip] = useState(0);
+  const [customTip, setCustomTip] = useState("");
+  const effectiveTip = showTip ? tip : 0;
+
+  const total = subtotal + deliveryFee - discount + effectiveTip;
 
   async function handleApplyCoupon() {
     const code = couponInput.trim().toUpperCase();
@@ -222,7 +228,7 @@ export default function Checkout() {
         }
       }
 
-      const orderTotal = subtotal + deliveryFee - finalDiscount;
+      const orderTotal = subtotal + deliveryFee - finalDiscount + effectiveTip;
       const commissionRate = getCommissionRate(restaurant);
       const { commissionAmount, restaurantPayout: payoutBeforeDiscount } = calculateCommission(subtotal, commissionRate);
       // o cupom sai do repasse do restaurante — a comissão da plataforma é sempre sobre o subtotal cheio, sem desconto
@@ -246,6 +252,7 @@ export default function Checkout() {
         paymentMethod: payment,
         subtotal,
         deliveryFee,
+        tipAmount: effectiveTip,
         total: orderTotal,
         items: cart.items,
         commissionRate,
@@ -528,6 +535,41 @@ export default function Checkout() {
             </>
           )}
         </div>
+
+        {showTip && (
+          <>
+            <h2 style={{ fontSize: 15, fontWeight: 700, margin: "0 0 10px" }}>Gorjeta pro entregador</h2>
+            <div style={{ marginBottom: 24 }}>
+              <div className="flex items-center gap-2" style={{ flexWrap: "wrap" }}>
+                {[0, 2, 4, 6].map((value) => {
+                  const active = customTip === "" && tip === value;
+                  return (
+                    <button key={value} type="button" onClick={() => { setTip(value); setCustomTip(""); }}
+                      style={{ background: active ? "rgba(238,108,26,.08)" : "#fff",
+                               border: `1.5px solid ${active ? C.orange : C.line}`, borderRadius: RADIUS.pill,
+                               padding: "9px 16px", cursor: "pointer", fontFamily: FONT, fontSize: 13.5,
+                               fontWeight: active ? 700 : 500, color: active ? C.orange : C.black }}>
+                      {value === 0 ? "Sem gorjeta" : formatBRL(value)}
+                    </button>
+                  );
+                })}
+                <div className="flex items-center gap-1" style={{ background: "#fff", border: `1.5px solid ${customTip !== "" ? C.orange : C.line}`,
+                     borderRadius: RADIUS.pill, padding: "0 14px", height: 40 }}>
+                  <span style={{ fontSize: 13.5, color: C.grayText }}>R$</span>
+                  <input value={customTip} inputMode="decimal" onChange={(e) => {
+                      const v = e.target.value.replace(/[^0-9.,]/g, "");
+                      setCustomTip(v);
+                      const parsed = Number(v.replace(",", "."));
+                      setTip(v === "" ? 0 : Number.isFinite(parsed) ? Math.max(0, parsed) : 0);
+                    }}
+                    placeholder="Outro valor"
+                    style={{ border: "none", outline: "none", width: 74, fontFamily: FONT, fontSize: 13.5, background: "transparent", color: C.black }} />
+                </div>
+              </div>
+              <p style={{ fontSize: 12, color: C.grayText, margin: "8px 0 0" }}>100% da gorjeta vai direto pro entregador.</p>
+            </div>
+          </>
+        )}
         </div>
 
         <div className={isAppMode ? undefined : "vp-checkout-summary"}>
@@ -546,6 +588,12 @@ export default function Checkout() {
             <span>Taxa de entrega</span>
             <span>{deliveryFee === 0 ? "Grátis" : formatBRL(deliveryFee)}</span>
           </div>
+          {effectiveTip > 0 && (
+            <div className="flex items-center justify-between" style={{ fontSize: 14.5, color: C.grayText, marginBottom: 10 }}>
+              <span>Gorjeta</span>
+              <span>{formatBRL(effectiveTip)}</span>
+            </div>
+          )}
           <div className="flex items-center justify-between" style={{ fontSize: 18, fontWeight: 700 }}>
             <span>Total</span>
             <span>{formatBRL(total)}</span>

@@ -4,6 +4,7 @@ import { ArrowLeft, Star, Clock, Bike, Store, Heart, XCircle, Search, X, Share2,
 import { C, FONT, formatBRL, RADIUS, SHADOW } from "../theme";
 import { ICONS, guessDishIcon } from "../data/icons";
 import { useRestaurant } from "../hooks/useRestaurant";
+import { useDocumentTitle } from "../hooks/useDocumentTitle";
 import { fetchReviewsForRestaurant } from "../data/queries";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
@@ -100,6 +101,8 @@ export default function Restaurant() {
   const [location] = useUserLocation();
   const [selectedItem, setSelectedItem] = useState(null);
   const [menuSearch, setMenuSearch] = useState("");
+
+  useDocumentTitle(restaurant ? `${restaurant.name} · Vem Provar` : undefined);
 
   if (loading) {
     return (

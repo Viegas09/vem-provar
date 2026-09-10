@@ -2,8 +2,10 @@ import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { XCircle, Package, MessageCircle, Clock, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { C, FONT, formatBRL, RADIUS } from "../theme";
-import { fetchOrderById, fetchOrderIssue } from "../data/queries";
+import { fetchOrderById, fetchOrderIssue, updateOrderStatus } from "../data/queries";
 import { useAuth } from "../context/AuthContext";
+import { useToast } from "../context/ToastContext";
+import { useDocumentTitle } from "../hooks/useDocumentTitle";
 import { subscribeToPush } from "../lib/push";
 import { distanceKm, estimateEtaRangeMin } from "../lib/geolocation";
 import Header from "../components/Header";
@@ -29,12 +31,14 @@ function secondsAgoLabel(date) {
 export default function OrderTracking() {
   const { id } = useParams();
   const { user } = useAuth();
+  const { showToast } = useToast();
   const [order, setOrder] = useState(null);
   const [notFound, setNotFound] = useState(false);
   const [lastUpdatedAt, setLastUpdatedAt] = useState(null);
   const [, setTick] = useState(0);
   const [issue, setIssue] = useState(null);
   const [reporting, setReporting] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -83,6 +87,8 @@ export default function OrderTracking() {
     return () => { cancelled = true; };
   }, [order?.id, user?.id]);
 
+  useDocumentTitle(order ? `Pedido #${order.id.slice(0, 8)} · Vem Provar` : undefined);
+
   if (notFound) {
     return (
       <div style={{ fontFamily: FONT, background: C.white, color: C.black, minHeight: "100vh" }}>
@@ -105,6 +111,20 @@ export default function OrderTracking() {
 
   const cancelled = order.status === "cancelled";
   const current = STATUS_INDEX[order.status] ?? 0;
+
+  async function handleCancel() {
+    if (!window.confirm("Cancelar esse pedido? Essa ação não pode ser desfeita.")) return;
+    setCancelling(true);
+    try {
+      await updateOrderStatus(order.id, "cancelled");
+      setOrder((o) => ({ ...o, status: "cancelled" }));
+      showToast("Pedido cancelado.");
+    } catch {
+      showToast("Não foi possível cancelar o pedido. Tenta de novo.");
+    } finally {
+      setCancelling(false);
+    }
+  }
 
   const headingToRestaurant = order.status === "preparing";
   const driverPos = order.drivers?.latitude != null ? { lat: order.drivers.latitude, lng: order.drivers.longitude } : null;
@@ -146,6 +166,15 @@ export default function OrderTracking() {
               </span>
             </div>
           </div>
+        )}
+
+        {!cancelled && order.status === "pending" && user && user.id === order.customer_id && (
+          <button onClick={handleCancel} disabled={cancelling}
+            style={{ background: "none", border: `1px solid ${C.line}`, borderRadius: RADIUS.md, cursor: cancelling ? "default" : "pointer",
+                     padding: "12px 16px", fontFamily: FONT, fontSize: 13.5, fontWeight: 600, color: "#B42318",
+                     width: "100%", marginBottom: 20, opacity: cancelling ? .6 : 1 }}>
+            {cancelling ? "Cancelando..." : "Cancelar pedido"}
+          </button>
         )}
 
         {!cancelled && order.driver_id && ["preparing", "out_for_delivery"].includes(order.status) && (

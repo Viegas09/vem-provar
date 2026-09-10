@@ -39,7 +39,7 @@ export async function fetchRestaurantBySlug(slug) {
   return data;
 }
 
-export async function createOrder({ restaurantId, customerId, address, latitude, longitude, paymentMethod, subtotal, deliveryFee, total, items, commissionRate, commissionAmount, restaurantPayout, couponCode, discountAmount, scheduledFor }) {
+export async function createOrder({ restaurantId, customerId, address, latitude, longitude, paymentMethod, subtotal, deliveryFee, tipAmount, total, items, commissionRate, commissionAmount, restaurantPayout, couponCode, discountAmount, scheduledFor }) {
   const payload = {
     restaurant_id: restaurantId,
     customer_id: customerId || null,
@@ -49,6 +49,7 @@ export async function createOrder({ restaurantId, customerId, address, latitude,
     payment_method: paymentMethod,
     subtotal,
     delivery_fee: deliveryFee,
+    tip_amount: tipAmount || 0,
     total,
     commission_rate: commissionRate,
     commission_amount: commissionAmount,
@@ -60,8 +61,8 @@ export async function createOrder({ restaurantId, customerId, address, latitude,
   };
   let { data: order, error: orderError } = await supabase.from("orders").insert(payload).select().single();
   if (orderError && isMissingColumnError(orderError)) {
-    // migração da coordenada de entrega (supabase-schema-39) ainda não rodou — segue sem elas
-    const { latitude: _lat, longitude: _lng, ...withoutCoords } = payload;
+    // migração da coordenada de entrega (supabase-schema-39) ou da gorjeta (supabase-schema-45) ainda não rodou — segue sem elas
+    const { latitude: _lat, longitude: _lng, tip_amount: _tip, ...withoutCoords } = payload;
     ({ data: order, error: orderError } = await supabase.from("orders").insert(withoutCoords).select().single());
   }
   if (orderError) throw orderError;
