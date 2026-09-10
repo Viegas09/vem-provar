@@ -1,5 +1,6 @@
 import { supabaseAdmin } from "./_supabaseAdmin.js";
 import { notifyUser } from "./_push.js";
+import { maybeAwardLoyaltyCoupon } from "./_loyalty.js";
 
 const MESSAGES = {
   preparing: { title: "Pedido em preparo 👨‍🍳", body: (r) => `${r} começou a preparar seu pedido.` },
@@ -34,9 +35,15 @@ export default async function handler(req, res) {
       return;
     }
 
+    let body = msg.body(order.restaurants?.name || "O restaurante");
+    if (status === "delivered") {
+      const coupon = await maybeAwardLoyaltyCoupon(admin, order.customer_id, orderId).catch(() => null);
+      if (coupon) body += ` Você ganhou ${Number(coupon.discount_value)}% de desconto no próximo pedido: cupom ${coupon.code} 🎁`;
+    }
+
     await notifyUser(admin, order.customer_id, {
       title: msg.title,
-      body: msg.body(order.restaurants?.name || "O restaurante"),
+      body,
       url: `/pedido/${orderId}`,
     });
 

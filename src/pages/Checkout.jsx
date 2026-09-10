@@ -120,6 +120,7 @@ export default function Checkout() {
       if (!coupon.active) throw new Error("Esse cupom não está mais ativo.");
       if (coupon.expires_at && new Date(coupon.expires_at) < new Date()) throw new Error("Esse cupom expirou.");
       if (coupon.restaurant_id && coupon.restaurant_id !== restaurant.id) throw new Error("Esse cupom não vale para este restaurante.");
+      if (coupon.customer_id && coupon.customer_id !== user?.id) throw new Error("Esse cupom é pessoal e não pode ser usado nessa conta.");
       if (subtotal < Number(coupon.min_order_value)) throw new Error(`Esse cupom exige um pedido mínimo de ${formatBRL(coupon.min_order_value)}.`);
       if (coupon.max_uses != null && coupon.uses_count >= coupon.max_uses) throw new Error("Esse cupom já atingiu o limite de usos.");
       setAppliedCoupon(coupon);
