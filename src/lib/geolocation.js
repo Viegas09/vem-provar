@@ -79,3 +79,18 @@ export function distanceKm(lat1, lon1, lat2, lon2) {
     Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLon / 2) ** 2;
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
+
+// velocidade média efetiva em área urbana (já considerando semáforo/trânsito,
+// não a velocidade máxima do veículo) — só pra dar uma faixa estimada, já que
+// a distância usada é em linha reta e não segue ruas de verdade
+const AVG_SPEED_KMH = { moto: 22, bike: 12, carro: 18 };
+
+// faixa (min, max) em minutos em vez de valor exato — a distância em linha
+// reta subestima a real e a velocidade é só uma média
+export function estimateEtaRangeMin(distKm, vehicleType) {
+  const speed = AVG_SPEED_KMH[vehicleType] || AVG_SPEED_KMH.moto;
+  const mins = (distKm / speed) * 60;
+  const lo = Math.max(1, Math.round(mins * 0.7));
+  const hi = Math.max(lo + 2, Math.round(mins * 1.4));
+  return [lo, hi];
+}

@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { XCircle, Package, MessageCircle } from "lucide-react";
+import { XCircle, Package, MessageCircle, Clock } from "lucide-react";
 import { C, FONT, formatBRL, RADIUS } from "../theme";
 import { fetchOrderById } from "../data/queries";
 import { useAuth } from "../context/AuthContext";
 import { subscribeToPush } from "../lib/push";
+import { distanceKm, estimateEtaRangeMin } from "../lib/geolocation";
 import Header from "../components/Header";
 import OrderStatusTimeline from "../components/OrderStatusTimeline";
 import DeliveryMap from "../components/DeliveryMap";
@@ -92,6 +93,15 @@ export default function OrderTracking() {
   const cancelled = order.status === "cancelled";
   const current = STATUS_INDEX[order.status] ?? 0;
 
+  const headingToRestaurant = order.status === "preparing";
+  const driverPos = order.drivers?.latitude != null ? { lat: order.drivers.latitude, lng: order.drivers.longitude } : null;
+  const etaTarget = headingToRestaurant
+    ? (order.restaurants?.latitude != null ? { lat: order.restaurants.latitude, lng: order.restaurants.longitude } : null)
+    : (order.latitude != null ? { lat: order.latitude, lng: order.longitude } : null);
+  const etaRange = driverPos && etaTarget
+    ? estimateEtaRangeMin(distanceKm(driverPos.lat, driverPos.lng, etaTarget.lat, etaTarget.lng), order.drivers?.vehicle_type)
+    : null;
+
   return (
     <div style={{ fontFamily: FONT, background: C.white, color: C.black, minHeight: "100vh" }}>
       <Header />
@@ -127,11 +137,18 @@ export default function OrderTracking() {
 
         {!cancelled && order.driver_id && ["preparing", "out_for_delivery"].includes(order.status) && (
           <div style={{ marginBottom: 20 }}>
+            {etaRange && (
+              <div className="flex items-center gap-1.5" style={{ background: "rgba(238,108,26,.08)", color: C.orange,
+                   borderRadius: RADIUS.md, padding: "8px 14px", fontSize: 13.5, fontWeight: 700, marginBottom: 10, width: "fit-content" }}>
+                <Clock size={15} />
+                {headingToRestaurant ? `Retirada em ${etaRange[0]}-${etaRange[1]} min` : `Chega até você em ${etaRange[0]}-${etaRange[1]} min`}
+              </div>
+            )}
             <DeliveryMap
               restaurant={order.restaurants?.latitude != null ? { lat: order.restaurants.latitude, lng: order.restaurants.longitude } : null}
               destination={order.latitude != null ? { lat: order.latitude, lng: order.longitude } : null}
               driver={order.drivers?.latitude != null ? { lat: order.drivers.latitude, lng: order.drivers.longitude, vehicle_type: order.drivers.vehicle_type } : null}
-              headingToRestaurant={order.status === "preparing"}
+              headingToRestaurant={headingToRestaurant}
             />
             <p style={{ fontSize: 12, color: C.grayText, margin: "8px 0 0" }}>
               {order.drivers?.full_name ? `${order.drivers.full_name} está a caminho` : "Entregador a caminho"} · localização aproximada
