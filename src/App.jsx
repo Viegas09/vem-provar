@@ -30,6 +30,7 @@ import PartnerLogin from "./pages/partner/Login";
 import PartnerSignUp from "./pages/partner/SignUp";
 import PartnerOnboarding from "./pages/partner/Onboarding";
 import PartnerDashboard from "./pages/partner/Dashboard";
+import DriverLanding from "./pages/driver/Landing";
 import DriverLogin from "./pages/driver/Login";
 import DriverSignUp from "./pages/driver/SignUp";
 import DriverOnboarding from "./pages/driver/Onboarding";
@@ -87,6 +88,7 @@ function App() {
             <Route path="/parceiro/cadastro" element={<PartnerOnboarding />} />
             <Route path="/parceiro/painel" element={<PartnerDashboard />} />
 
+            <Route path="/entregador" element={<DriverLanding />} />
             <Route path="/entregador/entrar" element={<DriverLogin />} />
             <Route path="/entregador/criar-conta" element={<DriverSignUp />} />
             <Route path="/entregador/cadastro" element={<DriverOnboarding />} />

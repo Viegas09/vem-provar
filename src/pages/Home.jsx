@@ -438,7 +438,7 @@ export default function Home() {
                   <p style={{ color: C.gray, fontSize: 14.5, marginTop: 8, lineHeight: 1.5 }}>
                     Faça suas entregas na cidade, no seu horário, e receba por Pix a cada corrida.
                   </p>
-                  <Link to="/entregador/entrar" className="flex items-center gap-2" style={{ marginTop: 18, color: C.orange, textDecoration: "none", fontSize: 14.5, fontWeight: 600 }}>
+                  <Link to="/entregador" className="flex items-center gap-2" style={{ marginTop: 18, color: C.orange, textDecoration: "none", fontSize: 14.5, fontWeight: 600 }}>
                     Seja um entregador <ArrowRight size={17} />
                   </Link>
                 </div>

@@ -86,7 +86,7 @@ export default function Perfil() {
         <div style={{ marginBottom: 28 }}>
           <SectionTitle>Parceiros</SectionTitle>
           <SectionLink to="/parceiro" icon={Store} label="Cadastre seu restaurante" />
-          <SectionLink to="/entregador/entrar" icon={Bike} label="Seja entregador" />
+          <SectionLink to="/entregador" icon={Bike} label="Seja entregador" />
         </div>
 
         <button onClick={handleSignOut} className="flex items-center gap-3"
