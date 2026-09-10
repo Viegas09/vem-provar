@@ -1322,9 +1322,16 @@ export default function AdminDashboard() {
                 )}
 
                 {platformCoupons.length === 0 ? (
-                  <p style={{ color: C.grayText, fontSize: 14 }} className="flex items-center gap-2">
-                    <TicketPercent size={16} /> Nenhum cupom de plataforma criado ainda.
-                  </p>
+                  <div className="vp-fade-in" style={{ textAlign: "center", padding: "48px 0" }}>
+                    <div style={{ width: 72, height: 72, borderRadius: "50%", background: "rgba(238,108,26,.08)",
+                         display: "grid", placeItems: "center", margin: "0 auto 16px" }}>
+                      <TicketPercent size={30} color={C.orange} />
+                    </div>
+                    <p style={{ fontSize: 15.5, fontWeight: 700, margin: "0 0 4px" }}>Nenhum cupom de plataforma criado ainda</p>
+                    <p style={{ fontSize: 13.5, color: C.grayText, margin: 0 }}>
+                      Crie um cupom que vale em qualquer restaurante pra impulsionar pedidos na plataforma.
+                    </p>
+                  </div>
                 ) : (
                   <div className="vp-card-grid">
                     {platformCoupons.map((c) => {
