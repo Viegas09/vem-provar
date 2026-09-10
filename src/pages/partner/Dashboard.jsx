@@ -14,11 +14,12 @@ import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
 import {
   fetchRestaurantByOwner, createMenuItem, updateMenuItem, deleteMenuItem, fetchOrdersForRestaurant,
-  updateOrderStatus, updateRestaurant, uploadMenuItemPhoto, uploadRestaurantPhoto,
+  updateOrderStatus, updateRestaurant, uploadMenuItemPhoto, uploadRestaurantPhoto, renameMenuCategory,
   createComplementGroup, deleteComplementGroup, createComplementItem, deleteComplementItem,
   fetchCouponsForRestaurant, updateCoupon,
 } from "../../data/queries";
 import { getCommissionRate, isInPromoPeriod, promoEndsAt } from "../../lib/commission";
+import { compressImage } from "../../lib/imageCompress";
 import { WEEKDAYS as HOURS_WEEKDAYS, defaultBusinessHours } from "../../lib/businessHours";
 import { subscribeToPush } from "../../lib/push";
 import { STATUS_META, STATUS_OPTIONS, OPEN_STATUSES, NEXT_STATUS } from "../../lib/orderStatus";
@@ -149,7 +150,7 @@ function MenuItemForm({ restaurantId, item, existingCategories, nextSortOrder, o
     try {
       let imageUrl = item?.image_url || null;
       if (photoFile) {
-        imageUrl = await uploadMenuItemPhoto(restaurantId, photoFile);
+        imageUrl = await uploadMenuItemPhoto(restaurantId, await compressImage(photoFile));
       }
       if (item) {
         await updateMenuItem(item.id, { name, description, category: category.trim() || null, price: Number(price), image_url: imageUrl });
@@ -289,7 +290,7 @@ function RestaurantProfileForm({ restaurant, onSaved }) {
     try {
       let bannerUrl = restaurant.banner_url || null;
       if (bannerFile) {
-        bannerUrl = await uploadRestaurantPhoto(restaurant.id, bannerFile);
+        bannerUrl = await uploadRestaurantPhoto(restaurant.id, await compressImage(bannerFile, { maxDim: 1600 }));
       }
       await updateRestaurant(restaurant.id, {
         name,
@@ -1428,6 +1429,9 @@ export default function PartnerDashboard() {
   const [orderSearch, setOrderSearch] = useState("");
   const [collapsedCategories, setCollapsedCategories] = useState(() => new Set());
   const [selectedItems, setSelectedItems] = useState(() => new Set());
+  const [renamingCategory, setRenamingCategory] = useState(null);
+  const [renameValue, setRenameValue] = useState("");
+  const [renamingBusy, setRenamingBusy] = useState(false);
   const [bulkWorking, setBulkWorking] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(() => {
     try { return localStorage.getItem("vp_sound_enabled") === "1"; } catch { return false; }
@@ -1477,6 +1481,24 @@ export default function PartnerDashboard() {
       await reload();
     } finally {
       setBulkWorking(false);
+    }
+  }
+
+  async function handleConfirmRenameCategory() {
+    const newName = renameValue.trim();
+    if (!newName || newName === renamingCategory) {
+      setRenamingCategory(null);
+      return;
+    }
+    setRenamingBusy(true);
+    try {
+      await renameMenuCategory(restaurant.id, renamingCategory, newName);
+      setRenamingCategory(null);
+      await reload();
+    } catch {
+      showToast("Não foi possível renomear a categoria agora.");
+    } finally {
+      setRenamingBusy(false);
     }
   }
 
@@ -1901,28 +1923,55 @@ export default function PartnerDashboard() {
                     const isCollapsed = collapsedCategories.has(categoryName);
                     return (
                       <div key={categoryName}
-                        draggable={menuDragEnabled} onDragStart={() => { dragCategoryName.current = categoryName; }}
+                        draggable={menuDragEnabled && renamingCategory !== categoryName}
+                        onDragStart={() => { dragCategoryName.current = categoryName; }}
                         onDragOver={(e) => menuDragEnabled && e.preventDefault()}
                         onDrop={() => menuDragEnabled && handleCategoryDrop(categoryName)}>
-                        <div className="flex items-center gap-2" style={{ marginBottom: 10 }}>
-                          {menuDragEnabled && <GripVertical size={15} color={C.gray} style={{ cursor: "grab", flexShrink: 0 }} />}
-                          <input type="checkbox" checked={items.every((i) => selectedItems.has(i.id))}
-                            aria-label={`Selecionar todos os itens de ${categoryName}`}
-                            onChange={() => toggleCategorySelected(items)}
-                            style={{ width: 15, height: 15, cursor: "pointer", flexShrink: 0 }} />
-                          <button type="button" onClick={() => toggleCategoryCollapsed(categoryName)}
-                            className="flex items-center gap-2" style={{ background: "none", border: "none", cursor: "pointer",
-                                 padding: 0, flex: 1 }}>
-                            {isCollapsed ? <ChevronRight size={16} color={C.grayText} /> : <ChevronDown size={16} color={C.grayText} />}
-                            <span style={{ fontSize: 13.5, fontWeight: 700, color: C.grayText, textTransform: "uppercase", letterSpacing: .3 }}>
-                              {categoryName}
-                            </span>
-                            <span style={{ fontSize: 12, color: C.grayText, background: C.surface, borderRadius: RADIUS.pill,
-                                 minWidth: 20, height: 20, display: "grid", placeItems: "center", padding: "0 6px" }}>
-                              {items.length}
-                            </span>
-                          </button>
-                        </div>
+                        {renamingCategory === categoryName ? (
+                          <div className="flex items-center gap-2" style={{ marginBottom: 10 }}>
+                            <input autoFocus value={renameValue} onChange={(e) => setRenameValue(e.target.value)}
+                              onKeyDown={(e) => { if (e.key === "Enter") handleConfirmRenameCategory(); if (e.key === "Escape") setRenamingCategory(null); }}
+                              style={{ flex: 1, border: `1.5px solid ${C.orange}`, outline: "none", borderRadius: RADIUS.xs,
+                                       padding: "6px 10px", fontFamily: FONT, fontSize: 13.5, fontWeight: 700, background: "#fff" }} />
+                            <button type="button" disabled={renamingBusy} onClick={handleConfirmRenameCategory}
+                              aria-label="Confirmar novo nome da categoria" style={{ background: "none", border: "none",
+                                   cursor: renamingBusy ? "default" : "pointer", padding: 4, display: "grid", placeItems: "center" }}>
+                              <CheckCircle2 size={17} color={C.ok} />
+                            </button>
+                            <button type="button" onClick={() => setRenamingCategory(null)}
+                              aria-label="Cancelar renomear categoria" style={{ background: "none", border: "none", cursor: "pointer",
+                                   padding: 4, display: "grid", placeItems: "center" }}>
+                              <X size={17} color={C.grayText} />
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2" style={{ marginBottom: 10 }}>
+                            {menuDragEnabled && <GripVertical size={15} color={C.gray} style={{ cursor: "grab", flexShrink: 0 }} />}
+                            <input type="checkbox" checked={items.every((i) => selectedItems.has(i.id))}
+                              aria-label={`Selecionar todos os itens de ${categoryName}`}
+                              onChange={() => toggleCategorySelected(items)}
+                              style={{ width: 15, height: 15, cursor: "pointer", flexShrink: 0 }} />
+                            <button type="button" onClick={() => toggleCategoryCollapsed(categoryName)}
+                              className="flex items-center gap-2" style={{ background: "none", border: "none", cursor: "pointer",
+                                   padding: 0, flex: 1, minWidth: 0 }}>
+                              {isCollapsed ? <ChevronRight size={16} color={C.grayText} /> : <ChevronDown size={16} color={C.grayText} />}
+                              <span style={{ fontSize: 13.5, fontWeight: 700, color: C.grayText, textTransform: "uppercase", letterSpacing: .3 }}>
+                                {categoryName}
+                              </span>
+                              <span style={{ fontSize: 12, color: C.grayText, background: C.surface, borderRadius: RADIUS.pill,
+                                   minWidth: 20, height: 20, display: "grid", placeItems: "center", padding: "0 6px" }}>
+                                {items.length}
+                              </span>
+                            </button>
+                            <button type="button"
+                              onClick={() => { setRenamingCategory(categoryName); setRenameValue(categoryName); }}
+                              aria-label={`Renomear categoria ${categoryName}`}
+                              style={{ background: "none", border: "none", cursor: "pointer", padding: 4, flexShrink: 0,
+                                       display: "grid", placeItems: "center" }}>
+                              <Pencil size={14} color={C.grayText} />
+                            </button>
+                          </div>
+                        )}
                         {!isCollapsed && (
                           <div className="vp-card-grid">
                             {items.map((item) =>

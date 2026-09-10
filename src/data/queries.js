@@ -143,6 +143,17 @@ export async function deleteMenuItem(id) {
   if (error) throw error;
 }
 
+// categoria não é uma tabela própria, é só um texto em cada item — renomear é
+// atualizar todo mundo que tem o nome antigo de uma vez, num update só (em vez
+// do parceiro ter que editar item por item e arriscar digitar errado em algum)
+export async function renameMenuCategory(restaurantId, oldCategory, newCategory) {
+  const { error } = await supabase.from("menu_items")
+    .update({ category: newCategory })
+    .eq("restaurant_id", restaurantId)
+    .eq("category", oldCategory);
+  if (error) throw error;
+}
+
 export async function createComplementGroup(menuItemId, group) {
   const { data, error } = await supabase
     .from("complement_groups")
