@@ -193,6 +193,11 @@ export async function fetchOrderById(orderId) {
 export async function updateOrderStatus(orderId, status) {
   const { error } = await supabase.from("orders").update({ status }).eq("id", orderId);
   if (error) throw error;
+  fetch("/api/notify-order-status", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ orderId, status }),
+  }).catch(() => {});
 }
 
 export async function fetchDriverByUser(userId) {
