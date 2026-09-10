@@ -5,9 +5,8 @@ import {
   MapPin, Tag, CheckCircle2,
 } from "lucide-react";
 import { C, FONT, RADIUS, SHADOW } from "../../theme";
-import { CATS } from "../../data/icons";
 import { PROMO_DAYS, COMMISSION_RATES } from "../../lib/commission";
-import FoodPhoto from "../../components/FoodPhoto";
+import PartnerHeroArt from "../../components/PartnerHeroArt";
 import WORDMARK_ONORANGE from "../../assets/wordmark-onorange.png";
 import WORDMARK_DARK from "../../assets/wordmark-dark.png";
 
@@ -159,10 +158,8 @@ export default function PartnerLanding() {
               </div>
             </div>
 
-            <div className="vp-hero-art">
-              <FoodPhoto v={1} icon={CATS[1].icon} style={{ gridRow: "span 2" }} />
-              <FoodPhoto v={0} icon={CATS[0].icon} />
-              <FoodPhoto v={6} icon={CATS[6].icon} />
+            <div className="vp-partner-hero-art">
+              <PartnerHeroArt />
             </div>
           </div>
         </Section>
