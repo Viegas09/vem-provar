@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Routes, Route, useLocation } from "react-router-dom";
-import ScrollToTop from "./components/ScrollToTop";
+import { Route, useLocation } from "react-router-dom";
+import RouteTransition from "./components/RouteTransition";
 import InstallPrompt from "./components/InstallPrompt";
 import BottomNav from "./components/BottomNav";
 import SplashScreen from "./components/SplashScreen";
@@ -61,9 +61,7 @@ function App() {
         <AppGate />
       ) : (
         <>
-          <ScrollToTop />
-          <div key={location.pathname} className="vp-route-fade">
-          <Routes>
+          <RouteTransition location={location}>
             <Route path="/" element={<Home />} />
             <Route path="/busca" element={<Search />} />
             <Route path="/restaurante/:slug" element={<Restaurant />} />
@@ -94,8 +92,7 @@ function App() {
 
             <Route path="/admin/entrar" element={<AdminLogin />} />
             <Route path="/admin/painel" element={<AdminDashboard />} />
-          </Routes>
-          </div>
+          </RouteTransition>
           <InstallPrompt />
           {!isPortalRoute && <BottomNav />}
         </>

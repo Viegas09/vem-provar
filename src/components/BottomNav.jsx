@@ -30,15 +30,17 @@ export default function BottomNav() {
     { to: "/meus-pedidos", icon: Package, label: "Pedidos", active: path.startsWith("/meus-pedidos") || path.startsWith("/pedido") },
     { to: profileTo, icon: User, label: "Perfil", active: ["/perfil", "/meus-dados", "/entrar", "/criar-conta", "/favoritos", "/enderecos", "/pagamentos", "/configuracoes", "/ajuda"].some((p) => path.startsWith(p)) },
   ];
+  const activeIndex = Math.max(0, tabs.findIndex((tab) => tab.active));
 
   return (
     <nav className="vp-bottomnav" style={{ position: "fixed", left: 0, right: 0, bottom: 0, zIndex: 40,
          background: "rgba(255,255,255,.96)", backdropFilter: "blur(8px)", borderTop: `1px solid ${C.line}`, fontFamily: FONT,
          display: isAppMode ? "flex" : undefined }}>
+      <div className="vp-bottomnav-indicator" style={{ width: `${100 / tabs.length}%`, transform: `translateX(${activeIndex * 100}%)` }} />
       {tabs.map((tab) => {
         const Icon = tab.icon;
         return (
-          <Link key={tab.label} to={tab.to} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center",
+          <Link key={tab.label} to={tab.to} style={{ position: "relative", zIndex: 1, flex: 1, display: "flex", flexDirection: "column", alignItems: "center",
                gap: 2, padding: "8px 0 calc(14px + env(safe-area-inset-bottom))", textDecoration: "none",
                color: tab.active ? C.orange : C.grayText }}>
             <div style={{ position: "relative" }}>
