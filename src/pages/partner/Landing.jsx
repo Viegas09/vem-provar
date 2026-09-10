@@ -1,12 +1,14 @@
 import { Link } from "react-router-dom";
 import {
   X, Store, Truck, ArrowRight, ClipboardList, Bell, Wallet, LayoutDashboard,
-  MapPin, Tag, CheckCircle2, Sparkles,
+  MapPin, Tag, CheckCircle2,
 } from "lucide-react";
 import { C, FONT, RADIUS, SHADOW } from "../../theme";
+import { CATS } from "../../data/icons";
 import { PROMO_DAYS, COMMISSION_RATES } from "../../lib/commission";
+import FoodPhoto from "../../components/FoodPhoto";
 import WORDMARK_ONORANGE from "../../assets/wordmark-onorange.png";
-import WORDMARK_LIGHT from "../../assets/wordmark-light.png";
+import WORDMARK_DARK from "../../assets/wordmark-dark.png";
 
 const STEPS = [
   {
@@ -28,7 +30,6 @@ const STEPS = [
 
 const BENEFITS = [
   { icon: Wallet, title: "Sem mensalidade", desc: "Você só paga comissão quando vende. Nunca uma taxa fixa por estar no app." },
-  { icon: Sparkles, title: `Repasse em D+1`, desc: "Pix cai em 1 dia, cartão em 2. Sem taxa de antecipação pra receber mais rápido." },
   { icon: LayoutDashboard, title: "Painel completo", desc: "Pedidos, cardápio, cupons e faturamento — tudo num lugar só, no navegador." },
   { icon: MapPin, title: "Cliente acompanha ao vivo", desc: "Mapa em tempo real e notificação automática a cada etapa do pedido." },
   { icon: Tag, title: "Seus próprios cupons", desc: "Crie promoções quando quiser, sem depender de ninguém aprovar." },
@@ -38,15 +39,17 @@ const PLANS = [
   {
     key: "basico", icon: Store, title: "Básico", commission: COMMISSION_RATES.basico,
     desc: "A entrega é por sua conta — você mesmo ou um entregador seu.",
+    features: ["Loja com cardápio e fotos no app", "Pedidos em tempo real no painel", "Cupons próprios, quando quiser", "Sem mensalidade"],
   },
   {
     key: "entrega", icon: Truck, title: "Entrega", commission: COMMISSION_RATES.entrega,
     desc: "O Vem Provar cuida da entrega, com entregadores cadastrados na plataforma.",
+    features: ["Tudo do plano Básico", "Entrega com entregadores da plataforma", "Cliente acompanha no mapa ao vivo", "Estimativa de chegada pro cliente"],
   },
 ];
 
 function Section({ children, style }) {
-  return <section className="vp-wrap" style={{ padding: "56px 24px", ...style }}>{children}</section>;
+  return <section className="vp-wrap" style={{ padding: "64px 24px", ...style }}>{children}</section>;
 }
 
 export default function PartnerLanding() {
@@ -60,66 +63,80 @@ export default function PartnerLanding() {
 
       {/* ── Hero ── */}
       <div style={{ background: `linear-gradient(160deg, ${C.orange}, ${C.orangeDark})` }}>
-        <Section style={{ paddingTop: 40, paddingBottom: 48 }}>
-          <img src={WORDMARK_ONORANGE} alt="Vem Provar" style={{ height: 34, width: "auto", marginBottom: 32 }} draggable={false} />
+        <Section style={{ paddingTop: 40, paddingBottom: 52 }}>
+          <img src={WORDMARK_ONORANGE} alt="Vem Provar" style={{ height: 34, width: "auto", marginBottom: 36 }} draggable={false} />
 
-          <div className="vp-fade-in" style={{ maxWidth: 560 }}>
-            <span style={{ display: "inline-block", background: "rgba(255,255,255,.16)", color: "#fff", fontSize: 12.5,
-                 fontWeight: 700, padding: "6px 14px", borderRadius: RADIUS.pill, marginBottom: 18 }}>
-              Pra restaurantes de Itapecerica da Serra
-            </span>
-            <h1 style={{ color: "#fff", fontSize: "clamp(28px, 5vw, 40px)", fontWeight: 700, lineHeight: 1.12, margin: "0 0 14px", letterSpacing: -0.5 }}>
-              Sua cozinha no maior portal de gastronomia da cidade
-            </h1>
-            <p style={{ color: "rgba(255,255,255,.9)", fontSize: 16, lineHeight: 1.55, margin: "0 0 28px", maxWidth: 460 }}>
-              Cadastre seu cardápio, receba pedidos em tempo real e escolha como funciona a entrega.
-              Sem mensalidade, sem letra miúda.
-            </p>
+          <div className="vp-hero">
+            <div className="vp-fade-in">
+              <span style={{ display: "inline-block", background: "rgba(255,255,255,.16)", color: "#fff", fontSize: 12.5,
+                   fontWeight: 700, padding: "6px 14px", borderRadius: RADIUS.pill, marginBottom: 18 }}>
+                Pra restaurantes de Itapecerica da Serra
+              </span>
+              <h1 style={{ color: "#fff", fontSize: "clamp(30px, 5vw, 44px)", fontWeight: 700, lineHeight: 1.1, margin: "0 0 16px", letterSpacing: -0.5 }}>
+                Sua cozinha no maior portal de gastronomia da cidade
+              </h1>
+              <p style={{ color: "rgba(255,255,255,.9)", fontSize: 16.5, lineHeight: 1.55, margin: "0 0 30px", maxWidth: 440 }}>
+                Cadastre seu cardápio, receba pedidos em tempo real e escolha como funciona a entrega.
+                Sem mensalidade, sem letra miúda.
+              </p>
 
-            <div className="flex items-center gap-3" style={{ flexWrap: "wrap" }}>
-              <Link to="/parceiro/criar-conta" className="flex items-center justify-center gap-2"
-                style={{ background: "#fff", color: C.orangeDark, textDecoration: "none", fontWeight: 700, fontSize: 15.5,
-                         padding: "15px 28px", borderRadius: RADIUS.md, boxShadow: SHADOW.sm }}>
-                Cadastrar meu restaurante <ArrowRight size={18} />
-              </Link>
-              <Link to="/parceiro/entrar" style={{ color: "#fff", textDecoration: "none", fontWeight: 600, fontSize: 14.5 }}>
-                Já tenho conta · Entrar
-              </Link>
+              <div className="flex items-center gap-3" style={{ flexWrap: "wrap" }}>
+                <Link to="/parceiro/criar-conta" className="flex items-center justify-center gap-2"
+                  style={{ background: "#fff", color: C.orangeDark, textDecoration: "none", fontWeight: 700, fontSize: 15.5,
+                           padding: "16px 30px", borderRadius: RADIUS.md, boxShadow: SHADOW.sm }}>
+                  Cadastrar meu restaurante <ArrowRight size={18} />
+                </Link>
+                <Link to="/parceiro/entrar" style={{ color: "#fff", textDecoration: "none", fontWeight: 600, fontSize: 14.5 }}>
+                  Já tenho conta · Entrar
+                </Link>
+              </div>
+            </div>
+
+            <div className="vp-hero-art">
+              <FoodPhoto v={1} icon={CATS[1].icon} style={{ gridRow: "span 2" }} />
+              <FoodPhoto v={0} icon={CATS[0].icon} />
+              <FoodPhoto v={6} icon={CATS[6].icon} />
             </div>
           </div>
         </Section>
       </div>
 
-      {/* ── promo ── */}
-      <Section style={{ paddingBottom: 8 }}>
-        <div className="flex items-center gap-3" style={{ background: "rgba(46,158,91,.08)", color: C.ok,
-             borderRadius: RADIUS.lg, padding: "16px 20px", flexWrap: "wrap" }}>
-          <CheckCircle2 size={20} style={{ flexShrink: 0 }} />
-          <span style={{ fontSize: 14.5, fontWeight: 700 }}>
-            Primeiros {PROMO_DAYS} dias sem nenhuma comissão, em qualquer plano.
-          </span>
+      {/* ── estatística de destaque ── */}
+      <Section style={{ paddingBottom: 24 }}>
+        <div className="flex items-center gap-6" style={{ flexWrap: "wrap" }}>
+          <div style={{ fontSize: "clamp(72px, 11vw, 108px)", fontWeight: 800, color: C.orange, lineHeight: .85,
+               fontVariantNumeric: "tabular-nums", letterSpacing: -2 }}>
+            {PROMO_DAYS}
+          </div>
+          <div style={{ maxWidth: 340 }}>
+            <div style={{ fontSize: 21, fontWeight: 700, lineHeight: 1.25 }}>dias sem nenhuma comissão</div>
+            <p style={{ fontSize: 14, color: C.grayText, margin: "6px 0 0", lineHeight: 1.5 }}>
+              Em qualquer plano, a partir do seu primeiro pedido publicado. Sem cartão de crédito, sem pegadinha.
+            </p>
+          </div>
         </div>
       </Section>
 
       {/* ── como funciona ── */}
-      <Section>
-        <h2 style={{ fontSize: 24, fontWeight: 700, margin: "0 0 8px" }}>Como funciona</h2>
-        <p style={{ fontSize: 14.5, color: C.grayText, margin: "0 0 28px", maxWidth: 480 }}>
+      <Section style={{ paddingTop: 24 }}>
+        <h2 style={{ fontSize: 26, fontWeight: 700, margin: "0 0 8px" }}>Como funciona</h2>
+        <p style={{ fontSize: 14.5, color: C.grayText, margin: "0 0 32px", maxWidth: 480 }}>
           Do cadastro ao primeiro pedido, sem enrolação.
         </p>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 24 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 28 }}>
           {STEPS.map((s, i) => {
             const Icon = s.icon;
             return (
               <div key={s.title}>
-                <div className="flex items-center gap-2" style={{ marginBottom: 14 }}>
-                  <div style={{ width: 44, height: 44, borderRadius: RADIUS.md, background: "rgba(238,108,26,.1)",
-                       display: "grid", placeItems: "center", flexShrink: 0 }}>
-                    <Icon size={20} color={C.orange} />
-                  </div>
-                  <span style={{ fontSize: 12.5, fontWeight: 700, color: C.gray }}>Passo {i + 1}</span>
+                <div style={{ width: 72, height: 72, borderRadius: "50%", background: "rgba(238,108,26,.1)",
+                     display: "grid", placeItems: "center", marginBottom: 16, position: "relative" }}>
+                  <Icon size={30} color={C.orange} strokeWidth={1.6} />
+                  <span style={{ position: "absolute", top: -4, right: -4, width: 26, height: 26, borderRadius: "50%",
+                       background: C.black, color: "#fff", fontSize: 12.5, fontWeight: 700, display: "grid", placeItems: "center" }}>
+                    {i + 1}
+                  </span>
                 </div>
-                <h3 style={{ fontSize: 16.5, fontWeight: 700, margin: "0 0 6px" }}>{s.title}</h3>
+                <h3 style={{ fontSize: 17, fontWeight: 700, margin: "0 0 6px" }}>{s.title}</h3>
                 <p style={{ fontSize: 14, color: C.grayText, lineHeight: 1.55, margin: 0 }}>{s.desc}</p>
               </div>
             );
@@ -129,17 +146,17 @@ export default function PartnerLanding() {
 
       {/* ── benefícios ── */}
       <Section style={{ background: C.surface }}>
-        <h2 style={{ fontSize: 24, fontWeight: 700, margin: "0 0 28px" }}>O que você ganha</h2>
-        <div className="vp-card-grid">
+        <h2 style={{ fontSize: 26, fontWeight: 700, margin: "0 0 32px" }}>O que você ganha</h2>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))", gap: 28 }}>
           {BENEFITS.map((b) => {
             const Icon = b.icon;
             return (
-              <div key={b.title} style={{ background: "#fff", border: `1px solid ${C.line}`, borderRadius: RADIUS.xl, padding: 20 }}>
-                <div style={{ width: 38, height: 38, borderRadius: RADIUS.sm, background: "rgba(238,108,26,.1)",
-                     display: "grid", placeItems: "center", marginBottom: 14 }}>
-                  <Icon size={18} color={C.orange} />
+              <div key={b.title}>
+                <div style={{ width: 60, height: 60, borderRadius: "50%", background: "#fff", boxShadow: SHADOW.xs,
+                     display: "grid", placeItems: "center", marginBottom: 16 }}>
+                  <Icon size={26} color={C.orange} strokeWidth={1.6} />
                 </div>
-                <h3 style={{ fontSize: 15, fontWeight: 700, margin: "0 0 6px" }}>{b.title}</h3>
+                <h3 style={{ fontSize: 16, fontWeight: 700, margin: "0 0 6px" }}>{b.title}</h3>
                 <p style={{ fontSize: 13.5, color: C.grayText, lineHeight: 1.55, margin: 0 }}>{b.desc}</p>
               </div>
             );
@@ -148,38 +165,54 @@ export default function PartnerLanding() {
       </Section>
 
       {/* ── planos ── */}
-      <Section>
-        <h2 style={{ fontSize: 24, fontWeight: 700, margin: "0 0 8px" }}>Escolha como vender</h2>
-        <p style={{ fontSize: 14.5, color: C.grayText, margin: "0 0 28px", maxWidth: 480 }}>
-          Dá pra trocar de plano depois, direto no seu painel.
-        </p>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16, maxWidth: 640 }}>
-          {PLANS.map((p) => {
-            const Icon = p.icon;
-            return (
-              <div key={p.key} style={{ border: `1.5px solid ${C.line}`, borderRadius: RADIUS.xl, padding: 22 }}>
-                <Icon size={22} color={C.orange} style={{ marginBottom: 12 }} />
-                <div className="flex items-center justify-between" style={{ marginBottom: 6 }}>
-                  <h3 style={{ fontSize: 17, fontWeight: 700, margin: 0 }}>{p.title}</h3>
-                  <span style={{ fontSize: 13, fontWeight: 700, color: C.orange }}>{p.commission}% de comissão</span>
+      <div style={{ background: C.black }}>
+        <Section>
+          <h2 style={{ color: "#fff", fontSize: 26, fontWeight: 700, margin: "0 0 8px" }}>Conheça os planos</h2>
+          <p style={{ fontSize: 14.5, color: C.gray, margin: "0 0 32px", maxWidth: 480 }}>
+            Você escolhe qual usar no cadastro — e pode trocar depois, direto no painel.
+          </p>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 20, maxWidth: 680 }}>
+            {PLANS.map((p) => {
+              const Icon = p.icon;
+              return (
+                <div key={p.key} style={{ background: "#fff", borderRadius: RADIUS.xxl, padding: 28 }}>
+                  <div className="flex items-center gap-2" style={{ marginBottom: 14 }}>
+                    <div style={{ width: 42, height: 42, borderRadius: RADIUS.md, background: "rgba(238,108,26,.1)",
+                         display: "grid", placeItems: "center", flexShrink: 0 }}>
+                      <Icon size={20} color={C.orange} />
+                    </div>
+                    <h3 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>{p.title}</h3>
+                  </div>
+                  <div style={{ fontSize: 38, fontWeight: 800, color: C.orange, lineHeight: 1, letterSpacing: -1 }}>
+                    {p.commission}<span style={{ fontSize: 20 }}>%</span>
+                  </div>
+                  <p style={{ fontSize: 12.5, color: C.grayText, margin: "4px 0 18px" }}>de comissão por pedido</p>
+                  <p style={{ fontSize: 13.5, color: C.grayText, lineHeight: 1.5, margin: "0 0 18px" }}>{p.desc}</p>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 10, borderTop: `1px solid ${C.line}`, paddingTop: 18 }}>
+                    {p.features.map((f) => (
+                      <div key={f} className="flex items-start gap-2">
+                        <CheckCircle2 size={15} color={C.ok} style={{ flexShrink: 0, marginTop: 1.5 }} />
+                        <span style={{ fontSize: 13.5, lineHeight: 1.4 }}>{f}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                <p style={{ fontSize: 13.5, color: C.grayText, lineHeight: 1.5, margin: 0 }}>{p.desc}</p>
-              </div>
-            );
-          })}
-        </div>
-      </Section>
+              );
+            })}
+          </div>
+        </Section>
+      </div>
 
       {/* ── CTA final ── */}
-      <Section style={{ background: C.black, textAlign: "center" }}>
-        <img src={WORDMARK_LIGHT} alt="" style={{ height: 26, width: "auto", margin: "0 auto 20px" }} draggable={false} />
-        <h2 style={{ color: "#fff", fontSize: 24, fontWeight: 700, margin: "0 0 10px" }}>Pronto pra vender mais?</h2>
-        <p style={{ color: C.gray, fontSize: 14.5, margin: "0 0 24px" }}>
+      <Section style={{ textAlign: "center" }}>
+        <img src={WORDMARK_DARK} alt="" style={{ height: 26, width: "auto", margin: "0 auto 20px" }} draggable={false} />
+        <h2 style={{ fontSize: 26, fontWeight: 700, margin: "0 0 10px" }}>Pronto pra vender mais?</h2>
+        <p style={{ color: C.grayText, fontSize: 14.5, margin: "0 0 24px" }}>
           Cadastro leva poucos minutos. Sem cartão de crédito, sem compromisso.
         </p>
         <Link to="/parceiro/criar-conta" className="flex items-center justify-center gap-2"
           style={{ display: "inline-flex", background: C.orange, color: "#fff", textDecoration: "none", fontWeight: 700,
-                   fontSize: 15.5, padding: "15px 28px", borderRadius: RADIUS.md }}>
+                   fontSize: 15.5, padding: "16px 30px", borderRadius: RADIUS.md, boxShadow: SHADOW.sm }}>
           Cadastrar meu restaurante <ArrowRight size={18} />
         </Link>
       </Section>
