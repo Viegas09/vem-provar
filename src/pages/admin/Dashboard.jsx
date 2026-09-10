@@ -14,9 +14,11 @@ import {
   fetchProfile, fetchAllRestaurantsAdmin, fetchAllOrdersAdmin, fetchAllDriversAdmin,
   updateOrderStatus, updateRestaurant, fetchProfilesByIds, updateProfile,
   fetchAllReviewsAdmin, updateReview, updateMenuItem, fetchPlatformCoupons, updateCoupon,
+  fetchAllOrderIssuesAdmin, resolveOrderIssue,
 } from "../../data/queries";
 import { getCommissionRate, isInPromoPeriod } from "../../lib/commission";
 import { STATUS_META, STATUS_OPTIONS, NEXT_STATUS, OPEN_STATUSES } from "../../lib/orderStatus";
+import { ISSUE_TYPE_LABELS } from "../../lib/orderIssue";
 import { ICONS } from "../../data/icons";
 import WORDMARK_DARK from "../../assets/wordmark-dark.png";
 import { SkeletonPage } from "../../components/Skeleton";
@@ -29,6 +31,7 @@ const ADMIN_RESTAURANTS_KEY = ["admin", "restaurants"];
 const ADMIN_DRIVERS_KEY = ["admin", "drivers"];
 const ADMIN_REVIEWS_KEY = ["admin", "reviews"];
 const ADMIN_COUPONS_KEY = ["admin", "coupons"];
+const ADMIN_ISSUES_KEY = ["admin", "issues"];
 
 function LoadingScreen() {
   return <SkeletonPage />;
@@ -43,6 +46,7 @@ const NAV_ITEMS = [
   { key: "entregadores", label: "Entregadores", icon: Bike },
   { key: "avaliacoes", label: "Avaliações", icon: Star },
   { key: "cupons", label: "Cupons", icon: TicketPercent },
+  { key: "problemas", label: "Problemas", icon: AlertTriangle },
 ];
 
 const PAYMENT_STATUS_META = {
@@ -561,6 +565,7 @@ export default function AdminDashboard() {
   const driversQuery = useQuery({ queryKey: ADMIN_DRIVERS_KEY, queryFn: fetchAllDriversAdmin, enabled: isAdmin });
   const reviewsQuery = useQuery({ queryKey: ADMIN_REVIEWS_KEY, queryFn: fetchAllReviewsAdmin, enabled: isAdmin });
   const couponsQuery = useQuery({ queryKey: ADMIN_COUPONS_KEY, queryFn: fetchPlatformCoupons, enabled: isAdmin });
+  const issuesQuery = useQuery({ queryKey: ADMIN_ISSUES_KEY, queryFn: fetchAllOrderIssuesAdmin, enabled: isAdmin });
   useOrdersRealtime(ADMIN_ORDERS_KEY);
 
   const restaurants = restaurantsQuery.data || [];
@@ -568,6 +573,7 @@ export default function AdminDashboard() {
   const drivers = driversQuery.data || [];
   const reviews = reviewsQuery.data || [];
   const platformCoupons = couponsQuery.data || [];
+  const orderIssues = issuesQuery.data || [];
   const customerIds = useMemo(() => [...new Set(orders.map((o) => o.customer_id).filter(Boolean))], [orders]);
   const customersQuery = useQuery({
     queryKey: ["admin", "customers", customerIds],
@@ -597,6 +603,8 @@ export default function AdminDashboard() {
   const [workingPhotoKey, setWorkingPhotoKey] = useState(null);
   const [showCouponForm, setShowCouponForm] = useState(false);
   const [workingCouponId, setWorkingCouponId] = useState(null);
+  const [workingIssueId, setWorkingIssueId] = useState(null);
+  const [issueNotes, setIssueNotes] = useState({});
 
   async function handleAdvanceOrder(order, nextStatus) {
     setWorkingOrderId(order.id);
@@ -730,6 +738,21 @@ export default function AdminDashboard() {
       showToast("Não foi possível atualizar o cupom agora.");
     } finally {
       setWorkingCouponId(null);
+    }
+  }
+
+  async function handleResolveIssue(issue) {
+    setWorkingIssueId(issue.id);
+    try {
+      const note = issueNotes[issue.id] || null;
+      await resolveOrderIssue(issue.id, note);
+      queryClient.setQueryData(ADMIN_ISSUES_KEY, (prev) =>
+        (prev || []).map((it) => (it.id === issue.id ? { ...it, status: "resolvido", resolution_note: note, resolved_at: new Date().toISOString() } : it)));
+      showToast("Problema marcado como resolvido.");
+    } catch {
+      showToast("Não foi possível atualizar agora.");
+    } finally {
+      setWorkingIssueId(null);
     }
   }
 
@@ -1367,6 +1390,96 @@ export default function AdminDashboard() {
                 )}
               </>
             )}
+
+            {activeSection === "problemas" && (() => {
+              const openIssues = orderIssues.filter((it) => it.status !== "resolvido");
+              const resolvedIssues = orderIssues.filter((it) => it.status === "resolvido");
+              return (
+                <>
+                  <h1 style={{ fontSize: 22, fontWeight: 700, margin: "0 0 4px" }}>Problemas relatados</h1>
+                  <p style={{ fontSize: 12.5, color: C.grayText, margin: "0 0 18px" }}>
+                    O que os clientes relataram nos pedidos — item faltando, pedido errado, qualidade, etc.
+                  </p>
+
+                  {orderIssues.length === 0 ? (
+                    <div className="vp-fade-in" style={{ textAlign: "center", padding: "48px 0" }}>
+                      <div style={{ width: 72, height: 72, borderRadius: "50%", background: "rgba(238,108,26,.08)",
+                           display: "grid", placeItems: "center", margin: "0 auto 16px" }}>
+                        <AlertTriangle size={30} color={C.orange} />
+                      </div>
+                      <p style={{ fontSize: 15.5, fontWeight: 700, margin: "0 0 4px" }}>Nenhum problema relatado ainda</p>
+                      <p style={{ fontSize: 13.5, color: C.grayText, margin: 0 }}>
+                        Quando um cliente relatar algo num pedido, aparece aqui.
+                      </p>
+                    </div>
+                  ) : (
+                    <>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: C.grayText, textTransform: "uppercase", letterSpacing: .3, margin: "0 0 10px" }}>
+                        Em aberto ({openIssues.length})
+                      </div>
+                      {openIssues.length === 0 ? (
+                        <p style={{ fontSize: 13.5, color: C.grayText, marginBottom: 24 }}>Nenhum problema em aberto.</p>
+                      ) : (
+                        <div className="vp-card-grid" style={{ marginBottom: 28 }}>
+                          {openIssues.map((issue) => {
+                            const busy = workingIssueId === issue.id;
+                            return (
+                              <div key={issue.id} style={{ background: "#fff", border: "1.5px solid #B42318", borderRadius: RADIUS.md, padding: "14px 16px" }}>
+                                <div className="flex items-center gap-2" style={{ marginBottom: 4 }}>
+                                  <AlertTriangle size={15} color="#B42318" />
+                                  <span style={{ fontSize: 14, fontWeight: 700 }}>{ISSUE_TYPE_LABELS[issue.type] || "Problema"}</span>
+                                </div>
+                                <div style={{ fontSize: 12.5, color: C.grayText, marginBottom: 6 }}>
+                                  {issue.restaurants?.name || "Restaurante"} · pedido {formatBRL(issue.orders?.total ?? 0)} ·{" "}
+                                  {new Date(issue.created_at).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
+                                </div>
+                                {issue.description && (
+                                  <p style={{ fontSize: 13, margin: "0 0 10px", color: C.black }}>"{issue.description}"</p>
+                                )}
+                                <input value={issueNotes[issue.id] || ""} onChange={(e) => setIssueNotes((prev) => ({ ...prev, [issue.id]: e.target.value }))}
+                                  placeholder="Nota de resolução (opcional)"
+                                  style={{ width: "100%", border: `1px solid ${C.line}`, outline: "none", borderRadius: RADIUS.xs,
+                                           padding: "7px 10px", fontFamily: FONT, fontSize: 12.5, background: "#fff", boxSizing: "border-box", marginBottom: 8 }} />
+                                <button disabled={busy} onClick={() => handleResolveIssue(issue)}
+                                  style={{ width: "100%", background: C.ok, color: "#fff", border: "none", borderRadius: RADIUS.xs,
+                                           cursor: busy ? "default" : "pointer", padding: "8px 0", fontFamily: FONT, fontSize: 12.5, fontWeight: 700, opacity: busy ? .6 : 1 }}>
+                                  {busy ? "Marcando…" : "Marcar como resolvido"}
+                                </button>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      <div style={{ fontSize: 13, fontWeight: 700, color: C.grayText, textTransform: "uppercase", letterSpacing: .3, margin: "0 0 10px" }}>
+                        Resolvidos ({resolvedIssues.length})
+                      </div>
+                      {resolvedIssues.length === 0 ? (
+                        <p style={{ fontSize: 13.5, color: C.grayText }}>Nenhum problema resolvido ainda.</p>
+                      ) : (
+                        <div className="vp-card-grid">
+                          {resolvedIssues.map((issue) => (
+                            <div key={issue.id} style={{ background: "#fff", border: `1px solid ${C.line}`, borderRadius: RADIUS.md, padding: "12px 14px", opacity: .75 }}>
+                              <div className="flex items-center gap-2" style={{ marginBottom: 4 }}>
+                                <CheckCircle2 size={14} color={C.ok} />
+                                <span style={{ fontSize: 13.5, fontWeight: 700 }}>{ISSUE_TYPE_LABELS[issue.type] || "Problema"}</span>
+                              </div>
+                              <div style={{ fontSize: 12, color: C.grayText }}>
+                                {issue.restaurants?.name || "Restaurante"} ·{" "}
+                                {new Date(issue.created_at).toLocaleDateString("pt-BR")}
+                              </div>
+                              {issue.resolution_note && (
+                                <p style={{ fontSize: 12.5, margin: "6px 0 0", color: C.black }}>{issue.resolution_note}</p>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  )}
+                </>
+              );
+            })()}
           </div>
         </main>
       </div>

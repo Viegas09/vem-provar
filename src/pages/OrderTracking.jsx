@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { XCircle, Package, MessageCircle, Clock } from "lucide-react";
+import { XCircle, Package, MessageCircle, Clock, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { C, FONT, formatBRL, RADIUS } from "../theme";
-import { fetchOrderById } from "../data/queries";
+import { fetchOrderById, fetchOrderIssue } from "../data/queries";
 import { useAuth } from "../context/AuthContext";
 import { subscribeToPush } from "../lib/push";
 import { distanceKm, estimateEtaRangeMin } from "../lib/geolocation";
@@ -10,7 +10,9 @@ import Header from "../components/Header";
 import OrderStatusTimeline from "../components/OrderStatusTimeline";
 import DeliveryMap from "../components/DeliveryMap";
 import OrderChat from "../components/OrderChat";
+import ReportIssueModal from "../components/ReportIssueModal";
 import { SkeletonPage } from "../components/Skeleton";
+import { ISSUE_TYPE_LABELS } from "../lib/orderIssue";
 
 const STEPS = ["Pedido recebido", "Em preparo", "Saiu para entrega", "Entregue"];
 const STATUS_INDEX = { pending: 0, preparing: 1, out_for_delivery: 2, delivered: 3 };
@@ -31,6 +33,8 @@ export default function OrderTracking() {
   const [notFound, setNotFound] = useState(false);
   const [lastUpdatedAt, setLastUpdatedAt] = useState(null);
   const [, setTick] = useState(0);
+  const [issue, setIssue] = useState(null);
+  const [reporting, setReporting] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -69,6 +73,15 @@ export default function OrderTracking() {
       subscribeToPush(user.id);
     }
   }, [order, user]);
+
+  useEffect(() => {
+    if (!order || !user || user.id !== order.customer_id) return;
+    let cancelled = false;
+    fetchOrderIssue(order.id).then((data) => {
+      if (!cancelled) setIssue(data);
+    }).catch(() => {});
+    return () => { cancelled = true; };
+  }, [order?.id, user?.id]);
 
   if (notFound) {
     return (
@@ -185,6 +198,40 @@ export default function OrderTracking() {
           </div>
         </div>
 
+        {!cancelled && user && user.id === order.customer_id && ["out_for_delivery", "delivered"].includes(order.status) && (
+          <div style={{ marginTop: 20 }}>
+            {issue ? (
+              <div style={{ border: `1px solid ${C.line}`, borderRadius: RADIUS.xl, padding: "16px 18px" }}>
+                <div className="flex items-center gap-2" style={{ marginBottom: 4 }}>
+                  {issue.status === "resolvido"
+                    ? <CheckCircle2 size={16} color={C.ok} />
+                    : <AlertTriangle size={16} color={C.orange} />}
+                  <span style={{ fontSize: 14, fontWeight: 700 }}>
+                    {ISSUE_TYPE_LABELS[issue.type] || "Problema"} relatado
+                  </span>
+                  <span style={{ marginLeft: "auto", fontSize: 12, fontWeight: 700, color: issue.status === "resolvido" ? C.ok : C.orange }}>
+                    {issue.status === "resolvido" ? "Resolvido" : "Em aberto"}
+                  </span>
+                </div>
+                {issue.description && (
+                  <p style={{ fontSize: 13.5, color: C.grayText, margin: "6px 0 0" }}>"{issue.description}"</p>
+                )}
+                {issue.resolution_note && (
+                  <p style={{ fontSize: 13.5, color: C.black, background: C.surface, borderRadius: RADIUS.sm, padding: "10px 12px", margin: "10px 0 0" }}>
+                    Resposta do restaurante: {issue.resolution_note}
+                  </p>
+                )}
+              </div>
+            ) : (
+              <button onClick={() => setReporting(true)} className="flex items-center gap-2"
+                style={{ background: "none", border: `1px solid ${C.line}`, borderRadius: RADIUS.md, cursor: "pointer",
+                         padding: "12px 16px", fontFamily: FONT, fontSize: 13.5, fontWeight: 600, color: C.grayText, width: "100%" }}>
+                <AlertTriangle size={16} color={C.grayText} /> Teve algum problema com esse pedido? Reportar
+              </button>
+            )}
+          </div>
+        )}
+
         {!cancelled && user && user.id === order.customer_id && (
           <div style={{ marginTop: 20 }}>
             <h2 className="flex items-center gap-2" style={{ fontSize: 14.5, fontWeight: 700, margin: "0 0 10px" }}>
@@ -194,6 +241,12 @@ export default function OrderTracking() {
           </div>
         )}
       </section>
+
+      {reporting && (
+        <ReportIssueModal order={order} customerId={user.id}
+          onClose={() => setReporting(false)}
+          onReported={(newIssue) => { setIssue(newIssue); setReporting(false); }} />
+      )}
     </div>
   );
 }

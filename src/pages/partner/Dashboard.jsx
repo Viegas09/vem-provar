@@ -6,7 +6,7 @@ import {
   Plus, Trash2, Pencil, Store, Package, Wallet, CreditCard, CheckCircle2, XCircle, Receipt, TrendingUp,
   Clock3, Coins, Pause, Play, Home as HomeIcon, UtensilsCrossed, LogOut, ChevronLeft, ChevronRight,
   ImagePlus, BarChart3, ListPlus, ChevronDown, ChevronUp, TrendingDown, MessageCircle, X, Tag,
-  Lock, HelpCircle, Bell, Search, Volume2, VolumeX, GripVertical, Bike,
+  Lock, HelpCircle, Bell, Search, Volume2, VolumeX, GripVertical, Bike, AlertTriangle,
 } from "lucide-react";
 import { C, FONT, formatBRL, RADIUS } from "../../theme";
 import { ICONS } from "../../data/icons";
@@ -16,9 +16,10 @@ import {
   fetchRestaurantByOwner, createMenuItem, updateMenuItem, deleteMenuItem, fetchOrdersForRestaurant,
   updateOrderStatus, updateRestaurant, uploadMenuItemPhoto, uploadRestaurantPhoto, renameMenuCategory,
   createComplementGroup, deleteComplementGroup, createComplementItem, deleteComplementItem,
-  fetchCouponsForRestaurant, updateCoupon,
+  fetchCouponsForRestaurant, updateCoupon, fetchOpenIssuesForRestaurant, resolveOrderIssue,
 } from "../../data/queries";
 import { getCommissionRate, isInPromoPeriod, promoEndsAt } from "../../lib/commission";
+import { ISSUE_TYPE_LABELS } from "../../lib/orderIssue";
 import { compressImage } from "../../lib/imageCompress";
 import { WEEKDAYS as HOURS_WEEKDAYS, defaultBusinessHours } from "../../lib/businessHours";
 import { subscribeToPush } from "../../lib/push";
@@ -1121,9 +1122,12 @@ function ComplementsManager({ item, onChange }) {
   );
 }
 
-function OrderCard({ order, onStatusChange, onOpenChat, isNew }) {
+function OrderCard({ order, onStatusChange, onOpenChat, isNew, issue, onResolveIssue }) {
   const meta = STATUS_META[order.status] || STATUS_META.pending;
   const [now, setNow] = useState(() => Date.now());
+  const [issueOpen, setIssueOpen] = useState(false);
+  const [note, setNote] = useState("");
+  const [resolving, setResolving] = useState(false);
   useEffect(() => {
     const t = setInterval(() => setNow(Date.now()), 30000);
     return () => clearInterval(t);
@@ -1131,9 +1135,42 @@ function OrderCard({ order, onStatusChange, onOpenChat, isNew }) {
   const isOpenStatus = order.status === "pending" || order.status === "preparing" || order.status === "out_for_delivery";
   const elapsedMin = Math.floor((now - new Date(order.created_at).getTime()) / 60000);
   const urgencyColor = elapsedMin >= 20 ? "#B42318" : elapsedMin >= 10 ? "#A06A00" : C.grayText;
+
+  async function handleResolve() {
+    setResolving(true);
+    try {
+      await onResolveIssue(issue.id, note);
+      setIssueOpen(false);
+    } finally {
+      setResolving(false);
+    }
+  }
+
   return (
-    <div className={isNew ? "vp-order-new" : undefined} style={{ padding: 14, background: "#fff", border: `1px solid ${C.line}`,
-         borderLeft: `4px solid ${meta.color}`, borderRadius: RADIUS.lg }}>
+    <div className={isNew ? "vp-order-new" : undefined} style={{ padding: 14, background: "#fff", border: `1px solid ${issue ? "#B42318" : C.line}`,
+         borderLeft: `4px solid ${issue ? "#B42318" : meta.color}`, borderRadius: RADIUS.lg }}>
+      {issue && (
+        <div style={{ marginBottom: 10 }}>
+          <button type="button" onClick={() => setIssueOpen((v) => !v)} className="flex items-center gap-1.5"
+            style={{ background: "#FDECEC", color: "#B42318", border: "none", borderRadius: RADIUS.xs, cursor: "pointer",
+                     padding: "6px 10px", fontFamily: FONT, fontSize: 12, fontWeight: 700, width: "100%" }}>
+            <AlertTriangle size={13} /> {ISSUE_TYPE_LABELS[issue.type] || "Problema relatado"}
+          </button>
+          {issueOpen && (
+            <div style={{ background: C.surface, borderRadius: RADIUS.sm, padding: 10, marginTop: 6 }}>
+              {issue.description && <p style={{ fontSize: 12.5, margin: "0 0 8px", color: C.black }}>"{issue.description}"</p>}
+              <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="Nota pro cliente (opcional)"
+                style={{ width: "100%", border: `1px solid ${C.line}`, outline: "none", borderRadius: RADIUS.xs,
+                         padding: "6px 8px", fontFamily: FONT, fontSize: 12.5, background: "#fff", boxSizing: "border-box", marginBottom: 8 }} />
+              <button type="button" disabled={resolving} onClick={handleResolve}
+                style={{ width: "100%", background: C.ok, color: "#fff", border: "none", borderRadius: RADIUS.xs,
+                         cursor: resolving ? "default" : "pointer", padding: "7px 0", fontFamily: FONT, fontSize: 12, fontWeight: 700 }}>
+                {resolving ? "Marcando…" : "Marcar como resolvido"}
+              </button>
+            </div>
+          )}
+        </div>
+      )}
       <div className="flex items-center justify-between">
         <span style={{ fontSize: 14, fontWeight: 700 }}>#{order.id.slice(0, 8)}</span>
         <span style={{ fontSize: 12, color: C.grayText }}>
@@ -1383,6 +1420,7 @@ function PartnerSidebar({ restaurant, activeSection, onSectionChange, onToggleOp
 const partnerRestaurantKey = (ownerId) => ["partner", "restaurant", ownerId];
 const partnerOrdersKey = (restaurantId) => ["partner", "orders", restaurantId];
 const partnerCouponsKey = (restaurantId) => ["partner", "coupons", restaurantId];
+const partnerIssuesKey = (restaurantId) => ["partner", "issues", restaurantId];
 
 export default function PartnerDashboard() {
   const { user, loading: authLoading, signOut } = useAuth();
@@ -1407,10 +1445,18 @@ export default function PartnerDashboard() {
     queryFn: () => fetchCouponsForRestaurant(restaurant.id),
     enabled: !!restaurant?.id,
   });
+  const issuesQuery = useQuery({
+    queryKey: partnerIssuesKey(restaurant?.id),
+    queryFn: () => fetchOpenIssuesForRestaurant(restaurant.id),
+    enabled: !!restaurant?.id,
+    refetchInterval: 30000,
+  });
   useOrdersRealtime(partnerOrdersKey(restaurant?.id), { restaurantId: restaurant?.id, enabled: !!restaurant?.id });
 
   const orders = ordersQuery.data || [];
   const coupons = couponsQuery.data || [];
+  const issuesByOrderId = {};
+  (issuesQuery.data || []).forEach((iss) => { issuesByOrderId[iss.order_id] = iss; });
   const loading = restaurantQuery.isLoading || (!!restaurant?.id && (ordersQuery.isLoading || couponsQuery.isLoading));
 
   const [showAddForm, setShowAddForm] = useState(false);
@@ -1516,6 +1562,7 @@ export default function PartnerDashboard() {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: partnerOrdersKey(restaurant.id) }),
         queryClient.invalidateQueries({ queryKey: partnerCouponsKey(restaurant.id) }),
+        queryClient.invalidateQueries({ queryKey: partnerIssuesKey(restaurant.id) }),
       ]);
     }
   }
@@ -1577,6 +1624,11 @@ export default function PartnerDashboard() {
       return next;
     });
     await updateOrderStatus(orderId, status);
+    reload();
+  }
+
+  async function handleResolveIssue(issueId, note) {
+    await resolveOrderIssue(issueId, note);
     reload();
   }
 
@@ -1785,7 +1837,8 @@ export default function PartnerDashboard() {
                             ) : (
                               list.map((order) => (
                                 <OrderCard key={order.id} order={order} onStatusChange={handleStatusChange}
-                                  onOpenChat={setChatOrder} isNew={newOrderIds.has(order.id)} />
+                                  onOpenChat={setChatOrder} isNew={newOrderIds.has(order.id)}
+                                  issue={issuesByOrderId[order.id]} onResolveIssue={handleResolveIssue} />
                               ))
                             )}
                           </div>

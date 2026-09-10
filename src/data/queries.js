@@ -571,6 +571,40 @@ export async function redeemCoupon({ code, restaurantId, subtotal }) {
   return data;
 }
 
+export async function createOrderIssue(issue) {
+  const { data, error } = await supabase.from("order_issues").insert(issue).select().single();
+  if (error) throw error;
+  return data;
+}
+
+export async function fetchOrderIssue(orderId) {
+  const { data, error } = await supabase.from("order_issues").select("*").eq("order_id", orderId).maybeSingle();
+  if (error) throw error;
+  return data;
+}
+
+export async function resolveOrderIssue(id, resolutionNote) {
+  const { error } = await supabase.from("order_issues")
+    .update({ status: "resolvido", resolution_note: resolutionNote || null, resolved_at: new Date().toISOString() })
+    .eq("id", id);
+  if (error) throw error;
+}
+
+export async function fetchOpenIssuesForRestaurant(restaurantId) {
+  const { data, error } = await supabase.from("order_issues").select("*")
+    .eq("restaurant_id", restaurantId).eq("status", "aberto");
+  if (error) throw error;
+  return data;
+}
+
+export async function fetchAllOrderIssuesAdmin() {
+  const { data, error } = await supabase.from("order_issues")
+    .select("*, orders(address, total), restaurants(name)")
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return data;
+}
+
 export async function setDefaultAddress(userId, addressId) {
   const { error: clearError } = await supabase.from("addresses").update({ is_default: false }).eq("user_id", userId);
   if (clearError) throw clearError;
