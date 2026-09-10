@@ -6,6 +6,7 @@ import {
 import { C, FONT, RADIUS, SHADOW } from "../../theme";
 import { PROMO_DAYS, COMMISSION_RATES } from "../../lib/commission";
 import PartnerHeroArt from "../../components/PartnerHeroArt";
+import Footer from "../../components/Footer";
 import { Reveal, CountUp } from "../../components/ScrollReveal";
 import WORDMARK_ONORANGE from "../../assets/wordmark-onorange.png";
 import WORDMARK_DARK from "../../assets/wordmark-dark.png";
@@ -221,6 +222,8 @@ export default function PartnerLanding() {
           </Link>
         </Reveal>
       </Section>
+
+      <Footer />
     </div>
   );
 }

@@ -5,6 +5,7 @@ import {
 } from "lucide-react";
 import { C, FONT, RADIUS, SHADOW } from "../../theme";
 import DriverHeroArt from "../../components/DriverHeroArt";
+import Footer from "../../components/Footer";
 import { Reveal, CountUp } from "../../components/ScrollReveal";
 import WORDMARK_ONORANGE from "../../assets/wordmark-onorange.png";
 import WORDMARK_DARK from "../../assets/wordmark-dark.png";
@@ -198,6 +199,8 @@ export default function DriverLanding() {
           </Link>
         </Reveal>
       </Section>
+
+      <Footer />
     </div>
   );
 }
