@@ -11,7 +11,7 @@ export default async function handler(req, res) {
     const admin = supabaseAdmin();
     const { data, error } = await admin
       .from("orders")
-      .select("*, order_items(*), restaurants(name)")
+      .select("*, order_items(*), restaurants(name, address, latitude, longitude), drivers(full_name, vehicle_type, latitude, longitude, location_updated_at)")
       .eq("id", orderId)
       .maybeSingle();
 

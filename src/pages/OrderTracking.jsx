@@ -7,6 +7,7 @@ import { useAuth } from "../context/AuthContext";
 import { subscribeToPush } from "../lib/push";
 import Header from "../components/Header";
 import OrderStatusTimeline from "../components/OrderStatusTimeline";
+import DeliveryMap from "../components/DeliveryMap";
 import OrderChat from "../components/OrderChat";
 import { SkeletonPage } from "../components/Skeleton";
 
@@ -121,6 +122,20 @@ export default function OrderTracking() {
                 <span className="vp-live-dot" /> Atualizado {secondsAgoLabel(lastUpdatedAt)}
               </span>
             </div>
+          </div>
+        )}
+
+        {!cancelled && order.driver_id && ["preparing", "out_for_delivery"].includes(order.status) && (
+          <div style={{ marginBottom: 20 }}>
+            <DeliveryMap
+              restaurant={order.restaurants?.latitude != null ? { lat: order.restaurants.latitude, lng: order.restaurants.longitude } : null}
+              destination={order.latitude != null ? { lat: order.latitude, lng: order.longitude } : null}
+              driver={order.drivers?.latitude != null ? { lat: order.drivers.latitude, lng: order.drivers.longitude, vehicle_type: order.drivers.vehicle_type } : null}
+              headingToRestaurant={order.status === "preparing"}
+            />
+            <p style={{ fontSize: 12, color: C.grayText, margin: "8px 0 0" }}>
+              {order.drivers?.full_name ? `${order.drivers.full_name} está a caminho` : "Entregador a caminho"} · localização aproximada
+            </p>
           </div>
         )}
 

@@ -21,6 +21,7 @@ const VEHICLE_LABELS = { moto: "Moto", bike: "Bicicleta", carro: "Carro" };
 const VEHICLE_ICONS = { moto: Bike, bike: Bike, carro: Car };
 const OFFER_SECONDS = 20;
 const OFFER_POLL_MS = 5000;
+const LOCATION_PUSH_MS = 10000;
 
 function playPingSound() {
   try {
@@ -233,11 +234,16 @@ export default function DriverDashboard() {
   const available = availableQuery.data || [];
   const mine = mineQuery.data || [];
   const activeOffer = offerQuery.data || null;
+  const inProgress = mine.filter((o) => o.status === "preparing" || o.status === "out_for_delivery");
+  const delivered = mine.filter((o) => o.status === "delivered");
+  const isTracking = !!driver?.available || inProgress.length > 0;
 
-  // enquanto disponível, mantém a localização atual num ref (sem re-renderizar a cada
-  // atualização) — ela só é lida quando uma tentativa de travar oferta é disparada
+  // rastreia a posição sempre que disponível OU no meio de uma entrega — não só
+  // quando "disponível", senão a localização congela assim que o entregador se
+  // marca indisponível no meio de uma corrida (ou fica sem outra oferta pra
+  // disputar), e o mapa ao vivo do cliente passaria a mostrar posição parada
   useEffect(() => {
-    if (!driver?.available || !navigator.geolocation) return;
+    if (!isTracking || !navigator.geolocation) return;
     const watchId = navigator.geolocation.watchPosition(
       (pos) => {
         coordsRef.current = { lat: pos.coords.latitude, lng: pos.coords.longitude };
@@ -247,7 +253,21 @@ export default function DriverDashboard() {
       { enableHighAccuracy: false, maximumAge: 15000, timeout: 10000 }
     );
     return () => navigator.geolocation.clearWatch(watchId);
-  }, [driver?.available]);
+  }, [isTracking]);
+
+  // grava a posição no banco direto (não via claim_nearest_offer, que só roda
+  // quando há corrida pra disputar) — é isso que o cliente vê no mapa ao vivo
+  useEffect(() => {
+    if (!isTracking || !driver?.id) return;
+    const push = () => {
+      const { lat, lng } = coordsRef.current;
+      if (lat == null || lng == null) return;
+      updateDriver(driver.id, { latitude: lat, longitude: lng, location_updated_at: new Date().toISOString() }).catch(() => {});
+    };
+    push();
+    const t = setInterval(push, LOCATION_PUSH_MS);
+    return () => clearInterval(t);
+  }, [isTracking, driver?.id]);
 
   // heartbeat que força reavaliar a fila periodicamente — sem isso, se essa tentativa
   // de travar uma corrida perder a corrida pra outro entregador, nada mais dispara
@@ -272,8 +292,6 @@ export default function DriverDashboard() {
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [driver?.available, driver?.id, activeOffer, available.map((o) => o.id).join(","), pollTick]);
-  const inProgress = mine.filter((o) => o.status === "preparing" || o.status === "out_for_delivery");
-  const delivered = mine.filter((o) => o.status === "delivered");
 
   const today = new Date().toDateString();
   const deliveredToday = delivered.filter((o) => new Date(o.created_at).toDateString() === today);
