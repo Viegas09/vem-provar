@@ -93,7 +93,7 @@ export default function Header() {
 
         <nav className="vp-navlinks" style={{ marginLeft: "auto" }}>
           <Link to="/entregador/entrar" style={{ color: C.black, textDecoration: "none", fontSize: 14.5, fontWeight: 500 }}>Seja entregador</Link>
-          <Link to="/parceiro/entrar" style={{ color: C.black, textDecoration: "none", fontSize: 14.5, fontWeight: 500 }}>Cadastre seu restaurante</Link>
+          <Link to="/parceiro" style={{ color: C.black, textDecoration: "none", fontSize: 14.5, fontWeight: 500 }}>Cadastre seu restaurante</Link>
           <span style={{ width: 1, height: 22, background: C.line }} />
           {user && <NotificationBell variant="plain" />}
           <Link to="/carrinho" aria-label={totalItems > 0 ? `Carrinho, ${totalItems} itens` : "Carrinho"} className="flex items-center gap-1" style={{ position: "relative", color: C.black, textDecoration: "none" }}>

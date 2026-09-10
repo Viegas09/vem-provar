@@ -25,6 +25,7 @@ import Perfil from "./pages/Perfil";
 import Payments from "./pages/Payments";
 import Settings from "./pages/Settings";
 import Help from "./pages/Help";
+import PartnerLanding from "./pages/partner/Landing";
 import PartnerLogin from "./pages/partner/Login";
 import PartnerSignUp from "./pages/partner/SignUp";
 import PartnerOnboarding from "./pages/partner/Onboarding";
@@ -80,6 +81,7 @@ function App() {
             <Route path="/configuracoes" element={<Settings />} />
             <Route path="/ajuda" element={<Help />} />
 
+            <Route path="/parceiro" element={<PartnerLanding />} />
             <Route path="/parceiro/entrar" element={<PartnerLogin />} />
             <Route path="/parceiro/criar-conta" element={<PartnerSignUp />} />
             <Route path="/parceiro/cadastro" element={<PartnerOnboarding />} />

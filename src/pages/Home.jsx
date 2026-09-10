@@ -426,7 +426,7 @@ export default function Home() {
                   <p style={{ color: C.gray, fontSize: 14.5, marginTop: 8, lineHeight: 1.5 }}>
                     Coloque sua cozinha no maior portal de Itapecerica e comece a receber pedidos hoje mesmo.
                   </p>
-                  <Link to="/parceiro/entrar" className="flex items-center gap-2" style={{ marginTop: 18, color: C.orange, textDecoration: "none", fontSize: 14.5, fontWeight: 600 }}>
+                  <Link to="/parceiro" className="flex items-center gap-2" style={{ marginTop: 18, color: C.orange, textDecoration: "none", fontSize: 14.5, fontWeight: 600 }}>
                     Cadastre seu restaurante <ArrowRight size={17} />
                   </Link>
                 </div>
