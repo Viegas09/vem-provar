@@ -4,15 +4,34 @@ import { C, FONT, RADIUS } from "../theme";
 import { useAuth } from "../context/AuthContext";
 import { createReview } from "../data/queries";
 
+function StarRow({ value, hoverValue, onRate, onHover, size = 34 }) {
+  return (
+    <div className="flex items-center justify-center gap-2" style={{ padding: "8px 0" }}>
+      {[1, 2, 3, 4, 5].map((n) => (
+        <button key={n} type="button" aria-label={`Avaliar com ${n} estrela${n > 1 ? "s" : ""}`}
+          onClick={() => onRate(n)}
+          onMouseEnter={() => onHover(n)}
+          onMouseLeave={() => onHover(0)}
+          style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}>
+          <Star size={size} fill={n <= (hoverValue || value) ? C.orange : "none"} color={C.orange} />
+        </button>
+      ))}
+    </div>
+  );
+}
+
 export default function ReviewModal({ order, onClose, onSaved }) {
   const { user } = useAuth();
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [comment, setComment] = useState("");
+  const [driverRating, setDriverRating] = useState(0);
+  const [hoverDriverRating, setHoverDriverRating] = useState(0);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
 
   const restaurantName = order.restaurants?.name || "o restaurante";
+  const hasDriver = !!order.driver_id;
 
   async function handleSubmit() {
     if (rating === 0) return;
@@ -27,6 +46,8 @@ export default function ReviewModal({ order, onClose, onSaved }) {
         customerName: firstName,
         rating,
         comment: comment.trim(),
+        driverId: hasDriver ? order.driver_id : null,
+        driverRating: hasDriver && driverRating > 0 ? driverRating : null,
       });
       onSaved(review);
     } catch (err) {
@@ -57,17 +78,7 @@ export default function ReviewModal({ order, onClose, onSaved }) {
             Como foi seu pedido em <b style={{ color: C.black }}>{restaurantName}</b>?
           </p>
 
-          <div className="flex items-center justify-center gap-2" style={{ padding: "8px 0" }}>
-            {[1, 2, 3, 4, 5].map((n) => (
-              <button key={n} type="button" aria-label={`Avaliar com ${n} estrela${n > 1 ? "s" : ""}`}
-                onClick={() => setRating(n)}
-                onMouseEnter={() => setHoverRating(n)}
-                onMouseLeave={() => setHoverRating(0)}
-                style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}>
-                <Star size={34} fill={n <= (hoverRating || rating) ? C.orange : "none"} color={C.orange} />
-              </button>
-            ))}
-          </div>
+          <StarRow value={rating} hoverValue={hoverRating} onRate={setRating} onHover={setHoverRating} />
 
           <div>
             <div style={{ fontSize: 12.5, fontWeight: 700, color: C.grayText, marginBottom: 6 }}>Comentário (opcional)</div>
@@ -77,6 +88,15 @@ export default function ReviewModal({ order, onClose, onSaved }) {
               style={{ border: `1.5px solid ${C.line}`, outline: "none", borderRadius: RADIUS.md, padding: 12,
                        fontFamily: FONT, fontSize: 14, width: "100%", boxSizing: "border-box", resize: "none" }} />
           </div>
+
+          {hasDriver && (
+            <div style={{ borderTop: `1px solid ${C.line}`, paddingTop: 16 }}>
+              <p style={{ fontSize: 14, color: C.grayText, margin: "0 0 4px" }}>
+                E a entrega{order.drivers?.full_name ? ` de ${order.drivers.full_name.split(" ")[0]}` : ""}, como foi? <span style={{ color: C.grayText, fontWeight: 400 }}>(opcional)</span>
+              </p>
+              <StarRow value={driverRating} hoverValue={hoverDriverRating} onRate={setDriverRating} onHover={setHoverDriverRating} size={28} />
+            </div>
+          )}
 
           {error && (
             <div style={{ background: "#FDECEC", color: "#B42318", borderRadius: RADIUS.sm, padding: 12, fontSize: 13 }}>

@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Bike, Car, Package, LayoutDashboard, Clock3, LogOut, MapPin, Store, Wallet, TrendingUp,
   CheckCircle2, PauseCircle, ChevronRight, History, User as UserIcon, Bell, X, Navigation,
-  Phone, Home, Mail, IdCard,
+  Phone, Home, Mail, IdCard, Star,
 } from "lucide-react";
 import { C, FONT, RADIUS, SHADOW, formatBRL } from "../../theme";
 import { useAuth } from "../../context/AuthContext";
@@ -12,7 +12,7 @@ import { useToast } from "../../context/ToastContext";
 import { mapsDirectionsUrl, wazeUrl } from "../../lib/geolocation";
 import {
   fetchDriverByUser, updateDriver, fetchAvailableDeliveries, fetchDriverOrders, claimDelivery, updateOrderStatus,
-  tryClaimOffer, respondToOffer, fetchMyActiveOffer,
+  tryClaimOffer, respondToOffer, fetchMyActiveOffer, fetchReviewsForDriver,
 } from "../../data/queries";
 import { useOrdersRealtime } from "../../hooks/useOrdersRealtime";
 import PortalHeader from "../../components/PortalHeader";
@@ -234,6 +234,11 @@ export default function DriverDashboard() {
     queryKey: ["driver", "offer", driver?.id], queryFn: () => fetchMyActiveOffer(driver.id),
     enabled: !!driver, refetchInterval: OFFER_POLL_MS,
   });
+  const reviewsQuery = useQuery({ queryKey: ["driver", "reviews", driver?.id], queryFn: () => fetchReviewsForDriver(driver.id), enabled: !!driver });
+  const driverReviews = reviewsQuery.data || [];
+  const avgDriverRating = driverReviews.length
+    ? driverReviews.reduce((sum, r) => sum + Number(r.driver_rating || 0), 0) / driverReviews.length
+    : null;
   useOrdersRealtime(["driver", "available"]);
   useOrdersRealtime(["driver", "mine", driver?.id]);
 
@@ -528,6 +533,15 @@ export default function DriverDashboard() {
                   <div style={{ minWidth: 0 }}>
                     <div style={{ fontSize: 18, fontWeight: 700 }}>{driver.full_name}</div>
                     <div style={{ fontSize: 13, color: C.grayText }}>{VEHICLE_LABELS[driver.vehicle_type] || "Moto"}{driver.plate ? ` · ${driver.plate}` : ""}</div>
+                    {avgDriverRating != null && (
+                      <div className="flex items-center gap-1" style={{ marginTop: 3 }}>
+                        <Star size={13} fill={C.orange} color={C.orange} />
+                        <span style={{ fontSize: 12.5, fontWeight: 700 }}>{avgDriverRating.toFixed(1)}</span>
+                        <span style={{ fontSize: 12, color: C.grayText }}>
+                          ({driverReviews.length} avalia{driverReviews.length === 1 ? "ção" : "ções"})
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>

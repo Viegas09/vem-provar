@@ -344,7 +344,7 @@ export async function updateProfile(userId, changes) {
 export async function fetchOrdersForCustomer(customerId) {
   const { data, error } = await supabase
     .from("orders")
-    .select("*, order_items(*), restaurants(name, slug, icon_key, color_variant)")
+    .select("*, order_items(*), restaurants(name, slug, icon_key, color_variant), drivers(full_name)")
     .eq("customer_id", customerId)
     .order("created_at", { ascending: false });
   if (error) throw error;
@@ -506,20 +506,38 @@ export async function updateReview(id, changes) {
   if (error) throw error;
 }
 
-export async function createReview({ orderId, restaurantId, customerId, customerName, rating, comment }) {
+export async function createReview({ orderId, restaurantId, customerId, customerName, rating, comment, driverId, driverRating, driverComment }) {
+  const payload = {
+    order_id: orderId,
+    restaurant_id: restaurantId,
+    customer_id: customerId,
+    customer_name: customerName || null,
+    rating,
+    comment: comment || null,
+    driver_id: driverId || null,
+    driver_rating: driverRating || null,
+    driver_comment: driverComment || null,
+  };
+  let { data, error } = await supabase.from("reviews").insert(payload).select().single();
+  if (error && isMissingColumnError(error)) {
+    // migração da avaliação do entregador (supabase-schema-46) ainda não rodou — segue sem ela
+    const { driver_id: _d, driver_rating: _dr, driver_comment: _dc, ...withoutDriver } = payload;
+    ({ data, error } = await supabase.from("reviews").insert(withoutDriver).select().single());
+  }
+  if (error) throw error;
+  return data;
+}
+
+export async function fetchReviewsForDriver(driverId) {
   const { data, error } = await supabase
     .from("reviews")
-    .insert({
-      order_id: orderId,
-      restaurant_id: restaurantId,
-      customer_id: customerId,
-      customer_name: customerName || null,
-      rating,
-      comment: comment || null,
-    })
-    .select()
-    .single();
-  if (error) throw error;
+    .select("driver_rating, driver_comment, created_at")
+    .eq("driver_id", driverId)
+    .not("driver_rating", "is", null);
+  if (error) {
+    if (isMissingColumnError(error)) return [];
+    throw error;
+  }
   return data;
 }
 
