@@ -12,7 +12,7 @@ export default async function handler(req, res) {
     return;
   }
 
-  const { restaurantId, code, discountType, discountValue } = req.body || {};
+  const { restaurantId, code } = req.body || {};
   if (!restaurantId || !code) {
     res.status(200).json({ ok: true });
     return;
@@ -20,6 +20,19 @@ export default async function handler(req, res) {
 
   try {
     const admin = supabaseAdmin();
+    // busca o cupom de verdade no banco em vez de confiar no valor/desconto que vier no corpo da
+    // requisição — assim ninguém consegue mandar notificação com texto arbitrário pra quem favoritou
+    const { data: coupon } = await admin
+      .from("coupons")
+      .select("discount_type, discount_value, active")
+      .eq("restaurant_id", restaurantId)
+      .eq("code", code)
+      .maybeSingle();
+    if (!coupon?.active) {
+      res.status(200).json({ ok: true });
+      return;
+    }
+
     const { data: restaurant } = await admin.from("restaurants").select("name, slug").eq("id", restaurantId).maybeSingle();
     if (!restaurant) {
       res.status(200).json({ ok: true });
@@ -32,7 +45,7 @@ export default async function handler(req, res) {
       (favorites || []).map((f) =>
         notifyUser(admin, f.user_id, {
           title: `Novo cupom em ${restaurant.name}`,
-          body: `${discountLabel(discountType, discountValue)} com o código ${code}`,
+          body: `${discountLabel(coupon.discount_type, coupon.discount_value)} com o código ${code}`,
           url: restaurant.slug ? `/restaurante/${restaurant.slug}` : "/",
         })
       )

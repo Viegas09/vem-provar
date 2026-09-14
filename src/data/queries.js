@@ -558,12 +558,7 @@ export async function createCoupon(coupon) {
     fetch("/api/notify-favorite-coupon", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        restaurantId: coupon.restaurant_id,
-        code: data.code,
-        discountType: data.discount_type,
-        discountValue: data.discount_value,
-      }),
+      body: JSON.stringify({ restaurantId: coupon.restaurant_id, code: data.code }),
     }).catch(() => {});
   }
   return data;
