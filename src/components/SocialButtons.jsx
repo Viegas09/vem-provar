@@ -1,4 +1,6 @@
+import { useState } from "react";
 import { C, FONT, RADIUS } from "../theme";
+import { useAuth } from "../context/AuthContext";
 
 function GoogleIcon() {
   return (
@@ -19,28 +21,53 @@ function FacebookIcon() {
   );
 }
 
-function SocialButton({ icon, label }) {
+function SocialButton({ icon, label, onClick, loading, disabled, badge }) {
   return (
-    <button type="button" disabled title="Em breve"
+    <button type="button" disabled={disabled || loading} title={badge} onClick={onClick}
       className="flex items-center justify-center gap-2"
       style={{ width: "100%", border: `1.5px solid ${C.line}`, background: "#fff", borderRadius: RADIUS.md,
-               padding: "13px 0", fontFamily: FONT, fontSize: 14.5, fontWeight: 600, color: C.grayText,
-               cursor: "not-allowed", position: "relative" }}>
+               padding: "13px 0", fontFamily: FONT, fontSize: 14.5, fontWeight: 600,
+               color: disabled ? C.grayText : C.black,
+               cursor: disabled || loading ? "not-allowed" : "pointer", position: "relative", opacity: loading ? .7 : 1 }}>
       {icon}
-      {label}
-      <span style={{ position: "absolute", right: 10, fontSize: 10.5, fontWeight: 700, color: C.gray,
-                     background: C.surface, padding: "2px 7px", borderRadius: RADIUS.pill }}>
-        Em breve
-      </span>
+      {loading ? "Redirecionando…" : label}
+      {badge && (
+        <span style={{ position: "absolute", right: 10, fontSize: 10.5, fontWeight: 700, color: C.gray,
+                       background: C.surface, padding: "2px 7px", borderRadius: RADIUS.pill }}>
+          {badge}
+        </span>
+      )}
     </button>
   );
 }
 
 export default function SocialButtons() {
+  const { signInWithGoogle } = useAuth();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  async function handleGoogle() {
+    setError(null);
+    setLoading(true);
+    try {
+      await signInWithGoogle();
+      // se deu certo o navegador já está sendo redirecionado pro Google;
+      // só volta a cair aqui (com loading preso) se a chamada falhar antes disso
+    } catch (err) {
+      setError(err.message || "Não foi possível continuar com o Google agora.");
+      setLoading(false);
+    }
+  }
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 22 }}>
-      <SocialButton icon={<GoogleIcon />} label="Google" />
-      <SocialButton icon={<FacebookIcon />} label="Facebook" />
+      <SocialButton icon={<GoogleIcon />} label="Continuar com Google" onClick={handleGoogle} loading={loading} />
+      <SocialButton icon={<FacebookIcon />} label="Facebook" disabled badge="Em breve" />
+      {error && (
+        <div style={{ background: "#FDECEC", color: "#B42318", borderRadius: RADIUS.md, padding: 12, fontSize: 13 }}>
+          {error}
+        </div>
+      )}
       <div className="flex items-center gap-3" style={{ margin: "6px 0" }}>
         <div style={{ flex: 1, height: 1, background: C.line }} />
         <span style={{ fontSize: 12.5, color: C.grayText }}>ou com e-mail</span>
