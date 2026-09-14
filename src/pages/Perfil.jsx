@@ -1,7 +1,9 @@
+import { useEffect, useState } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import { User, MapPinned, Heart, CreditCard, Settings, HelpCircle, LogOut, ChevronRight, Store, Bike } from "lucide-react";
-import { C, FONT, RADIUS } from "../theme";
+import { C, FONT, RADIUS, formatBRL } from "../theme";
 import { useAuth } from "../context/AuthContext";
+import { fetchOrdersForCustomer } from "../data/queries";
 import Header from "../components/Header";
 import { SkeletonPage } from "../components/Skeleton";
 
@@ -31,6 +33,28 @@ function SectionLink({ to, icon: Icon, label, sub }) {
 export default function Perfil() {
   const { user, loading, signOut } = useAuth();
   const navigate = useNavigate();
+  const [spending, setSpending] = useState(null);
+
+  useEffect(() => {
+    if (!user) return;
+    let active = true;
+    fetchOrdersForCustomer(user.id).then((orders) => {
+      if (!active) return;
+      const delivered = orders.filter((o) => o.status === "delivered");
+      const now = new Date();
+      const monthOrders = delivered.filter((o) => {
+        const d = new Date(o.created_at);
+        return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+      });
+      setSpending({
+        monthTotal: monthOrders.reduce((s, o) => s + Number(o.total), 0),
+        monthCount: monthOrders.length,
+        allTimeTotal: delivered.reduce((s, o) => s + Number(o.total), 0),
+        allTimeCount: delivered.length,
+      });
+    }).catch(() => {});
+    return () => { active = false; };
+  }, [user]);
 
   if (loading) return <SkeletonPage />;
   if (!user) return <Navigate to="/entrar" replace />;
@@ -60,6 +84,24 @@ export default function Perfil() {
             </div>
           </div>
         </div>
+
+        {spending && spending.allTimeCount > 0 && (
+          <div className="flex items-center" style={{ background: C.surface, borderRadius: RADIUS.xl, padding: "16px 20px", marginBottom: 24 }}>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 19, fontWeight: 700 }}>{formatBRL(spending.monthTotal)}</div>
+              <div style={{ fontSize: 12, color: C.grayText, marginTop: 1 }}>
+                Este mês · {spending.monthCount} pedido{spending.monthCount === 1 ? "" : "s"}
+              </div>
+            </div>
+            <div style={{ width: 1, height: 32, background: C.line, margin: "0 16px" }} />
+            <div style={{ flex: 1, textAlign: "right" }}>
+              <div style={{ fontSize: 19, fontWeight: 700 }}>{formatBRL(spending.allTimeTotal)}</div>
+              <div style={{ fontSize: 12, color: C.grayText, marginTop: 1 }}>
+                No total · {spending.allTimeCount} pedido{spending.allTimeCount === 1 ? "" : "s"}
+              </div>
+            </div>
+          </div>
+        )}
 
         <div style={{ marginBottom: 24 }}>
           <SectionTitle>Conta</SectionTitle>

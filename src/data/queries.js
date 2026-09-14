@@ -554,6 +554,18 @@ export async function fetchCouponsForRestaurant(restaurantId) {
 export async function createCoupon(coupon) {
   const { data, error } = await supabase.from("coupons").insert(coupon).select().single();
   if (error) throw error;
+  if (coupon.restaurant_id) {
+    fetch("/api/notify-favorite-coupon", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        restaurantId: coupon.restaurant_id,
+        code: data.code,
+        discountType: data.discount_type,
+        discountValue: data.discount_value,
+      }),
+    }).catch(() => {});
+  }
   return data;
 }
 
