@@ -17,6 +17,7 @@ import {
   updateOrderStatus, updateRestaurant, uploadMenuItemPhoto, uploadRestaurantPhoto, renameMenuCategory,
   createComplementGroup, deleteComplementGroup, createComplementItem, deleteComplementItem,
   fetchCouponsForRestaurant, updateCoupon, fetchOpenIssuesForRestaurant, resolveOrderIssue,
+  settleDriverPayouts,
 } from "../../data/queries";
 import { getCommissionRate, isInPromoPeriod, promoEndsAt } from "../../lib/commission";
 import { ISSUE_TYPE_LABELS } from "../../lib/orderIssue";
@@ -58,6 +59,7 @@ const NAV_ITEMS = [
   { key: "loja", label: "Loja", icon: Store },
   { key: "desempenho", label: "Desempenho", icon: BarChart3 },
   { key: "financeiro", label: "Financeiro", icon: Wallet },
+  { key: "fechamento", label: "Fechamento", icon: Bike },
   { key: "cardapio", label: "Cardápio", icon: UtensilsCrossed },
   { key: "cupons", label: "Cupons", icon: Tag },
   { key: "conta", label: "Conta", icon: Lock },
@@ -710,6 +712,91 @@ function RepasseDetail({ restaurant, orders }) {
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+function DriverSettlementSection({ orders, onSettled }) {
+  const { showToast } = useToast();
+  const [workingDriverId, setWorkingDriverId] = useState(null);
+
+  const delivered = orders.filter((o) => o.status === "delivered" && o.driver_id && o.drivers);
+  const groups = {};
+  delivered.forEach((o) => {
+    const key = o.driver_id;
+    if (!groups[key]) groups[key] = { driver: o.drivers, pendingOrders: [], pendingTotal: 0 };
+    if (!o.driver_payout_settled_at) {
+      groups[key].pendingOrders.push(o.id);
+      groups[key].pendingTotal += Number(o.delivery_fee || 0) + Number(o.tip_amount || 0);
+    }
+  });
+  const rows = Object.values(groups).sort((a, b) => b.pendingTotal - a.pendingTotal);
+
+  async function handleSettle(group) {
+    setWorkingDriverId(group.driver.id);
+    try {
+      await settleDriverPayouts(group.pendingOrders);
+      showToast(`Pagamento de ${group.driver.full_name} marcado como feito.`);
+      onSettled();
+    } catch {
+      showToast("Não foi possível marcar como pago. Tenta de novo.");
+    } finally {
+      setWorkingDriverId(null);
+    }
+  }
+
+  if (rows.length === 0) {
+    return (
+      <div style={{ textAlign: "center", padding: "48px 0" }}>
+        <div style={{ width: 72, height: 72, borderRadius: "50%", background: "rgba(238,108,26,.08)",
+             display: "grid", placeItems: "center", margin: "0 auto 16px" }}>
+          <Bike size={30} color={C.orange} />
+        </div>
+        <p style={{ fontSize: 15.5, fontWeight: 700, margin: "0 0 4px" }}>Nenhuma entrega pra fechar</p>
+        <p style={{ fontSize: 13.5, color: C.grayText, margin: 0 }}>
+          Quando um entregador da plataforma entregar um pedido seu, o valor a pagar aparece aqui.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      <p style={{ fontSize: 13, color: C.grayText, margin: "0 0 4px" }}>
+        A taxa de entrega + gorjeta dos pedidos pagos por Pix/cartão online caiu na sua conta junto com o resto —
+        aqui você acompanha quanto ainda deve pra cada entregador e marca como pago depois de transferir pela chave Pix.
+      </p>
+      {rows.map((group) => (
+        <div key={group.driver.id} style={{ border: `1px solid ${C.line}`, borderRadius: RADIUS.xl, padding: "16px 18px" }}>
+          <div className="flex items-center justify-between" style={{ gap: 12, flexWrap: "wrap" }}>
+            <div>
+              <div style={{ fontSize: 15, fontWeight: 700 }}>{group.driver.full_name}</div>
+              {group.driver.pix_key ? (
+                <div style={{ fontSize: 13, color: C.grayText, marginTop: 2 }}>Pix: {group.driver.pix_key}</div>
+              ) : (
+                <div className="flex items-center gap-1" style={{ fontSize: 12.5, color: "#B42318", marginTop: 2 }}>
+                  <AlertTriangle size={12} /> Ainda não cadastrou chave Pix
+                </div>
+              )}
+            </div>
+            <div style={{ textAlign: "right" }}>
+              <div style={{ fontSize: 19, fontWeight: 700 }}>{formatBRL(group.pendingTotal)}</div>
+              <div style={{ fontSize: 12, color: C.grayText }}>
+                {group.pendingOrders.length} entrega{group.pendingOrders.length === 1 ? "" : "s"} pendente{group.pendingOrders.length === 1 ? "" : "s"}
+              </div>
+            </div>
+          </div>
+          {group.pendingOrders.length > 0 && (
+            <button type="button" onClick={() => handleSettle(group)} disabled={workingDriverId === group.driver.id}
+              style={{ marginTop: 12, width: "100%", background: C.black, color: "#fff", border: "none",
+                       cursor: workingDriverId === group.driver.id ? "default" : "pointer", borderRadius: RADIUS.md,
+                       padding: "11px 0", fontFamily: FONT, fontSize: 13.5, fontWeight: 600,
+                       opacity: workingDriverId === group.driver.id ? .6 : 1 }}>
+              {workingDriverId === group.driver.id ? "Marcando…" : "Marcar como pago"}
+            </button>
+          )}
+        </div>
+      ))}
     </div>
   );
 }
@@ -1910,6 +1997,13 @@ export default function PartnerDashboard() {
                   <h3 style={{ fontSize: 16, fontWeight: 700, margin: "0 0 16px" }}>Detalhamento do repasse</h3>
                   <RepasseDetail restaurant={restaurant} orders={orders} />
                 </div>
+              </>
+            )}
+
+            {activeSection === "fechamento" && (
+              <>
+                <h2 style={{ fontSize: 18, fontWeight: 700, margin: "0 0 18px" }}>Fechamento com entregadores</h2>
+                <DriverSettlementSection orders={orders} onSettled={reload} />
               </>
             )}
 

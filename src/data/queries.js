@@ -188,11 +188,26 @@ export async function deleteComplementItem(id) {
 export async function fetchOrdersForRestaurant(restaurantId) {
   const { data, error } = await supabase
     .from("orders")
-    .select("*, order_items(*)")
+    .select("*, order_items(*), drivers(id, full_name, pix_key)")
     .eq("restaurant_id", restaurantId)
     .order("created_at", { ascending: false });
-  if (error) throw error;
+  if (error) {
+    if (!isMissingColumnError(error)) throw error;
+    // migração da chave Pix (supabase-schema-49) ainda não rodou — segue sem o embed do entregador
+    const fallback = await supabase.from("orders").select("*, order_items(*)").eq("restaurant_id", restaurantId).order("created_at", { ascending: false });
+    if (fallback.error) throw fallback.error;
+    return fallback.data;
+  }
   return data;
+}
+
+export async function settleDriverPayouts(orderIds) {
+  if (!orderIds.length) return;
+  const { error } = await supabase
+    .from("orders")
+    .update({ driver_payout_settled_at: new Date().toISOString() })
+    .in("id", orderIds);
+  if (error) throw error;
 }
 
 export async function fetchOrderById(orderId) {

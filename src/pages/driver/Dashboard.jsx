@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Bike, Car, Package, LayoutDashboard, Clock3, LogOut, MapPin, Store, Wallet, TrendingUp,
   CheckCircle2, PauseCircle, ChevronRight, History, User as UserIcon, Bell, X, Navigation,
-  Phone, Home, Mail, IdCard, Star,
+  Phone, Home, Mail, IdCard, Star, QrCode, Pencil, Check,
 } from "lucide-react";
 import { C, FONT, RADIUS, SHADOW, formatBRL } from "../../theme";
 import { useAuth } from "../../context/AuthContext";
@@ -223,6 +223,9 @@ export default function DriverDashboard() {
   const [workingId, setWorkingId] = useState(null);
   const [offerWorking, setOfferWorking] = useState(false);
   const [locationDenied, setLocationDenied] = useState(false);
+  const [editingPixKey, setEditingPixKey] = useState(false);
+  const [pixKeyInput, setPixKeyInput] = useState("");
+  const [savingPixKey, setSavingPixKey] = useState(false);
   const coordsRef = useRef({ lat: null, lng: null });
 
   const driverQuery = useQuery({ queryKey: ["driver", "self", user?.id], queryFn: () => fetchDriverByUser(user.id), enabled: !!user });
@@ -317,6 +320,25 @@ export default function DriverDashboard() {
   async function handleSignOut() {
     await signOut();
     navigate("/");
+  }
+
+  function handleStartEditPixKey() {
+    setPixKeyInput(driver.pix_key || "");
+    setEditingPixKey(true);
+  }
+
+  async function handleSavePixKey() {
+    setSavingPixKey(true);
+    try {
+      await updateDriver(driver.id, { pix_key: pixKeyInput.trim() || null });
+      queryClient.invalidateQueries({ queryKey: ["driver", "self", user.id] });
+      setEditingPixKey(false);
+      showToast("Chave Pix salva.");
+    } catch {
+      showToast("Não foi possível salvar a chave Pix.");
+    } finally {
+      setSavingPixKey(false);
+    }
   }
 
   async function handleToggleAvailable() {
@@ -562,6 +584,50 @@ export default function DriverDashboard() {
                       </div>
                     </div>
                   ))}
+                </div>
+
+                <div style={{ marginTop: 10 }}>
+                  {editingPixKey ? (
+                    <div className="flex items-center gap-2" style={{ background: C.surface, borderRadius: RADIUS.md, padding: 14 }}>
+                      <div style={{ width: 38, height: 38, borderRadius: RADIUS.sm, background: "#fff", flexShrink: 0, display: "grid", placeItems: "center" }}>
+                        <QrCode size={17} color={C.orange} />
+                      </div>
+                      <input value={pixKeyInput} onChange={(e) => setPixKeyInput(e.target.value)}
+                        placeholder="CPF, e-mail, telefone ou chave aleatória"
+                        style={{ flex: 1, minWidth: 0, border: `1.5px solid ${C.line}`, outline: "none", borderRadius: RADIUS.sm,
+                                 padding: "8px 10px", fontFamily: FONT, fontSize: 14, background: "#fff" }} />
+                      <button type="button" onClick={handleSavePixKey} disabled={savingPixKey}
+                        aria-label="Salvar chave Pix"
+                        style={{ background: "none", border: "none", cursor: savingPixKey ? "default" : "pointer", padding: 4,
+                                 display: "grid", placeItems: "center", flexShrink: 0 }}>
+                        <Check size={18} color={C.ok} />
+                      </button>
+                      <button type="button" onClick={() => setEditingPixKey(false)} disabled={savingPixKey}
+                        aria-label="Cancelar edição da chave Pix"
+                        style={{ background: "none", border: "none", cursor: "pointer", padding: 4,
+                                 display: "grid", placeItems: "center", flexShrink: 0 }}>
+                        <X size={18} color={C.grayText} />
+                      </button>
+                    </div>
+                  ) : (
+                    <button type="button" onClick={handleStartEditPixKey} className="flex items-center gap-3"
+                      style={{ width: "100%", background: C.surface, border: "none", cursor: "pointer", textAlign: "left",
+                               borderRadius: RADIUS.md, padding: 14, fontFamily: FONT }}>
+                      <div style={{ width: 38, height: 38, borderRadius: RADIUS.sm, background: "#fff", flexShrink: 0, display: "grid", placeItems: "center" }}>
+                        <QrCode size={17} color={C.orange} />
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 12, color: C.grayText }}>Chave Pix</div>
+                        <div style={{ fontSize: 14.5, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          {driver.pix_key || "Cadastrar chave Pix"}
+                        </div>
+                      </div>
+                      <Pencil size={15} color={C.grayText} style={{ flexShrink: 0 }} />
+                    </button>
+                  )}
+                  <p style={{ fontSize: 12, color: C.grayText, margin: "8px 0 0" }}>
+                    É pra essa chave que o restaurante paga suas entregas.
+                  </p>
                 </div>
               </>
             )}
