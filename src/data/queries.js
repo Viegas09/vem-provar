@@ -210,6 +210,33 @@ export async function settleDriverPayouts(orderIds) {
   if (error) throw error;
 }
 
+export async function fetchPrivateDrivers(restaurantId) {
+  const { data, error } = await supabase
+    .from("drivers")
+    .select("*")
+    .eq("restaurant_id", restaurantId)
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return data;
+}
+
+export async function createPrivateDriver({ restaurantId, name, phone, vehicleType }) {
+  const { data: { session } } = await supabase.auth.getSession();
+  const res = await fetch("/api/create-private-driver", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${session?.access_token || ""}` },
+    body: JSON.stringify({ restaurantId, name, phone, vehicleType }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Não foi possível criar o acesso do entregador.");
+  return data;
+}
+
+export async function assignOrderToDriver(orderId, driverId) {
+  const { error } = await supabase.from("orders").update({ driver_id: driverId }).eq("id", orderId);
+  if (error) throw error;
+}
+
 export async function fetchOrderById(orderId) {
   const res = await fetch(`/api/get-order?id=${encodeURIComponent(orderId)}`);
   if (res.status === 404) return null;
@@ -228,8 +255,14 @@ export async function updateOrderStatus(orderId, status) {
 }
 
 export async function fetchDriverByUser(userId) {
-  const { data, error } = await supabase.from("drivers").select("*").eq("user_id", userId).maybeSingle();
-  if (error) throw error;
+  const { data, error } = await supabase.from("drivers").select("*, restaurants(name)").eq("user_id", userId).maybeSingle();
+  if (error) {
+    if (!isMissingColumnError(error)) throw error;
+    // migração do entregador privado (supabase-schema-50) ainda não rodou — segue sem o embed do restaurante
+    const fallback = await supabase.from("drivers").select("*").eq("user_id", userId).maybeSingle();
+    if (fallback.error) throw fallback.error;
+    return fallback.data;
+  }
   return data;
 }
 

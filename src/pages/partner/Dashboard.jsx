@@ -17,7 +17,7 @@ import {
   updateOrderStatus, updateRestaurant, uploadMenuItemPhoto, uploadRestaurantPhoto, renameMenuCategory,
   createComplementGroup, deleteComplementGroup, createComplementItem, deleteComplementItem,
   fetchCouponsForRestaurant, updateCoupon, fetchOpenIssuesForRestaurant, resolveOrderIssue,
-  settleDriverPayouts,
+  settleDriverPayouts, fetchPrivateDrivers, createPrivateDriver, assignOrderToDriver,
 } from "../../data/queries";
 import { getCommissionRate, isInPromoPeriod, promoEndsAt } from "../../lib/commission";
 import { ISSUE_TYPE_LABELS } from "../../lib/orderIssue";
@@ -1209,7 +1209,7 @@ function ComplementsManager({ item, onChange }) {
   );
 }
 
-function OrderCard({ order, onStatusChange, onOpenChat, isNew, issue, onResolveIssue }) {
+function OrderCard({ order, onStatusChange, onOpenChat, isNew, issue, onResolveIssue, privateDrivers, onAssignDriver }) {
   const meta = STATUS_META[order.status] || STATUS_META.pending;
   const [now, setNow] = useState(() => Date.now());
   const [issueOpen, setIssueOpen] = useState(false);
@@ -1315,6 +1315,20 @@ function OrderCard({ order, onStatusChange, onOpenChat, isNew, issue, onResolveI
           <option key={s.value} value={s.value}>{s.label}</option>
         ))}
       </select>
+      {privateDrivers && privateDrivers.length > 0 && order.status !== "delivered" && order.status !== "cancelled" && (
+        <div className="flex items-center gap-1.5" style={{ marginTop: 8 }}>
+          <Bike size={13} color={C.grayText} style={{ flexShrink: 0 }} />
+          <select value={order.driver_id || ""} onChange={(e) => onAssignDriver(order.id, e.target.value || null)}
+            style={{ flex: 1, border: `1.5px solid ${C.line}`, outline: "none", borderRadius: RADIUS.xs,
+                     padding: "5px 8px", fontFamily: FONT, fontSize: 11.5, fontWeight: 600, background: "#fff",
+                     color: C.grayText, cursor: "pointer" }}>
+            <option value="">Sem entregador atribuído</option>
+            {privateDrivers.map((d) => (
+              <option key={d.id} value={d.id}>{d.full_name}</option>
+            ))}
+          </select>
+        </div>
+      )}
       {order.customer_id && (
         <button onClick={() => onOpenChat(order)} className="flex items-center justify-center gap-1"
           style={{ width: "100%", marginTop: 8, background: "none", border: `1px solid ${C.line}`, borderRadius: RADIUS.xs,
@@ -1341,6 +1355,113 @@ function OrderChatModal({ order, onClose }) {
         </div>
         <OrderChat orderId={order.id} sender="restaurant" emptyLabel="Nenhuma mensagem do cliente ainda." />
       </div>
+    </div>
+  );
+}
+
+function PrivateDriversCard({ restaurant, drivers, onCreated }) {
+  const [showForm, setShowForm] = useState(false);
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [vehicleType, setVehicleType] = useState("moto");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState(null);
+  const [createdCreds, setCreatedCreds] = useState(null);
+
+  async function handleCreate(e) {
+    e.preventDefault();
+    setSaving(true);
+    setError(null);
+    try {
+      const result = await createPrivateDriver({ restaurantId: restaurant.id, name, phone, vehicleType });
+      setCreatedCreds(result);
+      setName(""); setPhone(""); setVehicleType("moto");
+      setShowForm(false);
+      onCreated();
+    } catch (err) {
+      setError(err.message || "Não foi possível criar o acesso. Tente de novo.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div style={{ background: "#fff", border: `1px solid ${C.line}`, borderRadius: RADIUS.xl, padding: 18, marginBottom: 20 }}>
+      <div className="flex items-center gap-2" style={{ marginBottom: 4 }}>
+        <Bike size={16} color={C.orange} />
+        <span style={{ fontSize: 14.5, fontWeight: 700 }}>Seus entregadores</span>
+      </div>
+      <p style={{ fontSize: 13, color: C.grayText, margin: "0 0 12px", lineHeight: 1.5 }}>
+        Crie um acesso pro seu motoboy acompanhar e atualizar as entregas pelo celular — com mapa ao vivo pro
+        cliente, igual os entregadores da plataforma. Ele não entra na fila de corridas de outros restaurantes.
+      </p>
+
+      {createdCreds && (
+        <div style={{ background: "rgba(46,158,91,.08)", border: `1px solid ${C.ok}`, borderRadius: RADIUS.md, padding: 14, marginBottom: 14 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: C.ok, marginBottom: 6 }}>Acesso criado! Repassa isso pro seu entregador:</div>
+          <div style={{ fontSize: 13, fontFamily: "monospace" }}>Login: {createdCreds.email}</div>
+          <div style={{ fontSize: 13, fontFamily: "monospace" }}>Senha: {createdCreds.password}</div>
+          <p style={{ fontSize: 11.5, color: C.grayText, margin: "8px 0 0" }}>
+            Guarda essa senha agora — ela só aparece aqui essa vez. Ele entra pelo vemprovar.com.br/entregador/entrar.
+          </p>
+        </div>
+      )}
+
+      {drivers.length > 0 && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 14 }}>
+          {drivers.map((d) => (
+            <div key={d.id} className="flex items-center gap-2" style={{ background: C.surface, borderRadius: RADIUS.md, padding: "10px 12px" }}>
+              <div style={{ width: 30, height: 30, borderRadius: "50%", background: C.orange, color: "#fff",
+                   display: "grid", placeItems: "center", fontSize: 13, fontWeight: 700, flexShrink: 0 }}>
+                {d.full_name.charAt(0).toUpperCase()}
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 13.5, fontWeight: 600 }}>{d.full_name}</div>
+                <div style={{ fontSize: 11.5, color: C.grayText }}>{d.phone || "sem telefone cadastrado"}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {showForm ? (
+        <form onSubmit={handleCreate} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          <input required value={name} onChange={(e) => setName(e.target.value)} placeholder="Nome do entregador"
+            style={{ border: `1.5px solid ${C.line}`, outline: "none", borderRadius: RADIUS.sm, padding: "9px 12px",
+                     fontFamily: FONT, fontSize: 14 }} />
+          <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Telefone (opcional)"
+            style={{ border: `1.5px solid ${C.line}`, outline: "none", borderRadius: RADIUS.sm, padding: "9px 12px",
+                     fontFamily: FONT, fontSize: 14 }} />
+          <select value={vehicleType} onChange={(e) => setVehicleType(e.target.value)}
+            style={{ border: `1.5px solid ${C.line}`, outline: "none", borderRadius: RADIUS.sm, padding: "9px 12px",
+                     fontFamily: FONT, fontSize: 14, background: "#fff" }}>
+            <option value="moto">Moto</option>
+            <option value="bike">Bicicleta</option>
+            <option value="carro">Carro</option>
+          </select>
+          {error && (
+            <div style={{ background: "#FDECEC", color: "#B42318", borderRadius: RADIUS.sm, padding: 10, fontSize: 12.5 }}>{error}</div>
+          )}
+          <div className="flex items-center gap-2">
+            <button type="submit" disabled={saving}
+              style={{ background: C.orange, color: "#fff", border: "none", cursor: saving ? "default" : "pointer",
+                       borderRadius: RADIUS.sm, padding: "9px 16px", fontFamily: FONT, fontSize: 13.5, fontWeight: 600 }}>
+              {saving ? "Criando…" : "Criar acesso"}
+            </button>
+            <button type="button" onClick={() => setShowForm(false)}
+              style={{ background: "none", border: "none", cursor: "pointer", color: C.grayText,
+                       fontFamily: FONT, fontSize: 13.5, fontWeight: 600 }}>
+              Cancelar
+            </button>
+          </div>
+        </form>
+      ) : (
+        <button type="button" onClick={() => setShowForm(true)} className="flex items-center gap-1.5"
+          style={{ background: "none", border: `1.5px solid ${C.line}`, borderRadius: RADIUS.md, cursor: "pointer",
+                   padding: "9px 14px", fontFamily: FONT, fontSize: 13.5, fontWeight: 600, color: C.black }}>
+          <Plus size={15} /> Adicionar entregador
+        </button>
+      )}
     </div>
   );
 }
@@ -1538,10 +1659,16 @@ export default function PartnerDashboard() {
     enabled: !!restaurant?.id,
     refetchInterval: 30000,
   });
+  const privateDriversQuery = useQuery({
+    queryKey: ["partner", "private-drivers", restaurant?.id],
+    queryFn: () => fetchPrivateDrivers(restaurant.id),
+    enabled: !!restaurant?.id,
+  });
   useOrdersRealtime(partnerOrdersKey(restaurant?.id), { restaurantId: restaurant?.id, enabled: !!restaurant?.id });
 
   const orders = ordersQuery.data || [];
   const coupons = couponsQuery.data || [];
+  const privateDrivers = privateDriversQuery.data || [];
   const issuesByOrderId = {};
   (issuesQuery.data || []).forEach((iss) => { issuesByOrderId[iss.order_id] = iss; });
   const loading = restaurantQuery.isLoading || (!!restaurant?.id && (ordersQuery.isLoading || couponsQuery.isLoading));
@@ -1650,6 +1777,7 @@ export default function PartnerDashboard() {
         queryClient.invalidateQueries({ queryKey: partnerOrdersKey(restaurant.id) }),
         queryClient.invalidateQueries({ queryKey: partnerCouponsKey(restaurant.id) }),
         queryClient.invalidateQueries({ queryKey: partnerIssuesKey(restaurant.id) }),
+        queryClient.invalidateQueries({ queryKey: ["partner", "private-drivers", restaurant.id] }),
       ]);
     }
   }
@@ -1716,6 +1844,11 @@ export default function PartnerDashboard() {
 
   async function handleResolveIssue(issueId, note) {
     await resolveOrderIssue(issueId, note);
+    reload();
+  }
+
+  async function handleAssignDriver(orderId, driverId) {
+    await assignOrderToDriver(orderId, driverId || null);
     reload();
   }
 
@@ -1925,7 +2058,8 @@ export default function PartnerDashboard() {
                               list.map((order) => (
                                 <OrderCard key={order.id} order={order} onStatusChange={handleStatusChange}
                                   onOpenChat={setChatOrder} isNew={newOrderIds.has(order.id)}
-                                  issue={issuesByOrderId[order.id]} onResolveIssue={handleResolveIssue} />
+                                  issue={issuesByOrderId[order.id]} onResolveIssue={handleResolveIssue}
+                                  privateDrivers={privateDrivers} onAssignDriver={handleAssignDriver} />
                               ))
                             )}
                           </div>
@@ -1959,6 +2093,10 @@ export default function PartnerDashboard() {
                       {restaurant.use_platform_drivers !== false ? "Usando entregadores da plataforma" : "Usando meu próprio motoboy"}
                     </button>
                   </div>
+                )}
+
+                {(restaurant.plan !== "entrega" || restaurant.use_platform_drivers === false) && (
+                  <PrivateDriversCard restaurant={restaurant} drivers={privateDrivers} onCreated={reload} />
                 )}
                 <RestaurantProfileForm restaurant={restaurant} onSaved={reload} />
                 <BusinessHoursForm restaurant={restaurant} onSaved={reload} />

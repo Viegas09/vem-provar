@@ -230,12 +230,13 @@ export default function DriverDashboard() {
 
   const driverQuery = useQuery({ queryKey: ["driver", "self", user?.id], queryFn: () => fetchDriverByUser(user.id), enabled: !!user });
   const driver = driverQuery.data;
+  const isPrivateDriver = !!driver?.restaurant_id;
 
-  const availableQuery = useQuery({ queryKey: ["driver", "available"], queryFn: fetchAvailableDeliveries, enabled: !!driver });
+  const availableQuery = useQuery({ queryKey: ["driver", "available"], queryFn: fetchAvailableDeliveries, enabled: !!driver && !isPrivateDriver });
   const mineQuery = useQuery({ queryKey: ["driver", "mine", driver?.id], queryFn: () => fetchDriverOrders(driver.id), enabled: !!driver });
   const offerQuery = useQuery({
     queryKey: ["driver", "offer", driver?.id], queryFn: () => fetchMyActiveOffer(driver.id),
-    enabled: !!driver, refetchInterval: OFFER_POLL_MS,
+    enabled: !!driver && !isPrivateDriver, refetchInterval: OFFER_POLL_MS,
   });
   const reviewsQuery = useQuery({ queryKey: ["driver", "reviews", driver?.id], queryFn: () => fetchReviewsForDriver(driver.id), enabled: !!driver });
   const driverReviews = reviewsQuery.data || [];
@@ -296,7 +297,7 @@ export default function DriverDashboard() {
   // travar o oferecimento da mais antiga — o banco decide quem ganha (mais perto do
   // restaurante entre os disponíveis), então isso é só "levantar a mão" periodicamente
   useEffect(() => {
-    if (!driver?.available || activeOffer || available.length === 0) return;
+    if (isPrivateDriver || !driver?.available || activeOffer || available.length === 0) return;
     let cancelled = false;
     const { lat, lng } = coordsRef.current;
     tryClaimOffer(driver.id, lat, lng).then((offer) => {
@@ -416,22 +417,35 @@ export default function DriverDashboard() {
             </div>
           </div>
 
-          <button onClick={handleToggleAvailable} className="flex items-center gap-2"
-            style={{ background: driver.available ? "rgba(46,158,91,.1)" : "rgba(180,35,24,.08)",
-                     border: `1px solid ${driver.available ? C.ok : "#B42318"}`, borderRadius: RADIUS.md,
-                     padding: "10px 12px", cursor: "pointer", textAlign: "left", width: "100%" }}>
-            {driver.available ? <CheckCircle2 size={17} color={C.ok} style={{ flexShrink: 0 }} /> : <PauseCircle size={17} color="#B42318" style={{ flexShrink: 0 }} />}
-            <div>
-              <div style={{ fontSize: 13, fontWeight: 700, color: driver.available ? C.ok : "#B42318" }}>
-                {driver.available ? "Disponível" : "Indisponível"}
+          {isPrivateDriver ? (
+            <div style={{ background: "rgba(238,108,26,.08)", border: `1px solid ${C.orange}`, borderRadius: RADIUS.md, padding: "10px 12px" }}>
+              <div className="flex items-center gap-2">
+                <Bike size={17} color={C.orange} style={{ flexShrink: 0 }} />
+                <div style={{ fontSize: 13, fontWeight: 700, color: C.orange }}>
+                  Entregador de {driver.restaurants?.name || "restaurante"}
+                </div>
               </div>
-              <div style={{ fontSize: 11, color: C.grayText }}>Clique pra {driver.available ? "pausar" : "voltar a receber corridas"}</div>
             </div>
-          </button>
+          ) : (
+            <button onClick={handleToggleAvailable} className="flex items-center gap-2"
+              style={{ background: driver.available ? "rgba(46,158,91,.1)" : "rgba(180,35,24,.08)",
+                       border: `1px solid ${driver.available ? C.ok : "#B42318"}`, borderRadius: RADIUS.md,
+                       padding: "10px 12px", cursor: "pointer", textAlign: "left", width: "100%" }}>
+              {driver.available ? <CheckCircle2 size={17} color={C.ok} style={{ flexShrink: 0 }} /> : <PauseCircle size={17} color="#B42318" style={{ flexShrink: 0 }} />}
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: driver.available ? C.ok : "#B42318" }}>
+                  {driver.available ? "Disponível" : "Indisponível"}
+                </div>
+                <div style={{ fontSize: 11, color: C.grayText }}>Clique pra {driver.available ? "pausar" : "voltar a receber corridas"}</div>
+              </div>
+            </button>
+          )}
 
-          {driver.available && locationDenied && (
+          {((isPrivateDriver && inProgress.length > 0) || (!isPrivateDriver && driver.available)) && locationDenied && (
             <div style={{ fontSize: 11.5, color: "#B42318", background: "#FDECEC", borderRadius: RADIUS.sm, padding: "8px 10px" }}>
-              Ative a localização do navegador pra receber corridas mais perto de você primeiro.
+              {isPrivateDriver
+                ? "Ative a localização do navegador pro cliente acompanhar sua entrega no mapa."
+                : "Ative a localização do navegador pra receber corridas mais perto de você primeiro."}
             </div>
           )}
 
@@ -465,7 +479,7 @@ export default function DriverDashboard() {
               <>
                 <div className="flex items-center gap-3" style={{ marginBottom: 20, flexWrap: "wrap" }}>
                   <h1 style={{ fontSize: 22, fontWeight: 700, margin: 0 }}>Início</h1>
-                  <LiveIndicator updatedAt={availableQuery.dataUpdatedAt} />
+                  {!isPrivateDriver && <LiveIndicator updatedAt={availableQuery.dataUpdatedAt} />}
                 </div>
                 <div className="vp-dash-stats" style={{ marginBottom: 28 }}>
                   <StatTile icon={Package} label="Corridas hoje" value={deliveredToday.length} />
@@ -473,13 +487,13 @@ export default function DriverDashboard() {
                   <StatTile icon={Clock3} label="Em andamento" value={inProgress.length} />
                 </div>
 
-                {!driver.available && (
+                {!isPrivateDriver && !driver.available && (
                   <div style={{ background: "#FDECEC", color: "#B42318", borderRadius: RADIUS.md, padding: "12px 14px", fontSize: 13.5, fontWeight: 600, marginBottom: 24 }}>
                     Você está indisponível — novas corridas não aparecem aqui até você voltar a ficar disponível.
                   </div>
                 )}
 
-                {inProgress.length > 0 && (
+                {inProgress.length > 0 ? (
                   <>
                     <h2 style={{ fontSize: 16, fontWeight: 700, margin: "0 0 12px" }}>Suas corridas em andamento</h2>
                     <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 28 }}>
@@ -497,23 +511,34 @@ export default function DriverDashboard() {
                       ))}
                     </div>
                   </>
+                ) : isPrivateDriver && (
+                  <div style={{ background: C.surface, borderRadius: RADIUS.lg, padding: 24, textAlign: "center", marginBottom: 28 }}>
+                    <Package size={26} color={C.gray} style={{ margin: "0 auto 10px" }} />
+                    <p style={{ color: C.grayText, fontSize: 14, margin: 0 }}>
+                      Nenhuma entrega atribuída a você no momento. O restaurante atribui pelo painel dele.
+                    </p>
+                  </div>
                 )}
 
-                <h2 style={{ fontSize: 16, fontWeight: 700, margin: "0 0 4px" }}>Corridas na fila</h2>
-                <p style={{ fontSize: 12.5, color: C.grayText, margin: "0 0 12px" }}>
-                  Elas pingam pra você automaticamente, uma de cada vez — não precisa clicar aqui.
-                </p>
-                {available.length === 0 ? (
-                  <div style={{ background: C.surface, borderRadius: RADIUS.lg, padding: 24, textAlign: "center" }}>
-                    <Package size={26} color={C.gray} style={{ margin: "0 auto 10px" }} />
-                    <p style={{ color: C.grayText, fontSize: 14, margin: 0 }}>Nenhuma corrida disponível no momento.</p>
-                  </div>
-                ) : (
-                  <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                    {available.map((o) => (
-                      <DeliveryCard key={o.id} order={o} />
-                    ))}
-                  </div>
+                {!isPrivateDriver && (
+                  <>
+                    <h2 style={{ fontSize: 16, fontWeight: 700, margin: "0 0 4px" }}>Corridas na fila</h2>
+                    <p style={{ fontSize: 12.5, color: C.grayText, margin: "0 0 12px" }}>
+                      Elas pingam pra você automaticamente, uma de cada vez — não precisa clicar aqui.
+                    </p>
+                    {available.length === 0 ? (
+                      <div style={{ background: C.surface, borderRadius: RADIUS.lg, padding: 24, textAlign: "center" }}>
+                        <Package size={26} color={C.gray} style={{ margin: "0 auto 10px" }} />
+                        <p style={{ color: C.grayText, fontSize: 14, margin: 0 }}>Nenhuma corrida disponível no momento.</p>
+                      </div>
+                    ) : (
+                      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                        {available.map((o) => (
+                          <DeliveryCard key={o.id} order={o} />
+                        ))}
+                      </div>
+                    )}
+                  </>
                 )}
               </>
             )}
